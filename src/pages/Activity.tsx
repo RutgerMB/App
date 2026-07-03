@@ -23,13 +23,14 @@ export function ActivityPage() {
   return (
     <AppShell>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <ProPromo variant="activity" compact />
         <div className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">{t('activity.title')}</h1>
           <p className="text-white/40 text-sm mt-1">{t('activity.subtitle')}</p>
         </div>
 
         <ActivityInsights />
+
+        <ProPromo variant="activity" compact />
 
         <div className="grid grid-cols-3 gap-3 mb-8">
           <MotionCard className="p-4 text-center">

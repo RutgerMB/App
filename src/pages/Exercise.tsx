@@ -30,7 +30,6 @@ export function ExercisePage() {
   return (
     <AppShell>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <ProPromo variant="exercise" compact />
         <div className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">{t('exercise.title')}</h1>
           <p className="text-white/40 text-sm mt-1">{t('exercise.subtitle')}</p>
@@ -77,6 +76,8 @@ export function ExercisePage() {
             })}
           </div>
         </section>
+
+        <ProPromo variant="exercise" compact />
 
         <section>
           <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">

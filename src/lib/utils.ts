@@ -38,8 +38,10 @@ export function formatPrice(amount: number, currency = 'EUR'): string {
   }).format(amount)
 }
 
+import { apiFetch } from '@/lib/api'
+
 export async function createCheckoutSession(priceId: string): Promise<string> {
-  const res = await fetch('/api/checkout', {
+  const res = await apiFetch('/api/checkout', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ priceId }),
@@ -57,13 +59,13 @@ export async function verifySession(sessionId: string): Promise<{
   customerId?: string
   subscriptionId?: string
 }> {
-  const res = await fetch(`/api/verify-session?session_id=${sessionId}`)
+  const res = await apiFetch(`/api/verify-session?session_id=${sessionId}`)
   if (!res.ok) throw new Error('Verification failed')
   return res.json()
 }
 
 export async function getSubscriptionStatus(customerId: string): Promise<{ isPro: boolean; status: string }> {
-  const res = await fetch(`/api/subscription?customer_id=${customerId}`)
+  const res = await apiFetch(`/api/subscription?customer_id=${customerId}`)
   if (!res.ok) return { isPro: false, status: 'none' }
   return res.json()
 }

@@ -33,6 +33,28 @@ export interface Translations {
     activity: string
     settings: string
   }
+  auth: {
+    loginTitle: string
+    loginSubtitle: string
+    registerTitle: string
+    registerSubtitle: string
+    email: string
+    password: string
+    confirmPassword: string
+    displayName: string
+    passwordHint: string
+    signIn: string
+    signOut: string
+    createAccount: string
+    noAccount: string
+    haveAccount: string
+    welcomeBack: string
+    accountCreated: string
+    loginFailed: string
+    registerFailed: string
+    passwordMismatch: string
+    passwordTooShort: string
+  }
   onboarding: {
     tagline: string
     getStarted: string

@@ -7,6 +7,8 @@ import {
 import { MotionButton } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { createCheckoutSession, formatPrice } from '@/lib/utils'
+import { shouldUseNativeStripeCheckout, presentNativeProCheckout } from '@/lib/stripe'
+import { useAuthStore } from '@/store/auth'
 import { useToast } from '@/components/ui/Toast'
 import { useStore } from '@/store'
 import { PRO_PRICE_MONTHLY, TRIAL_APP_LIMIT } from '@/types'
@@ -21,7 +23,8 @@ export function PricingPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const { t } = useTranslation()
-  const { profile } = useStore()
+  const { profile, setProStatus } = useStore()
+  const authUser = useAuthStore((s) => s.user)
   const [loading, setLoading] = useState(false)
 
   const trialStatus = getTrialStatus(profile)
@@ -51,6 +54,17 @@ export function PricingPage() {
 
     setLoading(true)
     try {
+      if (shouldUseNativeStripeCheckout()) {
+        const result = await presentNativeProCheckout(
+          authUser?.email ?? profile.email,
+          profile.stripeCustomerId
+        )
+        setProStatus(true, result.customerId, result.subscriptionId, 'active')
+        toast(t('pricing.onPro'), 'success')
+        navigate('/success?native=1', { replace: true })
+        return
+      }
+
       const url = await createCheckoutSession('pro_monthly')
       window.location.href = url
     } catch (err) {

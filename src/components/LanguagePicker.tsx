@@ -89,24 +89,32 @@ export function LanguageDropdown({ value, onChange }: LanguageDropdownProps) {
   )
 }
 
-export function LanguagePicker({ value, onChange, className }: LanguageDropdownProps & { className?: string }) {
+export function LanguagePicker({
+  value,
+  onChange,
+  className,
+  large,
+}: LanguageDropdownProps & { className?: string; large?: boolean }) {
   const sorted = [...LOCALES].sort((a, b) => a.label.localeCompare(b.label))
   return (
-    <div className={cn('grid grid-cols-1 gap-2', className)}>
+    <div className={cn('grid grid-cols-1', large ? 'gap-3' : 'gap-2', className)}>
       {sorted.map((loc) => (
         <button
           key={loc.code}
           onClick={() => onChange(loc.code)}
           className={cn(
-            'flex items-center gap-3 p-4 rounded-2xl border transition-all text-left',
+            'flex items-center gap-4 rounded-2xl border transition-all text-left',
+            large ? 'p-5' : 'p-4 gap-3',
             value === loc.code
               ? 'bg-indigo-500/15 border-indigo-500/40'
               : 'bg-surface-2 border-border hover:border-border-hover'
           )}
         >
-          <span className="text-2xl">{loc.flag}</span>
-          <span className="font-medium text-sm">{loc.label}</span>
-          {value === loc.code && <span className="ml-auto w-2 h-2 rounded-full bg-indigo-400" />}
+          <span className={large ? 'text-3xl' : 'text-2xl'}>{loc.flag}</span>
+          <span className={cn('font-medium', large ? 'text-lg' : 'text-sm')}>{loc.label}</span>
+          {value === loc.code && (
+            <span className={cn('ml-auto rounded-full bg-indigo-400', large ? 'w-2.5 h-2.5' : 'w-2 h-2')} />
+          )}
         </button>
       ))}
     </div>

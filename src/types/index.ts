@@ -86,6 +86,7 @@ export type Difficulty = 'easy' | 'medium' | 'hard' | 'unstoppable'
 
 export interface UserProfile {
   name: string
+  email?: string
   locale: Locale
   difficulty: Difficulty
   onboardingComplete: boolean

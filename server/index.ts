@@ -11,6 +11,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
 const PORT = process.env.PORT || 3001
 
+import {
+  handleRegister,
+  handleLogin,
+  handleGetSync,
+  handlePutSync,
+  authMiddleware,
+} from './auth.js'
+
 const stripeKey = process.env.STRIPE_SECRET_KEY
 
 if (!stripeKey) {
@@ -23,9 +31,6 @@ const stripe = stripeKey
 
 // In-memory price mapping (created on first checkout if no price ID env var)
 let proPriceId = process.env.STRIPE_PRICE_ID || ''
-
-app.use(cors())
-app.use(express.json())
 
 async function ensureProPrice(): Promise<string> {
   if (proPriceId) return proPriceId
@@ -47,6 +52,64 @@ async function ensureProPrice(): Promise<string> {
   console.log(`Created Stripe price: ${proPriceId}`)
   return proPriceId
 }
+
+app.use(cors())
+app.use(express.json())
+
+app.post('/api/auth/register', handleRegister)
+app.post('/api/auth/login', handleLogin)
+app.get('/api/auth/sync', authMiddleware, handleGetSync)
+app.put('/api/auth/sync', authMiddleware, handlePutSync)
+
+app.post('/api/subscription/payment-sheet', async (req, res) => {
+  try {
+    if (!stripe) {
+      return res.status(503).json({ error: 'Stripe is not configured. Add STRIPE_SECRET_KEY to .env' })
+    }
+
+    const { email, customerId } = req.body as { email?: string; customerId?: string }
+    const priceId = await ensureProPrice()
+
+    let customer: Stripe.Customer
+    if (customerId) {
+      customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer
+    } else if (email) {
+      const existing = await stripe.customers.list({ email, limit: 1 })
+      customer = existing.data[0] ?? (await stripe.customers.create({ email }))
+    } else {
+      customer = await stripe.customers.create()
+    }
+
+    const subscription = await stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ price: priceId }],
+      payment_behavior: 'default_incomplete',
+      payment_settings: { save_default_payment_method: 'on_subscription' },
+      expand: ['latest_invoice.payment_intent'],
+    })
+
+    const invoice = subscription.latest_invoice as Stripe.Invoice
+    const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent
+    if (!paymentIntent?.client_secret) {
+      return res.status(500).json({ error: 'Could not create payment intent' })
+    }
+
+    const ephemeralKey = await stripe.ephemeralKeys.create(
+      { customer: customer.id },
+      { apiVersion: '2025-02-24.acacia' }
+    )
+
+    res.json({
+      paymentIntentClientSecret: paymentIntent.client_secret,
+      customerId: customer.id,
+      subscriptionId: subscription.id,
+      ephemeralKey: ephemeralKey.secret,
+    })
+  } catch (err) {
+    console.error('Payment sheet error:', err)
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Payment setup failed' })
+  }
+})
 
 app.post('/api/checkout', async (req, res) => {
   try {
@@ -139,6 +202,15 @@ app.get('/api/health', (_req, res) => {
   })
 })
 
+const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
+
+// In dev, port 3001 is API-only — send browsers to the Vite app
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/', (_req, res) => {
+    res.redirect(clientUrl)
+  })
+}
+
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../dist')))
@@ -147,7 +219,8 @@ if (process.env.NODE_ENV === 'production') {
   })
 }
 
-app.listen(PORT, () => {
+app.listen(Number(PORT), '0.0.0.0', () => {
   console.log(`🚀 RepLock server running on http://localhost:${PORT}`)
+  console.log(`   App (dev): ${clientUrl}`)
   console.log(`   Stripe: ${stripe ? 'configured' : 'demo mode'}`)
 })

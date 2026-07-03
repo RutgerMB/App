@@ -15,6 +15,11 @@ export function SuccessPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
 
   useEffect(() => {
+    if (searchParams.get('native') === '1') {
+      setStatus('success')
+      return
+    }
+
     const sessionId = searchParams.get('session_id')
     if (!sessionId) {
       setStatus('error')

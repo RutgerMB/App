@@ -13,6 +13,7 @@ import { LanguageDropdown } from '@/components/LanguagePicker'
 import { DifficultyPicker } from '@/components/DifficultyPicker'
 import { ProPromo } from '@/components/ProPromo'
 import { useStore } from '@/store'
+import { useAuthStore } from '@/store/auth'
 import { useToast } from '@/components/ui/Toast'
 import { formatMinutes } from '@/lib/utils'
 import { useTranslation } from '@/i18n/context'
@@ -22,6 +23,8 @@ export function SettingsPage() {
   const { toast } = useToast()
   const { t } = useTranslation()
   const { profile, screenTimeBalance, totalEarnedMinutes, currentStreak, resetDailyUsage, setLocale, setDifficulty } = useStore()
+  const user = useAuthStore((s) => s.user)
+  const logout = useAuthStore((s) => s.logout)
   const [showReset, setShowReset] = useState(false)
 
   const handleResetDaily = () => {
@@ -37,7 +40,7 @@ export function SettingsPage() {
         {
           icon: User,
           label: t('settings.profile'),
-          value: profile.name,
+          value: user?.email ?? profile.email ?? profile.name,
           action: () => {},
         },
         {
@@ -95,8 +98,6 @@ export function SettingsPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold tracking-tight">{t('settings.title')}</h1>
         </div>
-
-        <ProPromo variant="settings" compact />
 
         {/* Profile Card */}
         <MotionCard className="p-5 mb-6 gradient-border">
@@ -176,6 +177,8 @@ export function SettingsPage() {
           </div>
         ))}
 
+        <ProPromo variant="settings" compact />
+
         {/* Blocking info */}
         <MotionCard className="p-4 mb-6 border border-amber-500/20 bg-amber-500/5">
           <h3 className="text-sm font-semibold text-amber-200 mb-2">{t('settings.blockingTitle')}</h3>
@@ -198,6 +201,14 @@ export function SettingsPage() {
             </div>
           </div>
         </MotionCard>
+
+        <button
+          onClick={logout}
+          className="w-full mb-6 flex items-center justify-center gap-2 h-12 rounded-xl border border-red-500/25 bg-red-500/10 text-red-400 text-sm font-medium hover:bg-red-500/15 transition-colors"
+        >
+          <LogOut size={16} />
+          {t('auth.signOut')}
+        </button>
 
         <p className="text-center text-xs text-white/20 pb-4">
           RepLock v1.0.0 · {t('settings.version')}

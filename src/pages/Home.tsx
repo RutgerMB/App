@@ -33,7 +33,6 @@ export function HomePage() {
     <AppShell>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
         <TrialBanner />
-        <ProPromo variant="home" compact />
 
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
@@ -98,6 +97,8 @@ export function HomePage() {
             <p className="text-[10px] text-white/35 uppercase mt-1">{t('home.appsTracked')}</p>
           </MotionCard>
         </div>
+
+        <ProPromo variant="home" compact />
 
         {/* Apps overview */}
         <section>

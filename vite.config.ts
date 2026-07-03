@@ -13,6 +13,13 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    host: true,
+    watch: {
+      ignored: ['**/android/**', '**/ios/**'],
+    },
+    fs: {
+      deny: ['**/android/**', '**/ios/**'],
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

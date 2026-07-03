@@ -1,7 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { ToastProvider } from '@/components/ui/Toast'
 import { useStore } from '@/store'
+import { useAuthStore } from '@/store/auth'
 import { OnboardingPage } from '@/pages/Onboarding'
+import { LoginPage, RegisterPage } from '@/pages/Auth'
 import { HomePage } from '@/pages/Home'
 import { ExercisePage, ExerciseCategoryPage } from '@/pages/Exercise'
 import { ExerciseSessionPage } from '@/pages/ExerciseSession'
@@ -13,83 +15,49 @@ import { PricingPage } from '@/pages/Pricing'
 import { SuccessPage } from '@/pages/Success'
 import { CancelPage } from '@/pages/Cancel'
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function AuthRoute({ children }: { children: React.ReactNode }) {
+  const token = useAuthStore((s) => s.token)
   const onboardingComplete = useStore((s) => s.profile.onboardingComplete)
+  if (!token) return <Navigate to="/login" replace />
   if (!onboardingComplete) return <Navigate to="/onboarding" replace />
   return <>{children}</>
+}
+
+function GuestRoute({ children }: { children: React.ReactNode }) {
+  const token = useAuthStore((s) => s.token)
+  const onboardingComplete = useStore((s) => s.profile.onboardingComplete)
+  if (token) {
+    return <Navigate to={onboardingComplete ? '/' : '/onboarding'} replace />
+  }
+  return <>{children}</>
+}
+
+function OnboardingRoute() {
+  const token = useAuthStore((s) => s.token)
+  const onboardingComplete = useStore((s) => s.profile.onboardingComplete)
+  if (!token) return <Navigate to="/login" replace />
+  if (onboardingComplete) return <Navigate to="/" replace />
+  return <OnboardingPage />
 }
 
 export default function App() {
   return (
     <ToastProvider>
       <Routes>
-        <Route path="/onboarding" element={<OnboardingPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/success" element={<SuccessPage />} />
-        <Route path="/cancel" element={<CancelPage />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <HomePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/exercise"
-          element={
-            <ProtectedRoute>
-              <ExercisePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/exercise/category/:category"
-          element={
-            <ProtectedRoute>
-              <ExerciseCategoryPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          element={
-            <ProtectedRoute>
-              <ExerciseSessionPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/exercise/workout"
-          element={
-            <ProtectedRoute>
-              <WorkoutSessionPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/apps"
-          element={
-            <ProtectedRoute>
-              <AppsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/activity"
-          element={
-            <ProtectedRoute>
-              <ActivityPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <SettingsPage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+        <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+        <Route path="/onboarding" element={<OnboardingRoute />} />
+        <Route path="/pricing" element={<AuthRoute><PricingPage /></AuthRoute>} />
+        <Route path="/success" element={<AuthRoute><SuccessPage /></AuthRoute>} />
+        <Route path="/cancel" element={<AuthRoute><CancelPage /></AuthRoute>} />
+        <Route path="/" element={<AuthRoute><HomePage /></AuthRoute>} />
+        <Route path="/exercise" element={<AuthRoute><ExercisePage /></AuthRoute>} />
+        <Route path="/exercise/category/:category" element={<AuthRoute><ExerciseCategoryPage /></AuthRoute>} />
+        <Route path="/exercise/session" element={<AuthRoute><ExerciseSessionPage /></AuthRoute>} />
+        <Route path="/exercise/workout" element={<AuthRoute><WorkoutSessionPage /></AuthRoute>} />
+        <Route path="/apps" element={<AuthRoute><AppsPage /></AuthRoute>} />
+        <Route path="/activity" element={<AuthRoute><ActivityPage /></AuthRoute>} />
+        <Route path="/settings" element={<AuthRoute><SettingsPage /></AuthRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </ToastProvider>

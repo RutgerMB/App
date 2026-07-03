@@ -81,7 +81,6 @@ export function AppsPage() {
     <AppShell>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <TrialBanner compact />
-        <ProPromo variant="apps" compact />
 
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -171,6 +170,8 @@ export function AppsPage() {
             </Button>
           </div>
         )}
+
+        <ProPromo variant="apps" compact className="mt-6" />
       </motion.div>
 
       <DeviceAppPicker
