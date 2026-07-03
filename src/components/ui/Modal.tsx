@@ -1,0 +1,64 @@
+import { motion, AnimatePresence } from 'framer-motion'
+import { X } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+interface ModalProps {
+  open: boolean
+  onClose: () => void
+  title?: string
+  children: React.ReactNode
+  className?: string
+  /** 'center' keeps the sheet above the bottom nav; 'bottom' anchors near the nav */
+  position?: 'center' | 'bottom'
+}
+
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+  className,
+  position = 'center',
+}: ModalProps) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ opacity: 0, y: position === 'center' ? 20 : 40, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: position === 'center' ? 12 : 20, scale: 0.97 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className={cn(
+              'fixed left-4 right-4 z-[60] mx-auto max-w-md max-h-[85dvh] overflow-y-auto',
+              'bg-surface-1 border border-border rounded-3xl p-6',
+              'shadow-2xl shadow-black/40',
+              position === 'center'
+                ? 'top-1/2 -translate-y-1/2'
+                : 'bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))]',
+              className
+            )}
+          >
+            <div className="flex items-center justify-between mb-4">
+              {title && <h2 className="text-lg font-semibold">{title}</h2>}
+              <button
+                onClick={onClose}
+                className="ml-auto p-2 -mr-2 rounded-xl hover:bg-white/5 text-white/40 hover:text-white/70 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            {children}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
