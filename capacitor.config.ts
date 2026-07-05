@@ -4,9 +4,9 @@ const config: CapacitorConfig = {
   appId: 'com.replock.app',
   appName: 'RepLock',
   webDir: 'dist',
-  // iOS: Apple IAP only — exclude Stripe native SDK (fixes StripeCore Swift compile errors in Xcode)
+  // iOS: exclude Stripe (Apple IAP) and StatusBar (needs Xcode 26+ with Capacitor 8 SPM)
   ios: {
-    includePlugins: ['@capacitor/splash-screen', '@capacitor/status-bar'],
+    includePlugins: ['@capacitor/splash-screen'],
   },
   android: {
     includePlugins: [

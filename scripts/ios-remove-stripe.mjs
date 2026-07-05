@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Strip Stripe from the iOS native project after `npx cap sync ios`.
- * Capacitor 8 uses Swift Package Manager (CapApp-SPM/Package.swift), not CocoaPods.
+ * Strip iOS-native plugins that should not ship in the Xcode build.
+ * Run after `npx cap sync ios`.
  *
  * Usage: node scripts/ios-remove-stripe.mjs
  */
@@ -12,27 +12,27 @@ const root = process.cwd()
 const spmPackagePath = join(root, 'ios', 'App', 'CapApp-SPM', 'Package.swift')
 const podfilePath = join(root, 'ios', 'App', 'Podfile')
 
+const spmPackageRemovals = [
+  /^\s*\.package\(name: "CapacitorCommunityStripe".*\n/gm,
+  /^\s*\.product\(name: "CapacitorCommunityStripe".*\n/gm,
+  /^\s*\.package\(name: "CapacitorStatusBar".*\n/gm,
+  /^\s*\.product\(name: "CapacitorStatusBar".*\n/gm,
+]
+
 let changed = false
 
 if (existsSync(spmPackagePath)) {
   let pkg = readFileSync(spmPackagePath, 'utf8')
   const before = pkg
-
-  pkg = pkg.replace(
-    /^\s*\.package\(name: "CapacitorCommunityStripe".*\n/gm,
-    ''
-  )
-  pkg = pkg.replace(
-    /^\s*\.product\(name: "CapacitorCommunityStripe".*\n/gm,
-    ''
-  )
-
+  for (const pattern of spmPackageRemovals) {
+    pkg = pkg.replace(pattern, '')
+  }
   if (pkg !== before) {
     writeFileSync(spmPackagePath, pkg)
-    console.log('Removed CapacitorCommunityStripe from CapApp-SPM/Package.swift')
+    console.log('Pruned Stripe/StatusBar from CapApp-SPM/Package.swift')
     changed = true
   } else {
-    console.log('CapApp-SPM/Package.swift has no Stripe entries (already clean)')
+    console.log('CapApp-SPM/Package.swift already clean')
   }
 } else {
   console.log('No ios/App/CapApp-SPM/Package.swift — skip SPM patch')
@@ -41,13 +41,12 @@ if (existsSync(spmPackagePath)) {
 if (existsSync(podfilePath)) {
   let podfile = readFileSync(podfilePath, 'utf8')
   const before = podfile
-
   podfile = podfile.replace(/^\s*pod 'CapacitorCommunityStripe'.*\n/gm, '')
+  podfile = podfile.replace(/^\s*pod 'CapacitorStatusBar'.*\n/gm, '')
   podfile = podfile.replace(/^\s*pod 'Stripe.*'.*\n/gm, '')
-
   if (podfile !== before) {
     writeFileSync(podfilePath, podfile)
-    console.log('Removed Stripe pods from Podfile')
+    console.log('Removed Stripe/StatusBar pods from Podfile')
     changed = true
   }
 }
