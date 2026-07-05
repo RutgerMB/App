@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Strip iOS-native plugins that should not ship in the Xcode build.
+ * Remove npm Capacitor plugins from the iOS SPM project.
+ * Required on Xcode < 26 where Capacitor 8 plugin APIs do not compile.
  * Run after `npx cap sync ios`.
  *
  * Usage: node scripts/ios-remove-stripe.mjs
@@ -17,6 +18,8 @@ const spmPackageRemovals = [
   /^\s*\.product\(name: "CapacitorCommunityStripe".*\n/gm,
   /^\s*\.package\(name: "CapacitorStatusBar".*\n/gm,
   /^\s*\.product\(name: "CapacitorStatusBar".*\n/gm,
+  /^\s*\.package\(name: "CapacitorSplashScreen".*\n/gm,
+  /^\s*\.product\(name: "CapacitorSplashScreen".*\n/gm,
 ]
 
 let changed = false
@@ -29,7 +32,7 @@ if (existsSync(spmPackagePath)) {
   }
   if (pkg !== before) {
     writeFileSync(spmPackagePath, pkg)
-    console.log('Pruned Stripe/StatusBar from CapApp-SPM/Package.swift')
+    console.log('Pruned npm plugins from CapApp-SPM/Package.swift')
     changed = true
   } else {
     console.log('CapApp-SPM/Package.swift already clean')
@@ -43,10 +46,11 @@ if (existsSync(podfilePath)) {
   const before = podfile
   podfile = podfile.replace(/^\s*pod 'CapacitorCommunityStripe'.*\n/gm, '')
   podfile = podfile.replace(/^\s*pod 'CapacitorStatusBar'.*\n/gm, '')
+  podfile = podfile.replace(/^\s*pod 'CapacitorSplashScreen'.*\n/gm, '')
   podfile = podfile.replace(/^\s*pod 'Stripe.*'.*\n/gm, '')
   if (podfile !== before) {
     writeFileSync(podfilePath, podfile)
-    console.log('Removed Stripe/StatusBar pods from Podfile')
+    console.log('Removed plugin pods from Podfile')
     changed = true
   }
 }

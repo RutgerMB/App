@@ -4,9 +4,10 @@ const config: CapacitorConfig = {
   appId: 'com.replock.app',
   appName: 'RepLock',
   webDir: 'dist',
-  // iOS: exclude Stripe (Apple IAP) and StatusBar (needs Xcode 26+ with Capacitor 8 SPM)
+  // iOS (Xcode 15.4): no npm Capacitor plugins — Capacitor 8 SPM plugins need Xcode 26+.
+  // Splash uses LaunchScreen.storyboard; status bar uses Info.plist. Android keeps all plugins.
   ios: {
-    includePlugins: ['@capacitor/splash-screen'],
+    includePlugins: [],
   },
   android: {
     includePlugins: [
