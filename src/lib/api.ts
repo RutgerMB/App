@@ -32,13 +32,13 @@ export function getApiBases(): string[] {
   }
 
   if (Capacitor.isNativePlatform()) {
-    // Android emulator: 10.0.2.2 = host PC localhost (try before LAN IP from .env)
-    if (Capacitor.getPlatform() === 'android') {
-      bases.push(`http://10.0.2.2:${API_PORT}`)
-    }
-
     if (import.meta.env.VITE_API_URL_NATIVE) {
       bases.push(trimBase(import.meta.env.VITE_API_URL_NATIVE))
+    }
+
+    // Android emulator: 10.0.2.2 = host PC localhost
+    if (Capacitor.getPlatform() === 'android') {
+      bases.push(`http://10.0.2.2:${API_PORT}`)
     }
 
     const lanHost = lanHostFromWindow()
@@ -46,7 +46,10 @@ export function getApiBases(): string[] {
       bases.push(`http://${lanHost}:${API_PORT}`)
     }
 
-    if (Capacitor.getPlatform() === 'android') {
+    if (Capacitor.getPlatform() === 'ios') {
+      // localhost on a physical iPhone is the phone itself — only useful on simulator
+      bases.push(`http://127.0.0.1:${API_PORT}`)
+    } else if (Capacitor.getPlatform() === 'android') {
       bases.push(`http://127.0.0.1:${API_PORT}`)
     } else {
       bases.push(`http://localhost:${API_PORT}`)
@@ -89,9 +92,13 @@ export async function apiFetch(path: string, init?: RequestInit): Promise<Respon
 
   if (lastError instanceof TypeError) {
     const triedList = [...new Set(tried)].join(', ')
+    const iosHint =
+      Capacitor.getPlatform() === 'ios'
+        ? ' On a real iPhone, set VITE_API_URL_NATIVE=http://YOUR_MAC_LAN_IP:3001 in .env (same Wi‑Fi), run npm run dev on the Mac, then rebuild the app.'
+        : ' Emulator uses http://10.0.2.2:3001'
     throw new TypeError(
       Capacitor.isNativePlatform()
-        ? `Cannot reach server (tried: ${triedList}). Keep "npm run dev" running on your PC, then rebuild the app. Emulator uses http://10.0.2.2:3001`
+        ? `Cannot reach server (tried: ${triedList}). Keep "npm run dev" running on your dev machine, then rebuild the app.${iosHint}`
         : 'Cannot reach server. Run npm run dev in the project folder.'
     )
   }
