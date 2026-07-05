@@ -12,6 +12,7 @@
     "cap:sync": "npx cap sync",
     "cap:android": "npx cap open android",
     "cap:ios": "npx cap open ios",
+    "cap:ios:sync": "npm run build && npx cap sync ios && node scripts/ios-remove-stripe.mjs",
     "preview": "vite preview",
     "start": "tsx server/index.ts"
   },

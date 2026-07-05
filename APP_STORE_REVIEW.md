@@ -94,7 +94,7 @@ npm.cmd run cap:ios
 ```
 
 In Xcode:
-1. Set **Bundle ID**: `com.replock.app`
+1. Set **Bundle ID**: `app.replock.bleeker` (already set in `ios/App/App.xcodeproj`)
 2. Signing & Capabilities → your team
 3. Add **In-App Purchase** capability
 4. Create subscription product `replock_pro_monthly` in App Store Connect

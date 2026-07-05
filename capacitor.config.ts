@@ -4,6 +4,17 @@ const config: CapacitorConfig = {
   appId: 'com.replock.app',
   appName: 'RepLock',
   webDir: 'dist',
+  // iOS: Apple IAP only — exclude Stripe native SDK (fixes StripeCore Swift compile errors in Xcode)
+  ios: {
+    includePlugins: ['@capacitor/splash-screen', '@capacitor/status-bar'],
+  },
+  android: {
+    includePlugins: [
+      '@capacitor-community/stripe',
+      '@capacitor/splash-screen',
+      '@capacitor/status-bar',
+    ],
+  },
   server: {
     // http allows the WebView to call the dev API at http://10.0.2.2:3001 (Android emulator)
     androidScheme: 'http',

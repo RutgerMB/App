@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+/**
+ * Strip Stripe from the iOS native project after `npx cap sync ios`.
+ * Capacitor 8 uses Swift Package Manager (CapApp-SPM/Package.swift), not CocoaPods.
+ *
+ * Usage: node scripts/ios-remove-stripe.mjs
+ */
+import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { join } from 'path'
+
+const root = process.cwd()
+const spmPackagePath = join(root, 'ios', 'App', 'CapApp-SPM', 'Package.swift')
+const podfilePath = join(root, 'ios', 'App', 'Podfile')
+
+let changed = false
+
+if (existsSync(spmPackagePath)) {
+  let pkg = readFileSync(spmPackagePath, 'utf8')
+  const before = pkg
+
+  pkg = pkg.replace(
+    /^\s*\.package\(name: "CapacitorCommunityStripe".*\n/gm,
+    ''
+  )
+  pkg = pkg.replace(
+    /^\s*\.product\(name: "CapacitorCommunityStripe".*\n/gm,
+    ''
+  )
+
+  if (pkg !== before) {
+    writeFileSync(spmPackagePath, pkg)
+    console.log('Removed CapacitorCommunityStripe from CapApp-SPM/Package.swift')
+    changed = true
+  } else {
+    console.log('CapApp-SPM/Package.swift has no Stripe entries (already clean)')
+  }
+} else {
+  console.log('No ios/App/CapApp-SPM/Package.swift — skip SPM patch')
+}
+
+if (existsSync(podfilePath)) {
+  let podfile = readFileSync(podfilePath, 'utf8')
+  const before = podfile
+
+  podfile = podfile.replace(/^\s*pod 'CapacitorCommunityStripe'.*\n/gm, '')
+  podfile = podfile.replace(/^\s*pod 'Stripe.*'.*\n/gm, '')
+
+  if (podfile !== before) {
+    writeFileSync(podfilePath, podfile)
+    console.log('Removed Stripe pods from Podfile')
+    changed = true
+  }
+}
+
+if (changed) {
+  console.log('\nIn Xcode: File → Packages → Reset Package Caches, then Clean Build Folder (⇧⌘K)')
+}

@@ -3,14 +3,19 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { I18nProvider } from '@/i18n/context'
 import { AuthProvider } from '@/components/AuthProvider'
-import { initStripe } from '@/lib/stripe'
+import { Capacitor } from '@capacitor/core'
 import { initBlockingSync } from '@/lib/blocking-sync'
 import App from './App'
 import './index.css'
 
-initStripe().catch((err) => {
-  console.warn('Stripe init skipped:', err)
-})
+// Stripe is Android/web only — iOS uses Apple IAP (do not load Stripe native plugin)
+if (Capacitor.getPlatform() !== 'ios') {
+  import('@/lib/stripe').then(({ initStripe }) => {
+    initStripe().catch((err) => {
+      console.warn('Stripe init skipped:', err)
+    })
+  })
+}
 
 initBlockingSync()
 
