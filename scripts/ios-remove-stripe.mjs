@@ -30,9 +30,11 @@ if (existsSync(spmPackagePath)) {
   for (const pattern of spmPackageRemovals) {
     pkg = pkg.replace(pattern, '')
   }
+  // cap sync on Windows writes backslashes — invalid escape sequences in Swift literals
+  pkg = pkg.replace(/path: "([^"]*)"/g, (_, p) => `path: "${p.replace(/\\/g, '/')}"`)
   if (pkg !== before) {
     writeFileSync(spmPackagePath, pkg)
-    console.log('Pruned npm plugins from CapApp-SPM/Package.swift')
+    console.log('Patched CapApp-SPM/Package.swift')
     changed = true
   } else {
     console.log('CapApp-SPM/Package.swift already clean')
