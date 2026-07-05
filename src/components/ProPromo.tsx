@@ -24,8 +24,9 @@ export function ProPromo({ variant, className, compact }: ProPromoProps) {
       type="button"
       onClick={() => navigate('/pricing')}
       className={cn(
-        'w-full text-left rounded-2xl border border-indigo-500/25 bg-gradient-to-br from-indigo-500/10 to-violet-500/5 hover:from-indigo-500/15 hover:to-violet-500/10 transition-all',
-        compact ? 'p-3 mb-4' : 'p-4 mb-6',
+        'w-full text-left rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 to-violet-500/5',
+        'hover:from-indigo-500/14 hover:to-violet-500/8 hover:border-indigo-500/30 transition-all duration-200',
+        compact ? 'p-3.5 mb-0' : 'p-4 mb-6',
         className
       )}
     >

@@ -88,7 +88,7 @@ export function LoginPage() {
             R
           </div>
           <h1 className="text-3xl font-bold mb-2">{t('auth.loginTitle')}</h1>
-          <p className="text-white/45 text-lg">{t('auth.loginSubtitle')}</p>
+          <p className="text-white/45 text-base">{t('auth.loginSubtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -232,8 +232,11 @@ export function RegisterPage() {
         className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full px-6 py-6 pb-10"
       >
         <div className="text-center mb-8">
+          <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-2xl font-bold">
+            R
+          </div>
           <h1 className="text-3xl font-bold mb-2">{t('auth.registerTitle')}</h1>
-          <p className="text-white/45 text-lg">{t('auth.registerSubtitle')}</p>
+          <p className="text-white/45 text-base">{t('auth.registerSubtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

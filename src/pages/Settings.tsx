@@ -5,6 +5,7 @@ import {
   Crown, Bell, Shield, HelpCircle, LogOut, ChevronRight, ExternalLink, Trash2, FileText,
 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { MotionCard } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -122,10 +123,8 @@ export function SettingsPage() {
 
   return (
     <AppShell>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight">{t('settings.title')}</h1>
-        </div>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+        <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
 
         <MotionCard className="p-5 mb-6 gradient-border">
           <div className="flex items-center gap-4">
@@ -145,16 +144,16 @@ export function SettingsPage() {
           </div>
 
           {!profile.isPro && (
-            <button
+            <Button
+              variant="outline"
+              fullWidth
+              className="mt-4 border-indigo-500/25 bg-indigo-500/5 text-indigo-300 hover:bg-indigo-500/10"
               onClick={() => navigate('/pricing')}
-              className="mt-4 w-full p-3 rounded-xl bg-gradient-to-r from-indigo-500/10 to-violet-500/10 border border-indigo-500/20 flex items-center justify-between hover:bg-indigo-500/15 transition-colors"
             >
-              <div className="flex items-center gap-2">
-                <Crown size={16} className="text-indigo-400" />
-                <span className="text-sm font-medium text-indigo-300">{t('settings.upgradePro')}</span>
-              </div>
+              <Crown size={16} className="text-indigo-400" />
+              <span className="flex-1 text-left">{t('settings.upgradePro')}</span>
               <ChevronRight size={16} className="text-indigo-400/50" />
-            </button>
+            </Button>
           )}
         </MotionCard>
 
@@ -257,22 +256,21 @@ export function SettingsPage() {
         </MotionCard>
 
         {canDeleteAccount && (
-          <button
+          <Button
+            variant="danger"
+            fullWidth
+            className="mb-3"
             onClick={() => setShowDelete(true)}
-            className="w-full mb-3 flex items-center justify-center gap-2 h-12 rounded-xl border border-red-500/20 bg-red-500/5 text-red-400/90 text-sm font-medium hover:bg-red-500/10 transition-colors"
           >
             <Trash2 size={16} />
             {t('settings.deleteAccount')}
-          </button>
+          </Button>
         )}
 
-        <button
-          onClick={logout}
-          className="w-full mb-6 flex items-center justify-center gap-2 h-12 rounded-xl border border-white/10 bg-white/[0.03] text-white/60 text-sm font-medium hover:bg-white/[0.06] transition-colors"
-        >
+        <Button variant="secondary" fullWidth className="mb-6" onClick={logout}>
           <LogOut size={16} />
           {t('auth.signOut')}
-        </button>
+        </Button>
 
         <p className="text-center text-xs text-white/20 pb-4">
           RepLock v1.0.0 · {t('settings.version')}

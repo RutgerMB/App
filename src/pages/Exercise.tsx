@@ -3,10 +3,12 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ChevronDown, ChevronRight, Sparkles } from 'lucide-react'
 import { CategoryIcon, ExerciseIcon, WorkoutPlanIcon } from '@/components/ExerciseIcons'
 import { AppShell } from '@/components/layout/AppShell'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { ProPromo } from '@/components/ProPromo'
 import { MotionCard } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { BackButton } from '@/components/ui/BackButton'
+import { Button } from '@/components/ui/Button'
 import {
   EXERCISES, EXERCISE_CATEGORIES, WORKOUT_PLANS, getExercisesByCategory,
   type ExerciseCategory, type ExerciseType,
@@ -80,13 +82,10 @@ export function ExercisePage() {
 
   return (
     <AppShell>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">{t('exercise.title')}</h1>
-          <p className="text-white/40 text-sm mt-1">{t('exercise.subtitle')}</p>
-        </div>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+        <PageHeader title={t('exercise.title')} subtitle={t('exercise.subtitle')} />
 
-        <section className="mb-6">
+        <section>
           <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
             <Sparkles size={14} className="text-indigo-400" />
             {t('exercise.plannedWorkouts')}
@@ -113,15 +112,11 @@ export function ExercisePage() {
             </AnimatePresence>
           </div>
           {hasMorePlans && (
-            <button
-              type="button"
+            <Button
+              variant="outline"
+              fullWidth
+              className="mt-3"
               onClick={() => setPlansExpanded((open) => !open)}
-              className={cn(
-                'mt-3 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl',
-                'text-sm font-medium text-white/55 hover:text-white/80',
-                'bg-white/[0.04] border border-white/10 hover:bg-white/[0.07] hover:border-white/15',
-                'transition-colors duration-200'
-              )}
             >
               {plansExpanded
                 ? t('exercise.showFewerWorkouts')
@@ -130,11 +125,11 @@ export function ExercisePage() {
                 size={18}
                 className={cn('text-white/40 transition-transform duration-200', plansExpanded && 'rotate-180')}
               />
-            </button>
+            </Button>
           )}
         </section>
 
-        <section className="mb-8">
+        <section>
           <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">
             {t('exercise.byMuscle')}
           </h2>

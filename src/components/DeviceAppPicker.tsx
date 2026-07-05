@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Search, Loader2 } from 'lucide-react'
+import { Search, Loader2, Smartphone } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { AppBrandIcon } from '@/components/AppBrandIcon'
-import { getDeviceApps, isNativeAndroid } from '@/lib/device-apps'
+import { getDeviceApps, canPickInstalledApps, isNativeIos } from '@/lib/device-apps'
 import type { DeviceAppDefinition } from '@/data/device-apps'
-import { APP_CATEGORIES } from '@/data/device-apps'
 import { cn } from '@/lib/utils'
 import { useTranslation } from '@/i18n/context'
 
@@ -18,15 +17,15 @@ interface DeviceAppPickerProps {
 export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceAppPickerProps) {
   const { t } = useTranslation()
   const [apps, setApps] = useState<DeviceAppDefinition[]>([])
+  const installedOnly = canPickInstalledApps()
+  const onIos = isNativeIos()
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [category, setCategory] = useState<string | 'all'>('all')
 
   useEffect(() => {
     if (!open) return
     setLoading(true)
     setSearch('')
-    setCategory('all')
     getDeviceApps()
       .then(setApps)
       .finally(() => setLoading(false))
@@ -34,7 +33,6 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
 
   const filtered = apps.filter((app) => {
     if (excludeIds.includes(app.id) || excludeIds.includes(app.packageName ?? '')) return false
-    if (category !== 'all' && app.category !== category) return false
     if (search && !app.name.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
@@ -42,55 +40,47 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
   return (
     <Modal open={open} onClose={onClose} title={t('apps.chooseFromDevice')} position="center" className="max-h-[80dvh]">
       <p className="text-sm text-white/45 mb-4 -mt-2">
-        {isNativeAndroid() ? t('apps.deviceAppsNative') : t('apps.deviceAppsWeb')}
+        {installedOnly
+          ? t('apps.deviceAppsNative')
+          : onIos
+            ? t('apps.deviceAppsIos')
+            : t('apps.deviceAppsWeb')}
       </p>
 
-      <div className="relative mb-4">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
-        <input
-          type="search"
-          placeholder={t('apps.searchApps')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full h-11 pl-10 pr-4 rounded-xl bg-surface-3 border border-border text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-        />
-      </div>
-
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-2 -mx-1 px-1">
-        <button
-          onClick={() => setCategory('all')}
-          className={cn(
-            'shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
-            category === 'all' ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300' : 'border-border text-white/40'
-          )}
-        >
-          {t('apps.allCategories')}
-        </button>
-        {APP_CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setCategory(cat)}
-            className={cn(
-              'shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
-              category === cat ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300' : 'border-border text-white/40'
-            )}
-          >
-            {t(`apps.categories.${cat}`)}
-          </button>
-        ))}
-      </div>
+      {installedOnly && (
+        <div className="relative mb-4">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+          <input
+            type="search"
+            placeholder={t('apps.searchApps')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-11 pl-10 pr-4 rounded-xl bg-surface-3 border border-border text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+          />
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="animate-spin text-indigo-400" size={28} />
         </div>
+      ) : onIos ? (
+        <div className="text-center py-10 px-2">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+            <Smartphone size={26} className="text-amber-300" />
+          </div>
+          <p className="text-sm text-white/55 leading-relaxed">{t('apps.iosNotAvailable')}</p>
+        </div>
       ) : filtered.length === 0 ? (
-        <p className="text-center text-white/40 py-12 text-sm">{t('apps.noAppsFound')}</p>
+        <p className="text-center text-white/40 py-12 text-sm">
+          {installedOnly ? t('apps.noInstalledApps') : t('apps.noAppsFound')}
+        </p>
       ) : (
         <div className="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto pb-2">
           {filtered.map((app) => (
             <button
               key={app.id}
+              type="button"
               onClick={() => {
                 onSelect(app)
                 onClose()

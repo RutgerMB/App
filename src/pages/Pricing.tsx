@@ -101,6 +101,7 @@ export function PricingPage() {
       window.location.href = url
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Checkout failed', 'error')
+    } finally {
       setLoading(false)
     }
   }

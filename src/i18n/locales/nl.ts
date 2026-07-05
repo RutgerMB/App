@@ -119,6 +119,7 @@ export const nl: Translations = {
     lockedDesc: 'Vergrendeld — oefen om te ontgrendelen',
     lastWorkout: 'Laatste workout',
     quickStart: 'Snel starten',
+    changeDifficultyDesc: 'Kies hoeveel schermtijd je per workout verdient.',
   },
   exercise: {
     title: 'Oefenen',
@@ -177,8 +178,12 @@ export const nl: Translations = {
     limitReached: 'App-limiet bereikt. Upgrade naar Pro voor onbeperkt.',
     limitReachedExpired: 'Gratis plan: max {limit} app. Upgrade naar Pro voor onbeperkt.',
     chooseFromDevice: 'Kies een app',
-    deviceAppsNative: 'Kies uit apps op je apparaat.',
-    deviceAppsWeb: 'Blader door populaire apps. Op Android zie je je geïnstalleerde apps.',
+    deviceAppsNative: 'Alleen apps op je telefoon worden getoond.',
+    deviceAppsWeb: 'Voorbeeldapps in de webdemo. Op Android zie je je geïnstalleerde apps.',
+    deviceAppsIos: 'iPhone kan zijn app-lijst niet delen met RepLock.',
+    iosNotAvailable:
+      'Apple staat niet toe dat apps lezen welke andere apps geïnstalleerd zijn. Echte app-keuze en blokkering op iPhone vereisen Screen Time-integratie (binnenkort).',
+    noInstalledApps: 'Geen andere startbare apps gevonden op dit apparaat.',
     searchApps: 'Zoek apps…',
     allCategories: 'Alles',
     noAppsFound: 'Geen apps gevonden',
@@ -227,6 +232,7 @@ export const nl: Translations = {
   },
   settings: {
     title: 'Instellingen',
+    subtitle: 'Beheer je account, taal en voorkeuren',
     profile: 'Profiel',
     subscription: 'Abonnement',
     notifications: 'Meldingen',

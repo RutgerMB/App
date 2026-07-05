@@ -16,6 +16,7 @@ import { SuccessPage } from '@/pages/Success'
 import { CancelPage } from '@/pages/Cancel'
 import { PrivacyPage, TermsPage } from '@/pages/Legal'
 import { BlockerPermissionPrompt } from '@/components/BlockerPermissionPrompt'
+import { ScrollToTop } from '@/components/layout/ScrollToTop'
 
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
@@ -59,6 +60,7 @@ function OnboardingRoute() {
 export default function App() {
   return (
     <ToastProvider>
+      <ScrollToTop />
       <BlockerPermissionPrompt />
       <Routes>
         <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />

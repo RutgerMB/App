@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion'
 import { AppShell } from '@/components/layout/AppShell'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { StatCard, StatGrid } from '@/components/ui/StatCard'
 import { MotionCard } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Flame, Dumbbell } from 'lucide-react'
@@ -24,42 +26,34 @@ export function ActivityPage() {
 
   return (
     <AppShell>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">{t('activity.title')}</h1>
-          <p className="text-white/40 text-sm mt-1">{t('activity.subtitle')}</p>
-        </div>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+        <PageHeader title={t('activity.title')} subtitle={t('activity.subtitle')} />
 
-        <ActivityInsights />
-
-        <ProPromo variant="activity" compact />
-
-        <div className="grid grid-cols-3 gap-3 mb-8">
-          <MotionCard className="p-4 text-center">
-            <p className="text-2xl font-bold">{totalExercises}</p>
-            <p className="text-[10px] text-white/40 uppercase tracking-wider mt-1">{t('activity.workouts')}</p>
-          </MotionCard>
-          <MotionCard className="p-4 text-center">
-            <p className="text-2xl font-bold gradient-text">{formatMinutes(totalEarnedMinutes)}</p>
-            <p className="text-[10px] text-white/40 uppercase tracking-wider mt-1">{t('activity.earned')}</p>
-          </MotionCard>
-          <MotionCard className="p-4 text-center">
-            <p className="text-2xl font-bold">{longestStreak}</p>
-            <p className="text-[10px] text-white/40 uppercase tracking-wider mt-1">{t('activity.bestStreak')}</p>
-          </MotionCard>
-        </div>
+        <StatGrid>
+          <StatCard value={totalExercises} label={t('activity.workouts')} />
+          <StatCard
+            value={formatMinutes(totalEarnedMinutes)}
+            label={t('activity.earned')}
+            valueClassName="gradient-text"
+          />
+          <StatCard value={longestStreak} label={t('activity.bestStreak')} />
+        </StatGrid>
 
         {currentStreak > 0 && (
-          <div className="mb-6 p-4 rounded-2xl bg-orange-500/5 border border-orange-500/15 flex items-center gap-3">
+          <div className="p-4 rounded-2xl bg-orange-500/5 border border-orange-500/15 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-orange-500/15 flex items-center justify-center shrink-0">
               <Flame size={20} className="text-orange-400" />
             </div>
             <div>
               <p className="font-semibold text-sm">{t('activity.dayStreak', { count: currentStreak })}</p>
-              <p className="text-xs text-white/40">{t('activity.keepGoing')}</p>
+              <p className="text-xs text-white/45">{t('activity.keepGoing')}</p>
             </div>
           </div>
         )}
+
+        <ActivityInsights />
+
+        <ProPromo variant="activity" compact />
 
         {sessions.length === 0 ? (
           <div className="text-center py-12">
@@ -74,7 +68,7 @@ export function ActivityPage() {
             {Object.entries(grouped).map(([date, daySessions]) => (
               <div key={date}>
                 <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">
-                  {date === new Date().toDateString() ? t('activity.today') : date}
+                  {date === new Date().toDateString() ? t('activity.today') : formatDate(daySessions[0].completedAt)}
                 </h3>
                 <div className="space-y-2">
                   {daySessions.map((session) => {

@@ -1,17 +1,24 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Flame, Clock, ChevronRight, Sparkles, Dumbbell, Grid3X3 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { MotionCard } from '@/components/ui/Card'
+import { MotionButton } from '@/components/ui/Button'
+import { HeaderChip } from '@/components/ui/HeaderChip'
+import { StatCard, StatGrid } from '@/components/ui/StatCard'
+import { QuickLink } from '@/components/ui/QuickLink'
 import { CircularProgress } from '@/components/ui/Progress'
 import { TrialBanner } from '@/components/TrialBanner'
 import { ProPromo } from '@/components/ProPromo'
-import { DifficultyBadge } from '@/components/DifficultyPicker'
+import { DifficultyHomeModal } from '@/components/DifficultyHomeModal'
+import { DIFFICULTY_META } from '@/components/DifficultyPicker'
 import { useStore } from '@/store'
 import { ExerciseIcon } from '@/components/ExerciseIcons'
 import { EXERCISES } from '@/types'
 import { formatMinutes } from '@/lib/utils'
 import { useTranslation } from '@/i18n/context'
+import type { Difficulty } from '@/types'
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -26,27 +33,42 @@ export function HomePage() {
   } = useStore()
 
   const recentSession = sessions[0]
+  const difficulty = profile.difficulty ?? 'medium'
+  const difficultyMeta = DIFFICULTY_META[difficulty as Difficulty]
+  const [difficultyOpen, setDifficultyOpen] = useState(false)
+
+  const handleDifficultyPress = () => {
+    if (!profile.isPro) {
+      navigate('/pricing')
+      return
+    }
+    setDifficultyOpen(true)
+  }
 
   return (
     <AppShell>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-white/40 text-sm">{t('home.welcomeBack')}</p>
-            <h1 className="text-2xl font-bold tracking-tight">{profile.name}</h1>
-            <div className="mt-2">
-              <DifficultyBadge difficulty={profile.difficulty ?? 'medium'} />
-            </div>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-white/45 font-medium uppercase tracking-wider">
+              {t('home.welcomeBack')}
+            </p>
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight mt-1">
+              {profile.name}
+            </h1>
           </div>
-          {!profile.isPro && (
-            <button
-              onClick={() => navigate('/pricing')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium hover:bg-indigo-500/20 transition-colors shrink-0"
-            >
-              <Sparkles size={12} />
-              {t('common.upgrade')}
-            </button>
-          )}
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <HeaderChip variant="neutral" onClick={handleDifficultyPress}>
+              <span aria-hidden>{difficultyMeta.icon}</span>
+              <span className="truncate">{t(`difficulty.${difficulty}.name`)}</span>
+            </HeaderChip>
+            {!profile.isPro && (
+              <HeaderChip variant="accent" onClick={() => navigate('/pricing')}>
+                <Sparkles size={13} className="shrink-0" />
+                <span>{t('common.upgrade')}</span>
+              </HeaderChip>
+            )}
+          </div>
         </div>
 
         <MotionCard className="p-5 gradient-border" glow>
@@ -55,7 +77,7 @@ export function HomePage() {
               <p className="text-white/40 text-xs uppercase tracking-wider font-medium mb-1">
                 {t('home.availableScreenTime')}
               </p>
-              <p className="text-4xl font-bold tracking-tight gradient-text">
+              <p className="text-4xl font-bold tracking-tight gradient-text tabular-nums">
                 {formatMinutes(screenTimeBalance)}
               </p>
             </div>
@@ -63,64 +85,65 @@ export function HomePage() {
               <Clock size={16} className="text-white/30" />
             </CircularProgress>
           </div>
-          <button
+          <MotionButton
+            fullWidth
+            size="lg"
+            className="mt-4 shadow-lg shadow-indigo-500/20"
             onClick={() => navigate('/exercise')}
-            className="mt-4 w-full flex items-center justify-center gap-2 h-11 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-medium text-sm hover:brightness-110 active:brightness-95 transition-all shadow-lg shadow-indigo-500/20"
           >
             <Dumbbell size={16} />
             {t('home.earnMore')}
             <ChevronRight size={16} />
-          </button>
+          </MotionButton>
         </MotionCard>
 
-        <div className="grid grid-cols-3 gap-2">
-          <MotionCard className="p-3 text-center">
-            <Flame size={14} className="mx-auto text-orange-400 mb-1" />
-            <p className="text-lg font-bold leading-none">{currentStreak}</p>
-            <p className="text-[10px] text-white/35 uppercase mt-1">{t('home.streak')}</p>
-          </MotionCard>
-          <MotionCard className="p-3 text-center">
-            <Dumbbell size={14} className="mx-auto text-indigo-400 mb-1" />
-            <p className="text-lg font-bold leading-none">{totalExercises}</p>
-            <p className="text-[10px] text-white/35 uppercase mt-1">{t('home.workouts')}</p>
-          </MotionCard>
-          <button onClick={() => navigate('/apps')} className="text-left">
-            <MotionCard hover className="p-3 text-center h-full">
-              <Grid3X3 size={14} className="mx-auto text-violet-400 mb-1" />
-              <p className="text-lg font-bold leading-none">{apps.length}</p>
-              <p className="text-[10px] text-white/35 uppercase mt-1">{t('home.appsTracked')}</p>
-            </MotionCard>
-          </button>
-        </div>
+        <StatGrid>
+          <StatCard
+            icon={Flame}
+            iconClassName="text-orange-400"
+            value={currentStreak}
+            label={t('home.streak')}
+          />
+          <StatCard
+            icon={Dumbbell}
+            iconClassName="text-indigo-400"
+            value={totalExercises}
+            label={t('home.workouts')}
+          />
+          <StatCard
+            icon={Grid3X3}
+            iconClassName="text-violet-400"
+            value={apps.length}
+            label={t('home.appsTracked')}
+            onClick={() => navigate('/apps')}
+          />
+        </StatGrid>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           <TrialBanner compact />
           <ProPromo variant="home" compact />
         </div>
 
-        <button
+        <QuickLink
+          icon={<Dumbbell size={16} className="text-indigo-400 shrink-0" />}
+          label={t('home.quickStart')}
           onClick={() => navigate('/exercise')}
-          className="w-full flex items-center justify-between gap-3 py-3 px-4 rounded-2xl bg-surface-2 border border-border hover:border-indigo-500/25 hover:bg-surface-3 transition-colors"
-        >
-          <span className="flex items-center gap-2.5 text-sm text-white/70">
-            <Dumbbell size={16} className="text-indigo-400 shrink-0" />
-            {t('home.quickStart')}
-          </span>
-          <ChevronRight size={16} className="text-white/25 shrink-0" />
-        </button>
+        />
 
         {recentSession && (
-          <button onClick={() => navigate('/activity')} className="w-full text-left">
-            <MotionCard hover className="p-3.5">
+          <button type="button" onClick={() => navigate('/activity')} className="w-full text-left">
+            <MotionCard hover className="p-4">
               <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${EXERCISES[recentSession.type].gradient} flex items-center justify-center text-white shrink-0`}>
-                  <ExerciseIcon type={recentSession.type} size={16} />
+                <div
+                  className={`w-10 h-10 rounded-xl bg-gradient-to-br ${EXERCISES[recentSession.type].gradient} flex items-center justify-center text-white shrink-0`}
+                >
+                  <ExerciseIcon type={recentSession.type} size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-white/35 uppercase tracking-wider">{t('home.lastWorkout')}</p>
+                  <p className="text-[10px] text-white/40 uppercase tracking-wider">{t('home.lastWorkout')}</p>
                   <p className="font-medium text-sm truncate">{t(`exercises.${recentSession.type}.name`)}</p>
                 </div>
-                <span className="text-sm font-semibold text-emerald-400 shrink-0">
+                <span className="text-sm font-semibold text-emerald-400 shrink-0 tabular-nums">
                   +{formatMinutes(recentSession.earnedMinutes)}
                 </span>
               </div>
@@ -128,6 +151,8 @@ export function HomePage() {
           </button>
         )}
       </motion.div>
+
+      <DifficultyHomeModal open={difficultyOpen} onClose={() => setDifficultyOpen(false)} />
     </AppShell>
   )
 }

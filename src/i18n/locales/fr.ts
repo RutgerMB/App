@@ -119,6 +119,7 @@ export const fr: Translations = {
     lockedDesc: 'Verrouillé — fais de l\'exercice pour déverrouiller',
     lastWorkout: 'Dernier entraînement',
     quickStart: 'Démarrage rapide',
+    changeDifficultyDesc: 'Choisis combien de temps d’écran tu gagnes par séance.',
   },
   exercise: {
     title: 'Exercice',
@@ -177,8 +178,12 @@ export const fr: Translations = {
     limitReached: 'Limite d\'apps atteinte. Passe à Pro pour des apps illimitées.',
     limitReachedExpired: 'Plan gratuit : {limit} app max. Passe à Pro pour illimité.',
     chooseFromDevice: 'Choisir une app',
-    deviceAppsNative: 'Choisis parmi les apps installées sur ton appareil.',
-    deviceAppsWeb: 'Parcours les apps populaires. Sur Android, tes apps installées apparaissent ici.',
+    deviceAppsNative: 'Seules les apps installées sur ton téléphone sont affichées.',
+    deviceAppsWeb: 'Apps d’exemple pour la démo web. Sur Android, tes apps installées apparaissent ici.',
+    deviceAppsIos: 'L’iPhone ne peut pas partager sa liste d’apps avec RepLock.',
+    iosNotAvailable:
+      'Apple n’autorise pas les apps à lire les autres apps installées. Le choix réel et le blocage sur iPhone nécessitent l’intégration Screen Time (bientôt).',
+    noInstalledApps: 'Aucune autre app lançable trouvée sur cet appareil.',
     searchApps: 'Rechercher des apps…',
     allCategories: 'Tout',
     noAppsFound: 'Aucune app trouvée',
@@ -227,6 +232,7 @@ export const fr: Translations = {
   },
   settings: {
     title: 'Réglages',
+    subtitle: 'Gérez votre compte, langue et préférences',
     profile: 'Profil',
     subscription: 'Abonnement',
     notifications: 'Notifications',

@@ -7,7 +7,7 @@ import { useTranslation } from '@/i18n/context'
 import { useStore } from '@/store'
 import { Badge } from '@/components/ui/Badge'
 
-const DIFFICULTY_META: Record<Difficulty, { icon: string; gradient: string }> = {
+export const DIFFICULTY_META: Record<Difficulty, { icon: string; gradient: string }> = {
   easy: { icon: '🌱', gradient: 'from-emerald-500 to-teal-500' },
   medium: { icon: '⚖️', gradient: 'from-indigo-500 to-violet-500' },
   hard: { icon: '🔥', gradient: 'from-orange-500 to-red-500' },
@@ -102,11 +102,22 @@ export function DifficultyPicker({ value, onChange, compact, large, pricingNavig
   )
 }
 
-export function DifficultyBadge({ difficulty }: { difficulty: Difficulty }) {
+export function DifficultyBadge({
+  difficulty,
+  prominent = false,
+}: {
+  difficulty: Difficulty
+  prominent?: boolean
+}) {
   const { t } = useTranslation()
   const meta = DIFFICULTY_META[difficulty]
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-border text-xs font-medium text-white/70">
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-xl bg-white/5 border border-border font-medium text-white/70',
+        prominent ? 'px-3 py-1.5 text-sm' : 'px-2.5 py-1 rounded-lg text-xs'
+      )}
+    >
       <span>{meta.icon}</span>
       {t(`difficulty.${difficulty}.name`)}
     </span>

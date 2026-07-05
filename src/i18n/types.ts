@@ -127,6 +127,7 @@ export interface Translations {
     lockedDesc: string
     lastWorkout: string
     quickStart: string
+    changeDifficultyDesc: string
   }
   exercise: {
     title: string
@@ -202,6 +203,17 @@ export interface Translations {
     unlockedFor: string
     limitReached: string
     limitReachedExpired: string
+    chooseFromDevice: string
+    deviceAppsNative: string
+    deviceAppsWeb: string
+    deviceAppsIos: string
+    iosNotAvailable: string
+    noInstalledApps: string
+    searchApps: string
+    allCategories: string
+    noAppsFound: string
+    setDailyLimit: string
+    categories: Record<string, string>
   }
   blocker: {
     setupTitle: string
@@ -259,6 +271,7 @@ export interface Translations {
   }
   settings: {
     title: string
+    subtitle: string
     profile: string
     subscription: string
     notifications: string

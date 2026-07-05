@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Trash2, Lock, Unlock, Clock } from 'lucide-react'
+import { Plus, Trash2, Lock, Unlock, Clock, Grid3X3 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { MotionCard } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button, MotionButton } from '@/components/ui/Button'
@@ -20,6 +21,7 @@ import { TrialBanner } from '@/components/TrialBanner'
 import { ProPromo } from '@/components/ProPromo'
 import { BlockerSetupCard } from '@/components/BlockerSetupCard'
 import { useTranslation } from '@/i18n/context'
+import { canPickInstalledApps, isNativeIos } from '@/lib/device-apps'
 import type { DeviceAppDefinition } from '@/data/device-apps'
 
 export function AppsPage() {
@@ -29,6 +31,8 @@ export function AppsPage() {
   const { apps, profile, screenTimeBalance, unlockApp, addApp, removeApp } = useStore()
   const trialStatus = getTrialStatus(profile)
   const appLimitLabel = getAppLimitLabel(profile)
+  const onIos = isNativeIos()
+  const canAddApps = canPickInstalledApps() || !onIos
 
   const [showPicker, setShowPicker] = useState(false)
   const [pendingApp, setPendingApp] = useState<DeviceAppDefinition | null>(null)
@@ -80,22 +84,23 @@ export function AppsPage() {
 
   return (
     <AppShell>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <TrialBanner compact />
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+        <PageHeader
+          title={t('apps.title')}
+          subtitle={`${t('apps.appsCount', { count: apps.length, limit: appLimitLabel })} · ${formatMinutes(screenTimeBalance)} ${t('apps.available')}`}
+          action={
+            canAddApps ? (
+              <Button variant="secondary" size="sm" onClick={() => setShowPicker(true)}>
+                <Plus size={16} />
+                {t('common.add')}
+              </Button>
+            ) : undefined
+          }
+        />
 
-        <BlockerSetupCard compact />
-
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">{t('apps.title')}</h1>
-            <p className="text-white/40 text-sm mt-1">
-              {t('apps.appsCount', { count: apps.length, limit: appLimitLabel })} · {formatMinutes(screenTimeBalance)} {t('apps.available')}
-            </p>
-          </div>
-          <Button variant="secondary" size="sm" onClick={() => setShowPicker(true)}>
-            <Plus size={16} />
-            {t('common.add')}
-          </Button>
+        <div className="space-y-3">
+          <TrialBanner compact />
+          <BlockerSetupCard compact />
         </div>
 
         <div className="space-y-3">
@@ -165,12 +170,18 @@ export function AppsPage() {
         </div>
 
         {apps.length === 0 && (
-          <div className="text-center py-16">
-            <Lock size={40} className="mx-auto text-white/10 mb-4" />
-            <p className="text-white/40">{t('apps.noApps')}</p>
-            <Button variant="secondary" className="mt-4" onClick={() => setShowPicker(true)}>
-              {t('apps.addFirst')}
-            </Button>
+          <div className="text-center py-12">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-violet-500/10 flex items-center justify-center">
+              <Grid3X3 size={26} className="text-violet-400" />
+            </div>
+            <p className="text-white/45">{t('apps.noApps')}</p>
+            {onIos ? (
+              <p className="text-sm text-white/35 mt-3 max-w-sm mx-auto leading-relaxed">{t('apps.iosNotAvailable')}</p>
+            ) : (
+              <Button variant="secondary" className="mt-4" onClick={() => setShowPicker(true)}>
+                {t('apps.addFirst')}
+              </Button>
+            )}
           </div>
         )}
 

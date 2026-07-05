@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { BackButton } from '@/components/ui/BackButton'
 import { useTranslation } from '@/i18n/context'
 import { useAuthStore } from '@/store/auth'
 
@@ -23,16 +23,11 @@ function LegalShell({ title, children }: { title: string; children: React.ReactN
   }
 
   return (
-    <div className="min-h-dvh bg-surface-0 noise px-6 py-8 safe-top safe-bottom overflow-y-auto">
-      <button
-        type="button"
-        onClick={handleBack}
-        className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white mb-6 transition-colors"
-      >
-        <ArrowLeft size={18} />
-        {t('common.back')}
-      </button>
-      <h1 className="text-2xl font-bold mb-6">{title}</h1>
+    <div className="min-h-dvh bg-surface-0 noise px-6 py-8 safe-top safe-bottom overflow-y-auto max-w-lg mx-auto">
+      <div className="mb-6">
+        <BackButton onClick={handleBack} aria-label={t('common.back')} />
+      </div>
+      <h1 className="text-2xl font-bold mb-6 tracking-tight">{title}</h1>
       <div className="prose prose-invert prose-sm max-w-none space-y-4 text-white/65 text-sm leading-relaxed">
         {children}
       </div>

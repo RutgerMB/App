@@ -7,7 +7,7 @@ const config: CapacitorConfig = {
   // iOS (Xcode 15.4): no npm Capacitor plugins — Capacitor 8 SPM plugins need Xcode 26+.
   // Splash uses LaunchScreen.storyboard; status bar uses Info.plist. Android keeps all plugins.
   ios: {
-    includePlugins: [],
+    includePlugins: ['@capgo/native-purchases'],
   },
   android: {
     includePlugins: [
