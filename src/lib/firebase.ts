@@ -1,6 +1,16 @@
+import { Capacitor } from '@capacitor/core'
 import { initializeApp, type FirebaseApp } from 'firebase/app'
-import { getAuth, type Auth } from 'firebase/auth'
-import { getFirestore, type Firestore } from 'firebase/firestore'
+import {
+  getAuth,
+  initializeAuth,
+  browserLocalPersistence,
+  type Auth,
+} from 'firebase/auth'
+import {
+  getFirestore,
+  initializeFirestore,
+  type Firestore,
+} from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -33,11 +43,27 @@ export function getFirebaseApp(): FirebaseApp {
 }
 
 export function getFirebaseAuth(): Auth {
-  if (!auth) auth = getAuth(getFirebaseApp())
+  if (!auth) {
+    const firebaseApp = getFirebaseApp()
+    // WKWebView (Capacitor iOS): avoid IndexedDB auth persistence hangs
+    if (Capacitor.isNativePlatform()) {
+      auth = initializeAuth(firebaseApp, { persistence: browserLocalPersistence })
+    } else {
+      auth = getAuth(firebaseApp)
+    }
+  }
   return auth
 }
 
 export function getFirebaseDb(): Firestore {
-  if (!db) db = getFirestore(getFirebaseApp())
+  if (!db) {
+    const firebaseApp = getFirebaseApp()
+    // Firestore WebChannel often hangs in Capacitor iOS without long polling
+    if (Capacitor.isNativePlatform()) {
+      db = initializeFirestore(firebaseApp, { experimentalForceLongPolling: true })
+    } else {
+      db = getFirestore(firebaseApp)
+    }
+  }
   return db
 }

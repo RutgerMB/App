@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { MotionButton } from '@/components/ui/Button'
+import { BackButton } from '@/components/ui/BackButton'
 import { Input } from '@/components/ui/Input'
 import { useAuthStore } from '@/store/auth'
 import { useStore } from '@/store'
@@ -220,11 +221,15 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-surface-0 noise flex flex-col px-6 py-10 safe-top safe-bottom overflow-y-auto">
+    <div className="min-h-dvh bg-surface-0 noise flex flex-col safe-top safe-bottom overflow-y-auto">
+      <div className="px-6 pt-4 max-w-md mx-auto w-full">
+        <BackButton onClick={() => navigate('/login')} aria-label={t('common.back')} />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full py-6"
+        className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full px-6 py-6 pb-10"
       >
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">{t('auth.registerTitle')}</h1>

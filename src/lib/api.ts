@@ -71,6 +71,18 @@ export function getApiBase(): string {
   return getApiBases()[0] ?? ''
 }
 
+const FETCH_TIMEOUT_MS = 8000
+
+async function fetchWithTimeout(url: string, init?: RequestInit): Promise<Response> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+  try {
+    return await fetch(url, { ...init, signal: controller.signal })
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   const bases = getApiBases()
   let lastError: unknown
@@ -80,7 +92,7 @@ export async function apiFetch(path: string, init?: RequestInit): Promise<Respon
     const url = `${base}${path}`
     tried.push(url)
     try {
-      const res = await fetch(url, init)
+      const res = await fetchWithTimeout(url, init)
       resolvedApiBase = base
       return res
     } catch (err) {
@@ -90,7 +102,10 @@ export async function apiFetch(path: string, init?: RequestInit): Promise<Respon
 
   resetApiBaseCache()
 
-  if (lastError instanceof TypeError) {
+  if (
+    lastError instanceof TypeError ||
+    (lastError instanceof Error && lastError.name === 'AbortError')
+  ) {
     const triedList = [...new Set(tried)].join(', ')
     const iosHint =
       Capacitor.getPlatform() === 'ios'

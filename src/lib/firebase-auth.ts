@@ -11,6 +11,7 @@ import {
 } from 'firebase/auth'
 import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
 import { getFirebaseAuth, getFirebaseDb } from '@/lib/firebase'
+import { withTimeout } from '@/lib/with-timeout'
 import type { AppState } from '@/types'
 import { DEFAULT_APPS } from '@/types'
 
@@ -94,26 +95,47 @@ export async function firebaseLogin(
   password: string
 ): Promise<{ user: FirebaseAuthUser; appState: AppState; idToken: string }> {
   const auth = getFirebaseAuth()
-  const credential = await signInWithEmailAndPassword(auth, email.trim(), password)
-  const snap = await getDoc(userDocRef(credential.user.uid))
+  const credential = await withTimeout(
+    signInWithEmailAndPassword(auth, email.trim(), password),
+    20000,
+    'Sign-in timed out. Check your internet connection and try again.'
+  )
 
   let appState: AppState
-  if (snap.exists() && snap.data().appState) {
-    appState = snap.data().appState as AppState
-    appState.profile.email = credential.user.email ?? appState.profile.email
-    appState.profile.name =
-      credential.user.displayName ?? snap.data().name ?? appState.profile.name
-  } else {
+  try {
+    const snap = await withTimeout(
+      getDoc(userDocRef(credential.user.uid)),
+      15000,
+      'Could not load your data. Check your internet connection and try again.'
+    )
+    if (snap.exists() && snap.data().appState) {
+      appState = snap.data().appState as AppState
+      appState.profile.email = credential.user.email ?? appState.profile.email
+      appState.profile.name =
+        credential.user.displayName ?? snap.data().name ?? appState.profile.name
+    } else {
+      appState = createEmptyAppState(
+        credential.user.displayName ?? email.split('@')[0],
+        credential.user.email ?? email
+      )
+      await setDoc(userDocRef(credential.user.uid), {
+        email: credential.user.email,
+        name: appState.profile.name,
+        appState,
+        updatedAt: serverTimestamp(),
+      })
+    }
+  } catch {
     appState = createEmptyAppState(
       credential.user.displayName ?? email.split('@')[0],
       credential.user.email ?? email
     )
-    await setDoc(userDocRef(credential.user.uid), {
+    setDoc(userDocRef(credential.user.uid), {
       email: credential.user.email,
       name: appState.profile.name,
       appState,
       updatedAt: serverTimestamp(),
-    })
+    }).catch(() => {})
   }
 
   const idToken = await credential.user.getIdToken()
@@ -178,10 +200,20 @@ export async function restoreFirebaseSession(): Promise<{
   const user = getFirebaseAuth().currentUser
   if (!user) return null
 
-  const appState = (await firebaseLoadAppState(user.uid)) ?? createEmptyAppState(
-    user.displayName ?? user.email?.split('@')[0] ?? 'User',
-    user.email ?? ''
-  )
+  let appState: AppState
+  try {
+    appState =
+      (await withTimeout(firebaseLoadAppState(user.uid), 10000, 'restore timeout')) ??
+      createEmptyAppState(
+        user.displayName ?? user.email?.split('@')[0] ?? 'User',
+        user.email ?? ''
+      )
+  } catch {
+    appState = createEmptyAppState(
+      user.displayName ?? user.email?.split('@')[0] ?? 'User',
+      user.email ?? ''
+    )
+  }
 
   return {
     user: mapFirebaseUser(user, appState.profile.name),
