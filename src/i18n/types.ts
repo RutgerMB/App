@@ -25,6 +25,8 @@ export interface Translations {
     reps: string
     seconds: string
     tap: string
+    back: string
+    close: string
   }
   nav: {
     home: string
@@ -54,6 +56,22 @@ export interface Translations {
     registerFailed: string
     passwordMismatch: string
     passwordTooShort: string
+    devLogin: string
+    devCode: string
+    devPassword: string
+    devLoginSubmit: string
+    devLoginHint: string
+    devLoginSuccess: string
+    devLoginFailed: string
+    agreeTerms: string
+    termsRequired: string
+    deleteAccount: string
+    deleteAccountDesc: string
+    deleteAccountConfirm: string
+    deleteAccountWarning: string
+    deleteAccountPassword: string
+    deleteAccountSubmit: string
+    deleteAccountSuccess: string
   }
   onboarding: {
     tagline: string
@@ -133,8 +151,32 @@ export interface Translations {
     ofReps: string
     byMuscle: string
     plannedWorkouts: string
+    showMoreWorkouts: string
+    showFewerWorkouts: string
+    startExercise: string
+    focusOn: string
+    planWorkout: string
+    planWorkoutDesc: string
+    totalReps: string
+    totalSeconds: string
+    numberOfSets: string
+    perSetPreview: string
+    estimatedEarn: string
+    reps: string
+    seconds: string
+    setOf: string
+    holdFor: string
+    finishedSet: string
+    restTitle: string
+    restDesc: string
+    startSet: string
+    claimTime: string
+    completedReps: string
+    completedTotal: string
+    watchDemo: string
+    watchDemoHint: string
   }
-  exercises: Record<string, { name: string; description: string }>
+  exercises: Record<string, { name: string; description: string; howTo?: string; focus?: string }>
   categories: Record<string, string>
   workoutPlans: Record<string, { name: string; description: string }>
   apps: {
@@ -160,6 +202,24 @@ export interface Translations {
     unlockedFor: string
     limitReached: string
     limitReachedExpired: string
+  }
+  blocker: {
+    setupTitle: string
+    setupDesc: string
+    setupNoApps: string
+    enableButton: string
+    readyTitle: string
+    readyDesc: string
+    promptTitle: string
+    promptDesc: string
+    promptStep1: string
+    promptStep2: string
+    promptStep3: string
+    promptPrivacy: string
+    grantButton: string
+    skipButton: string
+    promptWaiting: string
+    promptSuccess: string
   }
   activity: {
     title: string
@@ -193,6 +253,7 @@ export interface Translations {
     exercises: string
     stepOf: string
     planComplete: string
+    planned: string
     bonusEarned: string
     baseEarned: string
   }
@@ -202,6 +263,8 @@ export interface Translations {
     subscription: string
     notifications: string
     notificationsEnabled: string
+    notificationsDisabled: string
+    app: string
     resetDaily: string
     resetDailyDesc: string
     resetConfirm: string
@@ -218,6 +281,12 @@ export interface Translations {
     blockingNative: string
     blockingLearnMore: string
     version: string
+    legal: string
+    privacyPolicy: string
+    termsOfService: string
+    contactSupport: string
+    notificationsNote: string
+    deleteAccount: string
   }
   trial: {
     fullAccess: string
@@ -275,6 +344,36 @@ export interface Translations {
     trialNote: string
     testMode: string
     alreadyPro: string
+    subscribeApple: string
+    restorePurchases: string
+    restored: string
+    noRestore: string
+    appleTerms: string
+    stripeTerms: string
+  }
+  legal: {
+    privacyTitle: string
+    termsTitle: string
+    privacyIntro: string
+    dataWeCollect: string
+    dataWeCollectBody: string
+    howWeUse: string
+    howWeUseBody: string
+    dataStorage: string
+    dataStorageBody: string
+    yourRights: string
+    yourRightsBody: string
+    contact: string
+    contactBody: string
+    termsIntro: string
+    subscriptions: string
+    subscriptionsBody: string
+    acceptableUse: string
+    acceptableUseBody: string
+    disclaimer: string
+    disclaimerBody: string
+    termination: string
+    terminationBody: string
   }
   success: {
     confirming: string

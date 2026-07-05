@@ -5,6 +5,7 @@ import { DEFAULT_APPS, WORKOUT_PLANS } from '@/types'
 import { canAddMoreApps, getAppLimit } from '@/lib/trial'
 import { detectLocale } from '@/i18n'
 import { computeEarnedMinutes, FREE_DIFFICULTY } from '@/lib/earning'
+import { scheduleBlockingSync } from '@/lib/blocking-sync'
 import type { Locale, Difficulty } from '@/types'
 
 function generateId(): string {
@@ -45,6 +46,7 @@ const initialState: AppState = {
     stripeCustomerId: null,
     subscriptionId: null,
     subscriptionStatus: null,
+    notificationsEnabled: true,
     createdAt: Date.now(),
   },
   screenTimeBalance: 0,
@@ -62,6 +64,7 @@ interface StoreActions {
   completeOnboarding: (name: string, difficulty?: Difficulty) => void
   setLocale: (locale: Locale) => void
   setDifficulty: (difficulty: Difficulty) => void
+  setNotificationsEnabled: (enabled: boolean) => void
   completeExercise: (type: ExerciseType, amount: number, durationSeconds: number) => number
   unlockApp: (appId: string, minutes: number) => boolean
   useAppTime: (appId: string, minutes: number) => void
@@ -99,6 +102,11 @@ export const useStore = create<AppState & StoreActions>()(
           profile: { ...s.profile, difficulty },
         }))
       },
+
+      setNotificationsEnabled: (enabled) =>
+        set((s) => ({
+          profile: { ...s.profile, notificationsEnabled: enabled },
+        })),
 
       getEarnedMinutes: (type, amount) => {
         const { profile } = get()
@@ -269,7 +277,7 @@ export const useStore = create<AppState & StoreActions>()(
     }),
     {
       name: 'replock-storage',
-      version: 6,
+      version: 8,
       migrate: (persisted, version) => {
         const state = persisted as AppState
         if (version < 2) {
@@ -296,6 +304,25 @@ export const useStore = create<AppState & StoreActions>()(
             difficulty:
               state.profile.isPro ? (state.profile.difficulty ?? FREE_DIFFICULTY) : FREE_DIFFICULTY,
           }
+        }
+        if (version < 7) {
+          state.profile = {
+            ...state.profile,
+            notificationsEnabled: state.profile.notificationsEnabled ?? true,
+          }
+        }
+        if (version < 8) {
+          const brandPackages: Record<string, string> = {
+            instagram: 'com.instagram.android',
+            tiktok: 'com.zhiliaoapp.musically',
+            x: 'com.twitter.android',
+          }
+          state.apps = state.apps.map((a) => {
+            if (!a.packageName && a.brand && brandPackages[a.brand]) {
+              return { ...a, packageName: brandPackages[a.brand] }
+            }
+            return a
+          })
         }
         return state as AppState & StoreActions
       },
@@ -327,6 +354,7 @@ if (typeof window !== 'undefined') {
             : a
         ),
       })
+      scheduleBlockingSync()
     }
 
     // Enforce app limit when trial expires

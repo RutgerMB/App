@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { MotionButton } from '@/components/ui/Button'
@@ -6,7 +6,17 @@ import { useTranslation } from '@/i18n/context'
 
 export function CancelPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const onboardingReturn = location.state as { from?: string; step?: number } | null
   const { t } = useTranslation()
+
+  const handleBack = () => {
+    if (onboardingReturn?.from === 'onboarding' && typeof onboardingReturn.step === 'number') {
+      navigate('/onboarding', { state: { step: onboardingReturn.step } })
+      return
+    }
+    navigate('/')
+  }
 
   return (
     <div className="min-h-dvh bg-surface-0 noise flex flex-col items-center justify-center px-6 safe-top safe-bottom">
@@ -22,8 +32,8 @@ export function CancelPage() {
         <p className="text-white/40 mb-8">
           {t('cancel.desc')}
         </p>
-        <MotionButton fullWidth size="xl" onClick={() => navigate('/')}>
-          {t('cancel.backHome')}
+        <MotionButton fullWidth size="xl" onClick={handleBack}>
+          {onboardingReturn?.from === 'onboarding' ? t('common.continue') : t('cancel.backHome')}
         </MotionButton>
       </motion.div>
     </div>

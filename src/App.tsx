@@ -14,12 +14,28 @@ import { SettingsPage } from '@/pages/Settings'
 import { PricingPage } from '@/pages/Pricing'
 import { SuccessPage } from '@/pages/Success'
 import { CancelPage } from '@/pages/Cancel'
+import { PrivacyPage, TermsPage } from '@/pages/Legal'
+import { BlockerPermissionPrompt } from '@/components/BlockerPermissionPrompt'
 
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
   const onboardingComplete = useStore((s) => s.profile.onboardingComplete)
   if (!token) return <Navigate to="/login" replace />
   if (!onboardingComplete) return <Navigate to="/onboarding" replace />
+  return <>{children}</>
+}
+
+function SignedInRoute({
+  children,
+  requireOnboarding = true,
+}: {
+  children: React.ReactNode
+  requireOnboarding?: boolean
+}) {
+  const token = useAuthStore((s) => s.token)
+  const onboardingComplete = useStore((s) => s.profile.onboardingComplete)
+  if (!token) return <Navigate to="/login" replace />
+  if (requireOnboarding && !onboardingComplete) return <Navigate to="/onboarding" replace />
   return <>{children}</>
 }
 
@@ -43,13 +59,16 @@ function OnboardingRoute() {
 export default function App() {
   return (
     <ToastProvider>
+      <BlockerPermissionPrompt />
       <Routes>
         <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
         <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
         <Route path="/onboarding" element={<OnboardingRoute />} />
-        <Route path="/pricing" element={<AuthRoute><PricingPage /></AuthRoute>} />
-        <Route path="/success" element={<AuthRoute><SuccessPage /></AuthRoute>} />
-        <Route path="/cancel" element={<AuthRoute><CancelPage /></AuthRoute>} />
+        <Route path="/pricing" element={<SignedInRoute requireOnboarding={false}><PricingPage /></SignedInRoute>} />
+        <Route path="/success" element={<SignedInRoute requireOnboarding={false}><SuccessPage /></SignedInRoute>} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/cancel" element={<SignedInRoute requireOnboarding={false}><CancelPage /></SignedInRoute>} />
         <Route path="/" element={<AuthRoute><HomePage /></AuthRoute>} />
         <Route path="/exercise" element={<AuthRoute><ExercisePage /></AuthRoute>} />
         <Route path="/exercise/category/:category" element={<AuthRoute><ExerciseCategoryPage /></AuthRoute>} />

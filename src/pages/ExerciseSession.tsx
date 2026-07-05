@@ -1,15 +1,19 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Pause, Play, RotateCcw, Check } from 'lucide-react'
+import { Pause, Play, Check, Droplets } from 'lucide-react'
 import { MotionButton } from '@/components/ui/Button'
+import { BackButton } from '@/components/ui/BackButton'
+import { Input } from '@/components/ui/Input'
+import { ExerciseDemoVideo } from '@/components/ExerciseDemoVideo'
 import { useStore } from '@/store'
 import { EXERCISES, isTimerExercise, type ExerciseType } from '@/types'
-import { formatMinutes } from '@/lib/utils'
+import { distributeAcrossSets } from '@/lib/exercise-sets'
+import { getEncouragingMessage } from '@/lib/encouragement'
 import { useToast } from '@/components/ui/Toast'
 import { useTranslation } from '@/i18n/context'
 
-type Phase = 'ready' | 'active' | 'paused' | 'complete'
+type Phase = 'intro' | 'plan' | 'setActive' | 'setRest' | 'paused' | 'complete'
 
 export function ExerciseSessionPage() {
   const [searchParams] = useSearchParams()
@@ -22,77 +26,100 @@ export function ExerciseSessionPage() {
   const { t } = useTranslation()
   const { completeExercise, getEarnedMinutes } = useStore()
 
-  const [phase, setPhase] = useState<Phase>('ready')
-  const [count, setCount] = useState(0)
+  const [phase, setPhase] = useState<Phase>('intro')
+  const [totalAmount, setTotalAmount] = useState(isTimer ? exercise.defaultTarget : exercise.defaultTarget * 3)
+  const [setCount, setSetCount] = useState(3)
+  const [currentSet, setCurrentSet] = useState(1)
+  const [setPlan, setSetPlan] = useState<number[]>([])
   const [elapsed, setElapsed] = useState(0)
-  const target = exercise.defaultTarget
+  const [encouragement, setEncouragement] = useState('')
   const startTimeRef = useRef<number>(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const exName = t(`exercises.${type}.name`)
-  const earned = getEarnedMinutes(type, isTimer ? elapsed : count)
+  const howTo = t(`exercises.${type}.howTo`)
+  const focusTip = t(`exercises.${type}.focus`)
+  const currentSetTarget = setPlan[currentSet - 1] ?? 0
+  const earned = getEarnedMinutes(type, totalAmount)
 
-  const startSession = () => {
-    setPhase('active')
+  const clearTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
+    }
+  }
+
+  const startTimer = () => {
+    clearTimer()
+    timerRef.current = setInterval(() => {
+      setElapsed((e) => e + 1)
+    }, 1000)
+  }
+
+  const beginWorkout = () => {
+    const plan = distributeAcrossSets(totalAmount, setCount)
+    setSetPlan(plan)
+    setCurrentSet(1)
+    setElapsed(0)
     startTimeRef.current = Date.now()
-    if (isTimer) {
-      timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000)
-    }
+    setPhase('setActive')
+    if (isTimer) startTimer()
   }
 
-  const pauseSession = () => {
+  const finishCurrentSet = () => {
+    clearTimer()
+    if (currentSet >= setCount) {
+      setPhase('complete')
+      return
+    }
+    setPhase('setRest')
+  }
+
+  const startNextSet = () => {
+    setCurrentSet((s) => s + 1)
+    setElapsed(0)
+    setPhase('setActive')
+    if (isTimer) startTimer()
+  }
+
+  const pauseTimer = () => {
+    clearTimer()
     setPhase('paused')
-    if (timerRef.current) clearInterval(timerRef.current)
   }
 
-  const resumeSession = () => {
-    setPhase('active')
-    if (isTimer) {
-      timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000)
-    }
-  }
-
-  const addRep = useCallback(() => {
-    if (phase !== 'active') return
-    setCount((c) => {
-      const next = c + 1
-      if (next >= target) setPhase('complete')
-      return next
-    })
-    if (navigator.vibrate) navigator.vibrate(10)
-  }, [phase, target])
-
-  const finishTimer = () => {
-    if (timerRef.current) clearInterval(timerRef.current)
-    setPhase('complete')
+  const resumeTimer = () => {
+    setPhase('setActive')
+    startTimer()
   }
 
   const handleComplete = () => {
     const duration = Math.round((Date.now() - startTimeRef.current) / 1000)
-    const amount = isTimer ? elapsed : count
-    const earnedMinutes = completeExercise(type, amount, duration)
-    toast(`+${formatMinutes(earnedMinutes)}`, 'success')
+    const earnedMinutes = completeExercise(type, totalAmount, duration)
+    toast(encouragement || getEncouragingMessage(earnedMinutes), 'success')
     navigate('/')
   }
 
-  const reset = () => {
-    setCount(0)
-    setElapsed(0)
-    setPhase('ready')
-    if (timerRef.current) clearInterval(timerRef.current)
-  }
-
-  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current) }, [])
+  useEffect(() => {
+    if (phase === 'complete') {
+      setEncouragement(getEncouragingMessage(earned))
+    }
+  }, [phase, earned])
 
   useEffect(() => {
-    if (!isTimer && count >= target && phase === 'active') setPhase('complete')
-  }, [count, target, phase, isTimer])
+    if (phase === 'setActive' && isTimer && currentSetTarget > 0 && elapsed >= currentSetTarget) {
+      finishCurrentSet()
+    }
+  }, [elapsed, phase, isTimer, currentSetTarget])
+
+  useEffect(() => () => clearTimer(), [])
 
   const formatTimer = (seconds: number) => {
     const m = Math.floor(seconds / 60)
     const s = seconds % 60
     return `${m}:${s.toString().padStart(2, '0')}`
   }
+
+  const unitLabel = isTimer ? t('exercise.seconds') : t('exercise.reps')
 
   return (
     <div className="min-h-dvh bg-surface-0 noise flex flex-col safe-top safe-bottom">
@@ -101,95 +128,146 @@ export function ExerciseSessionPage() {
       </div>
 
       <div className="relative z-10 flex items-center justify-between px-5 pt-4">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-xl hover:bg-white/5 text-white/40 hover:text-white transition-colors">
-          <X size={22} />
-        </button>
+        <BackButton
+          variant="close"
+          onClick={() => navigate(-1)}
+          aria-label={t('common.close')}
+        />
         <span className="text-sm font-medium text-white/50">{exName}</span>
-        <div className="w-10" />
+        <div className="w-12" />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
+      <div className="relative z-10 flex-1 flex flex-col px-6 py-4 overflow-y-auto">
         <AnimatePresence mode="wait">
-          {phase === 'ready' && (
-            <motion.div key="ready" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="text-center">
-              <div className={`w-24 h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br ${exercise.gradient} flex items-center justify-center text-4xl shadow-2xl`}>
-                {exercise.icon}
+          {phase === 'intro' && (
+            <motion.div key="intro" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col">
+              <ExerciseDemoVideo type={type} className="mb-6" />
+              <h2 className="text-2xl font-bold mb-3">{exName}</h2>
+              <p className="text-white/55 text-base leading-relaxed mb-4">{howTo}</p>
+              <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 mb-4">
+                <p className="text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-1">{t('exercise.focusOn')}</p>
+                <p className="text-sm text-white/70 leading-relaxed">{focusTip}</p>
               </div>
-              <h2 className="text-2xl font-bold mb-2">{exName}</h2>
-              <p className="text-white/40 mb-2">
-                {isTimer ? t('exercise.holdAsLong') : t('exercise.completeReps', { count: target })}
-              </p>
-              <p className="text-indigo-400 text-sm">
-                {t('exercise.targetEarn', { amount: formatMinutes(getEarnedMinutes(type, isTimer ? target : target)) })}
-              </p>
             </motion.div>
           )}
 
-          {(phase === 'active' || phase === 'paused') && (
-            <motion.div key="active" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center w-full">
+          {phase === 'plan' && (
+            <motion.div key="plan" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">
+              <h2 className="text-2xl font-bold mb-2">{t('exercise.planWorkout')}</h2>
+              <p className="text-white/45 text-sm mb-6">{t('exercise.planWorkoutDesc')}</p>
+              <div className="space-y-4">
+                <Input
+                  id="total-amount"
+                  type="number"
+                  min={1}
+                  label={isTimer ? t('exercise.totalSeconds') : t('exercise.totalReps')}
+                  value={totalAmount}
+                  onChange={(e) => setTotalAmount(Math.max(1, Number(e.target.value) || 1))}
+                  className="h-14 text-lg"
+                />
+                <Input
+                  id="set-count"
+                  type="number"
+                  min={1}
+                  max={20}
+                  label={t('exercise.numberOfSets')}
+                  value={setCount}
+                  onChange={(e) => setSetCount(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+                  className="h-14 text-lg"
+                />
+              </div>
+              <div className="mt-6 p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 text-center">
+                <p className="text-sm text-white/55">
+                  {t('exercise.perSetPreview', {
+                    amount: distributeAcrossSets(totalAmount, setCount)[0],
+                    unit: unitLabel,
+                  })}
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {(phase === 'setActive' || phase === 'paused') && (
+            <motion.div key="active" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center text-center">
+              <p className="text-sm font-medium text-white/40 uppercase tracking-wider mb-2">
+                {t('exercise.setOf', { current: currentSet, total: setCount })}
+              </p>
               {isTimer ? (
                 <>
-                  <p className="text-7xl font-bold tracking-tighter tabular-nums mb-4">{formatTimer(elapsed)}</p>
-                  <p className="text-white/40 text-sm mb-8">{t('exercise.earning', { amount: formatMinutes(earned) })}</p>
+                  <p className="text-7xl font-bold tracking-tighter tabular-nums mb-2">{formatTimer(elapsed)}</p>
+                  <p className="text-white/40 text-sm mb-2">{t('exercise.holdFor', { seconds: currentSetTarget })}</p>
                 </>
               ) : (
                 <>
-                  <p className="text-8xl font-bold tracking-tighter tabular-nums mb-2 gradient-text">{count}</p>
-                  <p className="text-white/30 text-sm mb-8">
-                    {t('exercise.ofReps', { target, amount: formatMinutes(earned) })}
-                  </p>
-                  <button
-                    onClick={addRep}
-                    className={`w-48 h-48 mx-auto rounded-full bg-gradient-to-br ${exercise.gradient} flex items-center justify-center text-white shadow-2xl shadow-indigo-500/30 active:scale-95 transition-transform`}
-                  >
-                    <div className="text-center">
-                      <span className="text-3xl font-bold block">+1</span>
-                      <span className="text-sm opacity-70">{t('common.tap')}</span>
-                    </div>
-                  </button>
+                  <p className="text-7xl font-bold tracking-tighter tabular-nums gradient-text mb-2">{currentSetTarget}</p>
+                  <p className="text-white/40 text-sm mb-2">{unitLabel}</p>
                 </>
               )}
+              <p className="text-white/30 text-xs">{focusTip}</p>
+            </motion.div>
+          )}
+
+          {phase === 'setRest' && (
+            <motion.div key="rest" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-full bg-cyan-500/15 flex items-center justify-center mb-5">
+                <Droplets size={28} className="text-cyan-400" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">{t('exercise.restTitle')}</h2>
+              <p className="text-white/45 text-sm max-w-xs leading-relaxed">{t('exercise.restDesc')}</p>
             </motion.div>
           )}
 
           {phase === 'complete' && (
-            <motion.div key="complete" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
+            <motion.div key="complete" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col items-center justify-center text-center">
               <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
                 <Check size={40} className="text-emerald-400" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">{t('exercise.workoutComplete')}</h2>
-              <p className="text-4xl font-bold gradient-text mb-2">+{formatMinutes(earned)}</p>
-              <p className="text-white/40 text-sm">{t('exercise.screenTimeEarned')}</p>
+              <h2 className="text-2xl font-bold mb-3">{t('exercise.workoutComplete')}</h2>
+              <p className="text-lg text-white/70 leading-relaxed max-w-xs">
+                {encouragement || getEncouragingMessage(earned)}
+              </p>
+              <p className="text-sm text-white/35 mt-3">
+                {isTimer
+                  ? t('exercise.completedTotal', { amount: totalAmount, unit: unitLabel })
+                  : t('exercise.completedReps', { count: totalAmount })}
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <div className="relative z-10 px-6 pb-6 space-y-3">
-        {phase === 'ready' && (
-          <MotionButton fullWidth size="xl" onClick={startSession}>{t('exercise.startWorkout')}</MotionButton>
+      <div className="relative z-10 px-6 pb-6 space-y-3 shrink-0">
+        {phase === 'intro' && (
+          <MotionButton fullWidth size="xl" onClick={() => setPhase('plan')}>
+            {t('exercise.startExercise')}
+          </MotionButton>
         )}
-        {(phase === 'active' || phase === 'paused') && (
+        {phase === 'plan' && (
+          <MotionButton fullWidth size="xl" onClick={beginWorkout}>
+            {t('exercise.startExercise')}
+          </MotionButton>
+        )}
+        {(phase === 'setActive' || phase === 'paused') && (
           <div className="flex gap-3">
-            {isTimer ? (
-              <>
-                <MotionButton variant="secondary" size="lg" className="flex-1" onClick={phase === 'paused' ? resumeSession : pauseSession}>
-                  {phase === 'paused' ? <Play size={18} /> : <Pause size={18} />}
-                  {phase === 'paused' ? t('exercise.resume') : t('exercise.pause')}
-                </MotionButton>
-                <MotionButton size="lg" className="flex-1" onClick={finishTimer}>{t('exercise.finish')}</MotionButton>
-              </>
-            ) : (
-              <MotionButton variant="secondary" size="lg" fullWidth onClick={reset}>
-                <RotateCcw size={16} />
-                {t('exercise.reset')}
+            {isTimer && (
+              <MotionButton variant="secondary" size="lg" className="flex-1" onClick={phase === 'paused' ? resumeTimer : pauseTimer}>
+                {phase === 'paused' ? <Play size={18} /> : <Pause size={18} />}
+                {phase === 'paused' ? t('exercise.resume') : t('exercise.pause')}
               </MotionButton>
             )}
+            <MotionButton size="lg" className="flex-1" onClick={finishCurrentSet}>
+              {t('exercise.finishedSet')}
+            </MotionButton>
           </div>
+        )}
+        {phase === 'setRest' && (
+          <MotionButton fullWidth size="xl" onClick={startNextSet}>
+            {t('exercise.startSet', { number: currentSet + 1 })}
+          </MotionButton>
         )}
         {phase === 'complete' && (
           <MotionButton fullWidth size="xl" onClick={handleComplete}>
-            {t('exercise.claim', { amount: formatMinutes(earned) })}
+            {t('exercise.claimTime')}
           </MotionButton>
         )}
       </div>

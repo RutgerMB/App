@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
@@ -8,15 +8,46 @@ import { useAuthStore } from '@/store/auth'
 import { useStore } from '@/store'
 import { useToast } from '@/components/ui/Toast'
 import { useTranslation } from '@/i18n/context'
+import { isDevLoginEnabled, validateDevLogin } from '@/lib/dev-auth'
+
+const REGISTER_DRAFT_KEY = 'replock-register-draft'
+
+function loadRegisterDraft(): { name: string; email: string; acceptedTerms: boolean } | null {
+  try {
+    const raw = sessionStorage.getItem(REGISTER_DRAFT_KEY)
+    if (!raw) return null
+    const draft = JSON.parse(raw) as { name?: string; email?: string; acceptedTerms?: boolean }
+    return {
+      name: draft.name ?? '',
+      email: draft.email ?? '',
+      acceptedTerms: Boolean(draft.acceptedTerms),
+    }
+  } catch {
+    return null
+  }
+}
+
+function saveRegisterDraft(draft: { name: string; email: string; acceptedTerms: boolean }) {
+  sessionStorage.setItem(REGISTER_DRAFT_KEY, JSON.stringify(draft))
+}
+
+function clearRegisterDraft() {
+  sessionStorage.removeItem(REGISTER_DRAFT_KEY)
+}
 
 export function LoginPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const { t } = useTranslation()
   const login = useAuthStore((s) => s.login)
+  const devLogin = useAuthStore((s) => s.devLogin)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showDevLogin, setShowDevLogin] = useState(false)
+  const [devCode, setDevCode] = useState('')
+  const [devPassword, setDevPassword] = useState('')
+  const showDev = isDevLoginEnabled()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,6 +62,17 @@ export function LoginPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleDevLogin = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validateDevLogin(devCode, devPassword)) {
+      toast(t('auth.devLoginFailed'), 'error')
+      return
+    }
+    devLogin()
+    toast(t('auth.devLoginSuccess'), 'success')
+    navigate('/', { replace: true })
   }
 
   return (
@@ -83,6 +125,51 @@ export function LoginPage() {
             {t('auth.createAccount')}
           </Link>
         </p>
+
+        {showDev && (
+          <div className="mt-8 pt-8 border-t border-white/10">
+            <button
+              type="button"
+              onClick={() => setShowDevLogin((v) => !v)}
+              className="w-full text-center text-sm text-amber-400/80 hover:text-amber-300 font-medium"
+            >
+              {t('auth.devLogin')}
+            </button>
+
+            {showDevLogin && (
+              <motion.form
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                onSubmit={handleDevLogin}
+                className="mt-4 space-y-3 overflow-hidden"
+              >
+                <Input
+                  id="dev-code"
+                  label={t('auth.devCode')}
+                  placeholder=""
+                  value={devCode}
+                  onChange={(e) => setDevCode(e.target.value)}
+                  autoComplete="off"
+                  className="h-12 text-base"
+                />
+                <Input
+                  id="dev-password"
+                  type="password"
+                  label={t('auth.devPassword')}
+                  placeholder=""
+                  value={devPassword}
+                  onChange={(e) => setDevPassword(e.target.value)}
+                  autoComplete="off"
+                  className="h-12 text-base"
+                />
+                <MotionButton fullWidth size="lg" type="submit" className="h-12">
+                  {t('auth.devLoginSubmit')}
+                </MotionButton>
+                <p className="text-center text-[11px] text-white/25">{t('auth.devLoginHint')}</p>
+              </motion.form>
+            )}
+          </div>
+        )}
       </motion.div>
     </div>
   )
@@ -93,14 +180,24 @@ export function RegisterPage() {
   const { toast } = useToast()
   const { t } = useTranslation()
   const register = useAuthStore((s) => s.register)
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const draft = loadRegisterDraft()
+  const [name, setName] = useState(draft?.name ?? '')
+  const [email, setEmail] = useState(draft?.email ?? '')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
+  const [acceptedTerms, setAcceptedTerms] = useState(draft?.acceptedTerms ?? false)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    saveRegisterDraft({ name, email, acceptedTerms })
+  }, [name, email, acceptedTerms])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!acceptedTerms) {
+      toast(t('auth.termsRequired'), 'error')
+      return
+    }
     if (password !== confirm) {
       toast(t('auth.passwordMismatch'), 'error')
       return
@@ -112,6 +209,7 @@ export function RegisterPage() {
     setLoading(true)
     try {
       await register(email.trim(), password, name.trim())
+      clearRegisterDraft()
       toast(t('auth.accountCreated'), 'success')
       navigate('/onboarding', { replace: true })
     } catch (err) {
@@ -181,6 +279,21 @@ export function RegisterPage() {
             {t('auth.createAccount')}
             <ArrowRight size={20} />
           </MotionButton>
+
+          <label className="flex items-start gap-3 mt-5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-1 rounded border-white/20 bg-surface-2 text-indigo-500 focus:ring-indigo-500/40"
+            />
+            <span className="text-xs text-white/45 leading-relaxed">
+              {t('auth.agreeTerms')}{' '}
+              <Link to="/terms" state={{ from: '/register' }} className="text-indigo-400 hover:text-indigo-300">{t('legal.termsTitle')}</Link>
+              {' · '}
+              <Link to="/privacy" state={{ from: '/register' }} className="text-indigo-400 hover:text-indigo-300">{t('legal.privacyTitle')}</Link>
+            </span>
+          </label>
         </form>
 
         <p className="text-center text-sm text-white/40 mt-8">

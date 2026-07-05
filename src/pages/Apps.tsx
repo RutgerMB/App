@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom'
 import { AppIcon } from '@/components/AppBrandIcon'
 import { TrialBanner } from '@/components/TrialBanner'
 import { ProPromo } from '@/components/ProPromo'
+import { BlockerSetupCard } from '@/components/BlockerSetupCard'
 import { useTranslation } from '@/i18n/context'
 import type { DeviceAppDefinition } from '@/data/device-apps'
 
@@ -81,6 +82,8 @@ export function AppsPage() {
     <AppShell>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <TrialBanner compact />
+
+        <BlockerSetupCard compact />
 
         <div className="flex items-center justify-between mb-8">
           <div>

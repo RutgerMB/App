@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core'
 import { Stripe, PaymentSheetEventsEnum } from '@capacitor-community/stripe'
 import { apiFetch } from '@/lib/api'
+import { canUseStripe } from '@/lib/payment-platform'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
 
@@ -72,5 +73,5 @@ export async function presentNativeProCheckout(
 }
 
 export function shouldUseNativeStripeCheckout(): boolean {
-  return Capacitor.isNativePlatform() && isStripeConfigured()
+  return Capacitor.isNativePlatform() && isStripeConfigured() && canUseStripe()
 }

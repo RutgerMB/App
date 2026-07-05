@@ -1,13 +1,17 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
-  Check, Sparkles, Grid3X3, BarChart3, Shield, Sliders, X, Star, Dumbbell,
+  Check, Sparkles, Grid3X3, BarChart3, Shield, Sliders, Dumbbell,
 } from 'lucide-react'
 import { MotionButton } from '@/components/ui/Button'
+import { BackButton } from '@/components/ui/BackButton'
 import { Badge } from '@/components/ui/Badge'
 import { createCheckoutSession, formatPrice } from '@/lib/utils'
 import { shouldUseNativeStripeCheckout, presentNativeProCheckout } from '@/lib/stripe'
+import { requiresAppleIAP } from '@/lib/payment-platform'
+import { purchaseAppleProSubscription, restoreApplePurchases } from '@/lib/apple-iap'
+import { openPrivacy, openTerms } from '@/lib/legal'
 import { useAuthStore } from '@/store/auth'
 import { useToast } from '@/components/ui/Toast'
 import { useStore } from '@/store'
@@ -21,11 +25,14 @@ import { useTranslation } from '@/i18n/context'
 
 export function PricingPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const onboardingReturn = location.state as { from?: string; step?: number } | null
   const { toast } = useToast()
   const { t } = useTranslation()
   const { profile, setProStatus } = useStore()
   const authUser = useAuthStore((s) => s.user)
   const [loading, setLoading] = useState(false)
+  const useAppleIAP = requiresAppleIAP()
 
   const trialStatus = getTrialStatus(profile)
   const daysLeft = getTrialDaysRemaining(profile.createdAt)
@@ -46,6 +53,23 @@ export function PricingPage() {
       ? `${daysLeft} ${t('common.days')}`
       : `${hoursLeft} hours`
 
+  const returnToOnboarding = () => {
+    if (onboardingReturn?.from === 'onboarding' && typeof onboardingReturn.step === 'number') {
+      navigate('/onboarding', { state: { step: onboardingReturn.step } })
+      return
+    }
+    if (window.history.length > 1) {
+      navigate(-1)
+      return
+    }
+    navigate('/')
+  }
+
+  const successNavigateState =
+    onboardingReturn?.from === 'onboarding' && typeof onboardingReturn.step === 'number'
+      ? { from: 'onboarding' as const, step: onboardingReturn.step }
+      : undefined
+
   const handleSubscribe = async () => {
     if (profile.isPro) {
       toast(t('pricing.alreadyPro'), 'info')
@@ -54,6 +78,14 @@ export function PricingPage() {
 
     setLoading(true)
     try {
+      if (useAppleIAP) {
+        const result = await purchaseAppleProSubscription()
+        setProStatus(true, result.customerId, result.subscriptionId, 'active')
+        toast(t('pricing.onPro'), 'success')
+        navigate('/success?native=1', { replace: true, state: successNavigateState })
+        return
+      }
+
       if (shouldUseNativeStripeCheckout()) {
         const result = await presentNativeProCheckout(
           authUser?.email ?? profile.email,
@@ -61,7 +93,7 @@ export function PricingPage() {
         )
         setProStatus(true, result.customerId, result.subscriptionId, 'active')
         toast(t('pricing.onPro'), 'success')
-        navigate('/success?native=1', { replace: true })
+        navigate('/success?native=1', { replace: true, state: successNavigateState })
         return
       }
 
@@ -69,6 +101,23 @@ export function PricingPage() {
       window.location.href = url
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Checkout failed', 'error')
+      setLoading(false)
+    }
+  }
+
+  const handleRestore = async () => {
+    setLoading(true)
+    try {
+      const restored = await restoreApplePurchases()
+      if (restored) {
+        setProStatus(true, 'apple', 'restored', 'active')
+        toast(t('pricing.restored'), 'success')
+      } else {
+        toast(t('pricing.noRestore'), 'info')
+      }
+    } catch {
+      toast(t('pricing.noRestore'), 'info')
+    } finally {
       setLoading(false)
     }
   }
@@ -81,18 +130,16 @@ export function PricingPage() {
       </div>
 
       <div className="relative z-10 flex items-center justify-between px-5 pt-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 -ml-2 rounded-xl hover:bg-white/5 text-white/40 hover:text-white transition-colors"
-        >
-          <X size={22} />
-        </button>
+        <BackButton
+          variant="close"
+          onClick={returnToOnboarding}
+          aria-label={t('common.close')}
+        />
         <Badge variant="pro">{t('common.pro')}</Badge>
-        <div className="w-10" />
+        <div className="w-12" />
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col px-6 py-6 max-w-md mx-auto w-full pb-8">
-        {/* Trial status banner */}
         {!profile.isPro && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -108,9 +155,7 @@ export function PricingPage() {
             {isExpired ? (
               <>
                 <p className="text-sm font-semibold text-amber-300">{t('pricing.trialEnded')}</p>
-                <p className="text-xs text-white/45 mt-1">
-                  {t('pricing.trialEndedDesc')}
-                </p>
+                <p className="text-xs text-white/45 mt-1">{t('pricing.trialEndedDesc')}</p>
               </>
             ) : (
               <>
@@ -133,28 +178,12 @@ export function PricingPage() {
           <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-2xl shadow-indigo-500/30">
             <Sparkles size={28} className="text-white" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">
-            {t('pricing.title')}
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">{t('pricing.title')}</h1>
           <p className="text-white/40 text-sm leading-relaxed max-w-xs mx-auto">
             {t('pricing.subtitle')}
           </p>
         </motion.div>
 
-        {/* Social proof */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="flex items-center justify-center gap-1 mb-6"
-        >
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Star key={i} size={14} className="text-amber-400 fill-amber-400" />
-          ))}
-          <span className="text-xs text-white/40 ml-2">{t('pricing.socialProof')}</span>
-        </motion.div>
-
-        {/* Pricing Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -192,7 +221,6 @@ export function PricingPage() {
           </div>
         </motion.div>
 
-        {/* Free vs Pro comparison */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -221,12 +249,11 @@ export function PricingPage() {
           </div>
         </motion.div>
 
-        {/* Value prop - no shortcuts */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.35 }}
-          className="p-4 rounded-2xl bg-surface-2/50 border border-border mb-8"
+          className="p-4 rounded-2xl bg-surface-2/50 border border-border mb-6"
         >
           <p className="text-xs text-white/50 leading-relaxed text-center">
             {t('pricing.noShortcuts')}
@@ -244,15 +271,34 @@ export function PricingPage() {
           ) : (
             <>
               <MotionButton fullWidth size="xl" onClick={handleSubscribe} loading={loading}>
-                {isExpired ? t('pricing.upgrade') : isUrgent ? t('pricing.keepAccess') : t('pricing.subscribe')}
+                {useAppleIAP
+                  ? t('pricing.subscribeApple')
+                  : isExpired
+                    ? t('pricing.upgrade')
+                    : isUrgent
+                      ? t('pricing.keepAccess')
+                      : t('pricing.subscribe')}
               </MotionButton>
-              {!isExpired && (
-                <p className="text-center text-xs text-white/30">
-                  {t('pricing.trialNote')}
-                </p>
+              {useAppleIAP && (
+                <button
+                  type="button"
+                  onClick={handleRestore}
+                  disabled={loading}
+                  className="w-full text-center text-sm text-indigo-400/80 hover:text-indigo-300 py-2"
+                >
+                  {t('pricing.restorePurchases')}
+                </button>
               )}
-              <p className="text-center text-xs text-white/20">
-                {t('pricing.testMode')}
+              {!isExpired && !useAppleIAP && (
+                <p className="text-center text-xs text-white/30">{t('pricing.trialNote')}</p>
+              )}
+              <p className="text-center text-[11px] text-white/30 leading-relaxed px-2">
+                {useAppleIAP ? t('pricing.appleTerms') : t('pricing.stripeTerms')}
+              </p>
+              <p className="text-center text-[11px] text-white/25">
+                <button type="button" onClick={openTerms} className="underline hover:text-white/40">{t('legal.termsTitle')}</button>
+                {' · '}
+                <button type="button" onClick={openPrivacy} className="underline hover:text-white/40">{t('legal.privacyTitle')}</button>
               </p>
             </>
           )}

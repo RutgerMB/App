@@ -5,7 +5,9 @@ const config: CapacitorConfig = {
   appName: 'RepLock',
   webDir: 'dist',
   server: {
-    androidScheme: 'https',
+    // http allows the WebView to call the dev API at http://10.0.2.2:3001 (Android emulator)
+    androidScheme: 'http',
+    cleartext: true,
   },
   plugins: {
     SplashScreen: {

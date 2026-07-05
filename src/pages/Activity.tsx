@@ -2,7 +2,9 @@ import { motion } from 'framer-motion'
 import { AppShell } from '@/components/layout/AppShell'
 import { MotionCard } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { Flame, Dumbbell } from 'lucide-react'
 import { ActivityInsights } from '@/components/ActivityInsights'
+import { ExerciseIcon } from '@/components/ExerciseIcons'
 import { ProPromo } from '@/components/ProPromo'
 import { useStore } from '@/store'
 import { EXERCISES } from '@/types'
@@ -49,7 +51,9 @@ export function ActivityPage() {
 
         {currentStreak > 0 && (
           <div className="mb-6 p-4 rounded-2xl bg-orange-500/5 border border-orange-500/15 flex items-center gap-3">
-            <span className="text-2xl">🔥</span>
+            <div className="w-10 h-10 rounded-xl bg-orange-500/15 flex items-center justify-center shrink-0">
+              <Flame size={20} className="text-orange-400" />
+            </div>
             <div>
               <p className="font-semibold text-sm">{t('activity.dayStreak', { count: currentStreak })}</p>
               <p className="text-xs text-white/40">{t('activity.keepGoing')}</p>
@@ -59,7 +63,9 @@ export function ActivityPage() {
 
         {sessions.length === 0 ? (
           <div className="text-center py-12">
-            <span className="text-4xl block mb-4">💪</span>
+            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-indigo-500/10 flex items-center justify-center">
+              <Dumbbell size={28} className="text-indigo-400" />
+            </div>
             <p className="text-white/40">{t('activity.noWorkouts')}</p>
             <p className="text-white/25 text-sm mt-1">{t('activity.noWorkoutsDesc')}</p>
           </div>
@@ -76,8 +82,8 @@ export function ActivityPage() {
                     return (
                       <MotionCard key={session.id} className="p-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${ex.gradient} flex items-center justify-center text-lg`}>
-                            {ex.icon}
+                          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${ex.gradient} flex items-center justify-center text-white`}>
+                            <ExerciseIcon type={session.type} size={18} />
                           </div>
                           <div className="flex-1">
                             <p className="font-medium text-sm">{t(`exercises.${session.type}.name`)}</p>

@@ -19,16 +19,18 @@ interface DifficultyPickerProps {
   onChange: (difficulty: Difficulty) => void
   compact?: boolean
   large?: boolean
+  /** Passed to /pricing when a Pro-only difficulty is tapped (e.g. return to onboarding). */
+  pricingNavigateState?: { from: string; step: number }
 }
 
-export function DifficultyPicker({ value, onChange, compact, large }: DifficultyPickerProps) {
+export function DifficultyPicker({ value, onChange, compact, large, pricingNavigateState }: DifficultyPickerProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const isPro = useStore((s) => s.profile.isPro)
 
   const handleSelect = (d: Difficulty) => {
     if (!isPro && isProDifficulty(d)) {
-      navigate('/pricing')
+      navigate('/pricing', pricingNavigateState ? { state: pricingNavigateState } : undefined)
       return
     }
     onChange(d)

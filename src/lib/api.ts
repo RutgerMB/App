@@ -4,6 +4,10 @@ const API_PORT = 3001
 
 let resolvedApiBase: string | null = null
 
+export function resetApiBaseCache(): void {
+  resolvedApiBase = null
+}
+
 function trimBase(url: string): string {
   return url.replace(/\/$/, '')
 }
@@ -28,6 +32,11 @@ export function getApiBases(): string[] {
   }
 
   if (Capacitor.isNativePlatform()) {
+    // Android emulator: 10.0.2.2 = host PC localhost (try before LAN IP from .env)
+    if (Capacitor.getPlatform() === 'android') {
+      bases.push(`http://10.0.2.2:${API_PORT}`)
+    }
+
     if (import.meta.env.VITE_API_URL_NATIVE) {
       bases.push(trimBase(import.meta.env.VITE_API_URL_NATIVE))
     }
@@ -38,7 +47,6 @@ export function getApiBases(): string[] {
     }
 
     if (Capacitor.getPlatform() === 'android') {
-      bases.push(`http://10.0.2.2:${API_PORT}`)
       bases.push(`http://127.0.0.1:${API_PORT}`)
     } else {
       bases.push(`http://localhost:${API_PORT}`)
@@ -63,10 +71,13 @@ export function getApiBase(): string {
 export async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   const bases = getApiBases()
   let lastError: unknown
+  const tried: string[] = []
 
   for (const base of bases) {
+    const url = `${base}${path}`
+    tried.push(url)
     try {
-      const res = await fetch(`${base}${path}`, init)
+      const res = await fetch(url, init)
       resolvedApiBase = base
       return res
     } catch (err) {
@@ -74,10 +85,13 @@ export async function apiFetch(path: string, init?: RequestInit): Promise<Respon
     }
   }
 
+  resetApiBaseCache()
+
   if (lastError instanceof TypeError) {
+    const triedList = [...new Set(tried)].join(', ')
     throw new TypeError(
       Capacitor.isNativePlatform()
-        ? 'Cannot reach server. Run npm run dev on your PC. On a physical phone, add VITE_API_URL_NATIVE=http://YOUR_PC_IP:3001 to .env and rebuild.'
+        ? `Cannot reach server (tried: ${triedList}). Keep "npm run dev" running on your PC, then rebuild the app. Emulator uses http://10.0.2.2:3001`
         : 'Cannot reach server. Run npm run dev in the project folder.'
     )
   }

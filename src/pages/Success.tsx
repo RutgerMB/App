@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Check, Loader2 } from 'lucide-react'
 import { MotionButton } from '@/components/ui/Button'
@@ -10,6 +10,8 @@ import { useTranslation } from '@/i18n/context'
 export function SuccessPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  const onboardingReturn = location.state as { from?: string; step?: number } | null
   const { t } = useTranslation()
   const setProStatus = useStore((s) => s.setProStatus)
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
@@ -38,6 +40,14 @@ export function SuccessPage() {
       .catch(() => setStatus('error'))
   }, [searchParams, setProStatus])
 
+  const handleContinue = () => {
+    if (onboardingReturn?.from === 'onboarding' && typeof onboardingReturn.step === 'number') {
+      navigate('/onboarding', { state: { step: onboardingReturn.step } })
+      return
+    }
+    navigate('/')
+  }
+
   return (
     <div className="min-h-dvh bg-surface-0 noise flex flex-col items-center justify-center px-6 safe-top safe-bottom">
       {status === 'loading' && (
@@ -60,8 +70,10 @@ export function SuccessPage() {
           <p className="text-white/40 mb-8">
             {t('success.welcomeDesc')}
           </p>
-          <MotionButton fullWidth size="xl" onClick={() => navigate('/')}>
-            {t('success.startEarning')}
+          <MotionButton fullWidth size="xl" onClick={handleContinue}>
+            {onboardingReturn?.from === 'onboarding'
+              ? t('common.continue')
+              : t('success.startEarning')}
           </MotionButton>
         </motion.div>
       )}

@@ -58,6 +58,15 @@ export function createUser(data: Omit<StoredUser, 'appState'> & { appState?: App
   return user
 }
 
+export function deleteUser(userId: string): boolean {
+  const db = readDb()
+  const idx = db.users.findIndex((u) => u.id === userId)
+  if (idx === -1) return false
+  db.users.splice(idx, 1)
+  writeDb(db)
+  return true
+}
+
 export function updateUserAppState(userId: string, appState: AppState): StoredUser | undefined {
   const db = readDb()
   const idx = db.users.findIndex((u) => u.id === userId)
@@ -80,6 +89,7 @@ function createEmptyAppState(name: string, email: string): AppState {
       stripeCustomerId: null,
       subscriptionId: null,
       subscriptionStatus: null,
+      notificationsEnabled: true,
       createdAt: Date.now(),
     },
     screenTimeBalance: 0,

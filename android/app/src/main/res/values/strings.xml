@@ -4,4 +4,10 @@
     <string name="title_activity_main">RepLock</string>
     <string name="package_name">com.replock.app</string>
     <string name="custom_url_scheme">com.replock.app</string>
+    <string name="accessibility_service_description">RepLock uses accessibility to detect when you open a locked app and show the block screen. RepLock does not read screen content or personal data.</string>
+    <string name="blocker_default_app_name">This app</string>
+    <string name="blocker_title">%1$s is locked</string>
+    <string name="blocker_subtitle">Earn screen time with workouts in RepLock, then unlock this app.</string>
+    <string name="blocker_open_replock">Open RepLock</string>
+    <string name="blocker_go_home">Go to home screen</string>
 </resources>

@@ -1,7 +1,8 @@
 import type { Request, Response, NextFunction } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { createUser, findUserByEmail, findUserById, updateUserAppState } from './db.js'
+import { createUser, findUserByEmail, findUserById, updateUserAppState, deleteUser } from './db.js'
+import { verifyFirebaseIdToken } from './firebase-admin.js'
 import type { AppState } from '../src/types/index.js'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'replock-dev-secret-change-in-production'
@@ -24,12 +25,24 @@ export function verifyToken(token: string): AuthPayload | null {
   }
 }
 
-export function authMiddleware(req: Request, res: Response, next: NextFunction) {
+export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const header = req.headers.authorization
   if (!header?.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
-  const payload = verifyToken(header.slice(7))
+
+  const token = header.slice(7)
+
+  const firebaseUser = await verifyFirebaseIdToken(token)
+  if (firebaseUser) {
+    ;(req as Request & { auth: AuthPayload }).auth = {
+      userId: firebaseUser.uid,
+      email: firebaseUser.email,
+    }
+    return next()
+  }
+
+  const payload = verifyToken(token)
   if (!payload) return res.status(401).json({ error: 'Invalid or expired token' })
   ;(req as Request & { auth: AuthPayload }).auth = payload
   next()
@@ -114,5 +127,27 @@ export function handlePutSync(req: Request, res: Response) {
     profile: { ...appState.profile, email: auth.email },
   })
   if (!updated) return res.status(404).json({ error: 'User not found' })
+  res.json({ ok: true })
+}
+
+export async function handleDeleteAccount(req: Request, res: Response) {
+  const { auth } = req as Request & { auth: AuthPayload }
+  const { password } = req.body as { password?: string }
+
+  const user = findUserById(auth.userId)
+  if (!user) return res.status(404).json({ error: 'User not found' })
+
+  if (!password) {
+    return res.status(400).json({ error: 'Password is required to delete your account' })
+  }
+
+  const valid = await bcrypt.compare(password, user.passwordHash)
+  if (!valid) {
+    return res.status(401).json({ error: 'Incorrect password' })
+  }
+
+  const deleted = deleteUser(auth.userId)
+  if (!deleted) return res.status(500).json({ error: 'Could not delete account' })
+
   res.json({ ok: true })
 }

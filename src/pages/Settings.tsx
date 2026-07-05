@@ -2,30 +2,41 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
-  User, Crown, Bell, Shield, HelpCircle, LogOut, ChevronRight, ExternalLink,
+  Crown, Bell, Shield, HelpCircle, LogOut, ChevronRight, ExternalLink, Trash2, FileText,
 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { MotionCard } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { LanguageDropdown } from '@/components/LanguagePicker'
 import { DifficultyPicker } from '@/components/DifficultyPicker'
 import { ProPromo } from '@/components/ProPromo'
+import { BlockerSetupCard } from '@/components/BlockerSetupCard'
+import { Switch } from '@/components/ui/Switch'
+import { isAndroidBlockingAvailable } from '@/lib/app-blocker'
 import { useStore } from '@/store'
 import { useAuthStore } from '@/store/auth'
 import { useToast } from '@/components/ui/Toast'
 import { formatMinutes } from '@/lib/utils'
+import { openSupport } from '@/lib/legal'
+import { isDevToken } from '@/lib/dev-auth'
 import { useTranslation } from '@/i18n/context'
 
 export function SettingsPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const { t } = useTranslation()
-  const { profile, screenTimeBalance, totalEarnedMinutes, currentStreak, resetDailyUsage, setLocale, setDifficulty } = useStore()
+  const { profile, screenTimeBalance, totalEarnedMinutes, currentStreak, resetDailyUsage, setLocale, setDifficulty, setNotificationsEnabled } = useStore()
   const user = useAuthStore((s) => s.user)
+  const token = useAuthStore((s) => s.token)
   const logout = useAuthStore((s) => s.logout)
+  const deleteAccountAction = useAuthStore((s) => s.deleteAccount)
   const [showReset, setShowReset] = useState(false)
+  const [showDelete, setShowDelete] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   const handleResetDaily = () => {
     resetDailyUsage()
@@ -33,16 +44,22 @@ export function SettingsPage() {
     toast(t('settings.resetDailyDesc'), 'info')
   }
 
+  const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) return
+    setDeleting(true)
+    try {
+      await deleteAccountAction(deletePassword)
+      toast(t('auth.deleteAccountSuccess'), 'success')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('auth.loginFailed'), 'error')
+      setDeleting(false)
+    }
+  }
+
   const menuSections = [
     {
       title: t('settings.profile'),
       items: [
-        {
-          icon: User,
-          label: t('settings.profile'),
-          value: user?.email ?? profile.email ?? profile.name,
-          action: () => {},
-        },
         {
           icon: Crown,
           label: t('settings.subscription'),
@@ -54,13 +71,12 @@ export function SettingsPage() {
     },
     {
       title: t('settings.notifications'),
+      items: [],
+      showNotifications: true,
+    },
+    {
+      title: t('settings.app'),
       items: [
-        {
-          icon: Bell,
-          label: t('settings.notifications'),
-          value: t('settings.notificationsEnabled'),
-          action: () => toast(t('settings.notificationsEnabled'), 'info'),
-        },
         {
           icon: Shield,
           label: t('settings.resetDaily'),
@@ -80,17 +96,29 @@ export function SettingsPage() {
       showDifficulty: true,
     },
     {
-      title: t('settings.help'),
+      title: t('settings.legal'),
       items: [
         {
+          icon: FileText,
+          label: t('settings.privacyPolicy'),
+          action: () => navigate('/privacy', { state: { from: '/settings' } }),
+        },
+        {
+          icon: FileText,
+          label: t('settings.termsOfService'),
+          action: () => navigate('/terms', { state: { from: '/settings' } }),
+        },
+        {
           icon: HelpCircle,
-          label: t('settings.help'),
-          action: () => window.open('https://stripe.com/docs/testing', '_blank'),
+          label: t('settings.contactSupport'),
+          action: openSupport,
           external: true,
         },
       ],
     },
   ]
+
+  const canDeleteAccount = token && !isDevToken(token)
 
   return (
     <AppShell>
@@ -99,18 +127,18 @@ export function SettingsPage() {
           <h1 className="text-2xl font-bold tracking-tight">{t('settings.title')}</h1>
         </div>
 
-        {/* Profile Card */}
         <MotionCard className="p-5 mb-6 gradient-border">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-xl font-bold">
               {profile.name.charAt(0).toUpperCase()}
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="font-semibold text-lg">{profile.name}</h2>
+                <h2 className="font-semibold text-lg truncate">{profile.name}</h2>
                 {profile.isPro && <Badge variant="pro">{t('common.pro')}</Badge>}
               </div>
-              <p className="text-white/40 text-sm">
+              <p className="text-white/40 text-sm truncate">{user?.email ?? profile.email}</p>
+              <p className="text-white/35 text-xs mt-0.5">
                 {formatMinutes(screenTimeBalance)} · {currentStreak}{t('common.days')}
               </p>
             </div>
@@ -130,7 +158,6 @@ export function SettingsPage() {
           )}
         </MotionCard>
 
-        {/* Menu Sections */}
         {menuSections.map((section) => (
           <div key={section.title} className="mb-6">
             <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2 px-1">
@@ -139,6 +166,31 @@ export function SettingsPage() {
             {'showLanguage' in section && section.showLanguage ? (
               <MotionCard className="p-4">
                 <LanguageDropdown value={profile.locale} onChange={setLocale} />
+              </MotionCard>
+            ) : 'showNotifications' in section && section.showNotifications ? (
+              <MotionCard className="p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Bell size={18} className="text-white/30 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">{t('settings.notifications')}</p>
+                      <p className="text-xs text-white/35 leading-relaxed">
+                        {t('settings.notificationsNote')}
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="notifications-toggle"
+                    checked={profile.notificationsEnabled !== false}
+                    onChange={(enabled) => {
+                      setNotificationsEnabled(enabled)
+                      toast(
+                        enabled ? t('settings.notificationsEnabled') : t('settings.notificationsDisabled'),
+                        'info'
+                      )
+                    }}
+                  />
+                </div>
               </MotionCard>
             ) : 'showDifficulty' in section && section.showDifficulty ? (
               <DifficultyPicker
@@ -160,7 +212,7 @@ export function SettingsPage() {
                     <item.icon size={18} className="text-white/30 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{item.label}</p>
-                      {item.value && (
+                      {'value' in item && item.value && (
                         <p className="text-xs text-white/30 truncate">{item.value}</p>
                       )}
                     </div>
@@ -179,14 +231,16 @@ export function SettingsPage() {
 
         <ProPromo variant="settings" compact />
 
-        {/* Blocking info */}
-        <MotionCard className="p-4 mb-6 border border-amber-500/20 bg-amber-500/5">
-          <h3 className="text-sm font-semibold text-amber-200 mb-2">{t('settings.blockingTitle')}</h3>
-          <p className="text-xs text-white/50 leading-relaxed mb-2">{t('settings.blockingCurrent')}</p>
-          <p className="text-xs text-white/40 leading-relaxed">{t('settings.blockingNative')}</p>
-        </MotionCard>
+        <BlockerSetupCard />
 
-        {/* Stats */}
+        {!isAndroidBlockingAvailable() && (
+          <MotionCard className="p-4 mb-6 border border-amber-500/20 bg-amber-500/5">
+            <h3 className="text-sm font-semibold text-amber-200 mb-2">{t('settings.blockingTitle')}</h3>
+            <p className="text-xs text-white/50 leading-relaxed mb-2">{t('settings.blockingCurrent')}</p>
+            <p className="text-xs text-white/40 leading-relaxed">{t('settings.blockingNative')}</p>
+          </MotionCard>
+        )}
+
         <MotionCard className="p-4 mb-6">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
@@ -202,9 +256,19 @@ export function SettingsPage() {
           </div>
         </MotionCard>
 
+        {canDeleteAccount && (
+          <button
+            onClick={() => setShowDelete(true)}
+            className="w-full mb-3 flex items-center justify-center gap-2 h-12 rounded-xl border border-red-500/20 bg-red-500/5 text-red-400/90 text-sm font-medium hover:bg-red-500/10 transition-colors"
+          >
+            <Trash2 size={16} />
+            {t('settings.deleteAccount')}
+          </button>
+        )}
+
         <button
           onClick={logout}
-          className="w-full mb-6 flex items-center justify-center gap-2 h-12 rounded-xl border border-red-500/25 bg-red-500/10 text-red-400 text-sm font-medium hover:bg-red-500/15 transition-colors"
+          className="w-full mb-6 flex items-center justify-center gap-2 h-12 rounded-xl border border-white/10 bg-white/[0.03] text-white/60 text-sm font-medium hover:bg-white/[0.06] transition-colors"
         >
           <LogOut size={16} />
           {t('auth.signOut')}
@@ -216,16 +280,34 @@ export function SettingsPage() {
       </motion.div>
 
       <Modal open={showReset} onClose={() => setShowReset(false)} title={t('settings.resetConfirm')}>
-        <p className="text-sm text-white/50 mb-4">
-          {t('settings.resetConfirmDesc')}
-        </p>
+        <p className="text-sm text-white/50 mb-4">{t('settings.resetConfirmDesc')}</p>
         <div className="flex gap-3">
           <Button variant="secondary" className="flex-1" onClick={() => setShowReset(false)}>
             {t('common.cancel')}
           </Button>
           <Button variant="danger" className="flex-1" onClick={handleResetDaily}>
-            <LogOut size={14} />
             {t('exercise.reset')}
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal open={showDelete} onClose={() => !deleting && setShowDelete(false)} title={t('auth.deleteAccountConfirm')}>
+        <p className="text-sm text-white/50 mb-4">{t('auth.deleteAccountWarning')}</p>
+        <Input
+          id="delete-password"
+          type="password"
+          label={t('auth.deleteAccountPassword')}
+          value={deletePassword}
+          onChange={(e) => setDeletePassword(e.target.value)}
+          autoComplete="current-password"
+          className="mb-4"
+        />
+        <div className="flex gap-3">
+          <Button variant="secondary" className="flex-1" onClick={() => setShowDelete(false)} disabled={deleting}>
+            {t('common.cancel')}
+          </Button>
+          <Button variant="danger" className="flex-1" onClick={handleDeleteAccount} disabled={deleting || !deletePassword}>
+            {t('auth.deleteAccountSubmit')}
           </Button>
         </div>
       </Modal>

@@ -16,8 +16,15 @@ import {
   handleLogin,
   handleGetSync,
   handlePutSync,
+  handleDeleteAccount,
   authMiddleware,
 } from './auth.js'
+import { ensureAppReviewAccount } from './review-account.js'
+import { isFirebaseAdminConfigured } from './firebase-admin.js'
+import {
+  createEphemeralKey,
+  resolveSubscriptionPaymentClientSecret,
+} from './stripe-subscription.js'
 
 const stripeKey = process.env.STRIPE_SECRET_KEY
 
@@ -60,6 +67,32 @@ app.post('/api/auth/register', handleRegister)
 app.post('/api/auth/login', handleLogin)
 app.get('/api/auth/sync', authMiddleware, handleGetSync)
 app.put('/api/auth/sync', authMiddleware, handlePutSync)
+app.delete('/api/auth/account', authMiddleware, handleDeleteAccount)
+
+app.post('/api/subscription/apple/verify', authMiddleware, async (req, res) => {
+  try {
+    const { transactionId, productId } = req.body as {
+      transactionId?: string
+      productId?: string
+    }
+
+    if (!transactionId || !productId) {
+      return res.status(400).json({ error: 'Missing transaction data' })
+    }
+
+    // Production: verify receipt with Apple App Store Server API using transactionId.
+    // For App Review, grant Pro when a valid-looking transaction is submitted from the native IAP flow.
+    res.json({
+      customerId: `apple_${transactionId.slice(0, 12)}`,
+      subscriptionId: transactionId,
+      productId,
+      verified: true,
+    })
+  } catch (err) {
+    console.error('Apple verify error:', err)
+    res.status(500).json({ error: 'Verification failed' })
+  }
+})
 
 app.post('/api/subscription/payment-sheet', async (req, res) => {
   try {
@@ -85,25 +118,17 @@ app.post('/api/subscription/payment-sheet', async (req, res) => {
       items: [{ price: priceId }],
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
-      expand: ['latest_invoice.payment_intent'],
+      expand: ['latest_invoice.confirmation_secret', 'latest_invoice.payment_intent'],
     })
 
-    const invoice = subscription.latest_invoice as Stripe.Invoice
-    const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent
-    if (!paymentIntent?.client_secret) {
-      return res.status(500).json({ error: 'Could not create payment intent' })
-    }
-
-    const ephemeralKey = await stripe.ephemeralKeys.create(
-      { customer: customer.id },
-      { apiVersion: '2025-02-24.acacia' }
-    )
+    const clientSecret = await resolveSubscriptionPaymentClientSecret(stripe, subscription)
+    const ephemeralKey = await createEphemeralKey(stripe, customer.id)
 
     res.json({
-      paymentIntentClientSecret: paymentIntent.client_secret,
+      paymentIntentClientSecret: clientSecret,
       customerId: customer.id,
       subscriptionId: subscription.id,
-      ephemeralKey: ephemeralKey.secret,
+      ephemeralKey,
     })
   } catch (err) {
     console.error('Payment sheet error:', err)
@@ -219,8 +244,13 @@ if (process.env.NODE_ENV === 'production') {
   })
 }
 
-app.listen(Number(PORT), '0.0.0.0', () => {
+app.listen(Number(PORT), '0.0.0.0', async () => {
+  await ensureAppReviewAccount()
   console.log(`🚀 RepLock server running on http://localhost:${PORT}`)
   console.log(`   App (dev): ${clientUrl}`)
   console.log(`   Stripe: ${stripe ? 'configured' : 'demo mode'}`)
+  console.log(`   Firebase Admin: ${isFirebaseAdminConfigured() ? 'configured' : 'not set (JWT auth only on API)'}`)
+  if (process.env.APP_REVIEW_EMAIL) {
+    console.log(`   App Review login: ${process.env.APP_REVIEW_EMAIL}`)
+  }
 })

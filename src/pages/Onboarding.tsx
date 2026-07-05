@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { ArrowRight, Zap, Shield, TrendingUp } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useState, useEffect, useMemo, type ReactNode } from 'react'
 import { MotionButton } from '@/components/ui/Button'
+import { BackButton } from '@/components/ui/BackButton'
 import { Input } from '@/components/ui/Input'
 import { LanguagePicker } from '@/components/LanguagePicker'
 import { DifficultyPicker } from '@/components/DifficultyPicker'
@@ -11,14 +12,13 @@ import { useAuthStore } from '@/store/auth'
 import { useTranslation } from '@/i18n/context'
 import type { Locale, Difficulty } from '@/types'
 import { cn } from '@/lib/utils'
+import { isAndroidBlockingAvailable } from '@/lib/app-blocker'
 
-const TOTAL_STEPS = 5
-
-function StepDots({ step }: { step: number }) {
+function StepDots({ step, total }: { step: number; total: number }) {
   if (step === 0) return null
   return (
-    <div className="flex items-center justify-center gap-2 mb-8">
-      {Array.from({ length: TOTAL_STEPS - 1 }, (_, i) => i + 1).map((s) => (
+    <div className="flex items-center justify-center gap-2 mb-6">
+      {Array.from({ length: total }, (_, i) => i + 1).map((s) => (
         <div
           key={s}
           className={cn(
@@ -33,15 +33,21 @@ function StepDots({ step }: { step: number }) {
 
 function OnboardingLayout({
   step,
+  stepCount,
   children,
   footer,
   scrollable,
+  onBack,
 }: {
   step: number
+  stepCount: number
   children: ReactNode
   footer: ReactNode
   scrollable?: boolean
+  onBack?: () => void
 }) {
+  const { t } = useTranslation()
+
   return (
     <div className="min-h-dvh bg-surface-0 noise flex flex-col px-6 pt-8 pb-10 safe-top safe-bottom">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -49,7 +55,13 @@ function OnboardingLayout({
       </div>
 
       <div className="relative max-w-md mx-auto w-full flex flex-col flex-1">
-        <StepDots step={step} />
+        {onBack && (
+          <div className="mb-2 shrink-0">
+            <BackButton onClick={onBack} aria-label={t('common.back')} />
+          </div>
+        )}
+
+        <StepDots step={step} total={stepCount} />
 
         <div
           className={cn(
@@ -68,9 +80,13 @@ function OnboardingLayout({
 }
 
 export function OnboardingPage() {
-  const [step, setStep] = useState(0)
+  const location = useLocation()
+  const restoredStep = (location.state as { step?: number } | null)?.step
+  const [step, setStep] = useState(typeof restoredStep === 'number' ? restoredStep : 0)
+
   const profileName = useStore((s) => s.profile.name)
-  const [name, setName] = useState(profileName)
+  const authUser = useAuthStore((s) => s.user)
+  const [name, setName] = useState('')
   const [selectedLocale, setSelectedLocale] = useState<Locale>(
     useStore.getState().profile.locale
   )
@@ -78,9 +94,30 @@ export function OnboardingPage() {
   const completeOnboarding = useStore((s) => s.completeOnboarding)
   const setLocale = useStore((s) => s.setLocale)
   const syncNow = useAuthStore((s) => s.syncNow)
-  const authUser = useAuthStore((s) => s.user)
   const navigate = useNavigate()
   const { t } = useTranslation()
+
+  const resolvedName = useMemo(
+    () => (name.trim() || profileName.trim() || authUser?.name?.trim() || '').trim(),
+    [name, profileName, authUser?.name]
+  )
+
+  const needsNameStep = resolvedName.length === 0
+  const finalStep = needsNameStep ? 4 : 3
+  const stepCount = finalStep
+
+  useEffect(() => {
+    if (typeof restoredStep === 'number') {
+      setStep(restoredStep)
+    }
+  }, [restoredStep])
+
+  useEffect(() => {
+    const fromAccount = profileName.trim() || authUser?.name?.trim() || ''
+    if (fromAccount && !name.trim()) {
+      setName(fromAccount)
+    }
+  }, [profileName, authUser?.name, name])
 
   const features = [
     { icon: Zap, title: t('onboarding.feature1Title'), desc: t('onboarding.feature1Desc') },
@@ -88,22 +125,34 @@ export function OnboardingPage() {
     { icon: TrendingUp, title: t('onboarding.feature3Title'), desc: t('onboarding.feature3Desc') },
   ]
 
-  const handleComplete = async () => {
-    if (name.trim()) {
-      setLocale(selectedLocale)
-      completeOnboarding(name.trim(), selectedDifficulty)
-      if (authUser?.email) {
-        useStore.setState((s) => ({
-          profile: { ...s.profile, email: authUser.email },
-        }))
-      }
-      try {
-        await syncNow()
-      } catch {
-        /* sync when back online */
-      }
-      navigate('/')
+  const handleComplete = async (displayName?: string) => {
+    const finalName = (displayName ?? resolvedName).trim()
+    if (!finalName) return
+
+    setLocale(selectedLocale)
+    completeOnboarding(finalName, selectedDifficulty)
+    if (authUser?.email) {
+      useStore.setState((s) => ({
+        profile: { ...s.profile, email: authUser.email },
+      }))
     }
+    try {
+      await syncNow()
+    } catch {
+      /* sync when back online */
+    }
+    navigate('/', {
+      replace: true,
+      state: isAndroidBlockingAvailable() ? { showBlockerPrompt: true } : undefined,
+    })
+  }
+
+  const continueFromDifficulty = () => {
+    if (needsNameStep) {
+      setStep(4)
+      return
+    }
+    void handleComplete()
   }
 
   const continueBtn = (onClick: () => void, label?: string, disabled?: boolean) => (
@@ -158,6 +207,8 @@ export function OnboardingPage() {
     return (
       <OnboardingLayout
         step={step}
+        stepCount={stepCount}
+        onBack={() => setStep(0)}
         footer={continueBtn(() => { setLocale(selectedLocale); setStep(2) })}
       >
         <h2 className="text-3xl sm:text-4xl font-bold mb-3 leading-tight">
@@ -173,7 +224,12 @@ export function OnboardingPage() {
 
   if (step === 2) {
     return (
-      <OnboardingLayout step={step} footer={continueBtn(() => setStep(3))}>
+      <OnboardingLayout
+        step={step}
+        stepCount={stepCount}
+        onBack={() => setStep(1)}
+        footer={continueBtn(() => setStep(3))}
+      >
         <h2 className="text-3xl sm:text-4xl font-bold mb-3 leading-tight">
           {t('onboarding.howItWorks')}
         </h2>
@@ -208,8 +264,13 @@ export function OnboardingPage() {
     return (
       <OnboardingLayout
         step={step}
+        stepCount={stepCount}
         scrollable
-        footer={continueBtn(() => setStep(4))}
+        onBack={() => setStep(2)}
+        footer={continueBtn(
+          continueFromDifficulty,
+          needsNameStep ? undefined : t('onboarding.startEarning')
+        )}
       >
         <h2 className="text-3xl sm:text-4xl font-bold mb-3 leading-tight">
           {t('onboarding.chooseDifficulty')}
@@ -217,7 +278,12 @@ export function OnboardingPage() {
         <p className="text-white/50 text-lg mb-8 leading-relaxed">
           {t('onboarding.chooseDifficultyDesc')}
         </p>
-        <DifficultyPicker large value={selectedDifficulty} onChange={setSelectedDifficulty} />
+        <DifficultyPicker
+          large
+          value={selectedDifficulty}
+          onChange={setSelectedDifficulty}
+          pricingNavigateState={{ from: 'onboarding', step: 3 }}
+        />
       </OnboardingLayout>
     )
   }
@@ -225,7 +291,13 @@ export function OnboardingPage() {
   return (
     <OnboardingLayout
       step={step}
-      footer={continueBtn(handleComplete, t('onboarding.startEarning'), !name.trim())}
+      stepCount={stepCount}
+      onBack={() => setStep(3)}
+      footer={continueBtn(
+        () => void handleComplete(name.trim()),
+        t('onboarding.startEarning'),
+        !name.trim()
+      )}
     >
       <h2 className="text-3xl sm:text-4xl font-bold mb-3 leading-tight">
         {t('onboarding.yourName')}
@@ -241,7 +313,7 @@ export function OnboardingPage() {
         value={name}
         onChange={(e) => setName(e.target.value)}
         autoFocus
-        onKeyDown={(e) => e.key === 'Enter' && name.trim() && handleComplete()}
+        onKeyDown={(e) => e.key === 'Enter' && name.trim() && void handleComplete(name.trim())}
         className="h-16 text-xl px-5 rounded-2xl"
       />
     </OnboardingLayout>

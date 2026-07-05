@@ -60,6 +60,19 @@ export async function syncAppState(token: string, appState: AppState): Promise<v
   }
 }
 
+export async function deleteAccount(token: string, password: string): Promise<void> {
+  const res = await apiFetch('/api/auth/account', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ password }),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error ?? 'Could not delete account')
+}
+
 export async function fetchAppState(token: string): Promise<AppState> {
   const res = await apiFetch('/api/auth/sync', {
     headers: { Authorization: `Bearer ${token}` },
