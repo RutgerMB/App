@@ -3,10 +3,10 @@ require 'json'
 package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 
 def has_storekit_265_sdk?
-  developer_dirs = [
-    ENV['DEVELOPER_DIR'],
-    '/Applications/Xcode.app/Contents/Developer'
-  ].compact
+  # Match Package.swift: only the active DEVELOPER_DIR / SDKROOT, not default Xcode.app.
+  return false unless ENV['DEVELOPER_DIR'] || ENV['SDKROOT']
+
+  developer_dirs = [ENV['DEVELOPER_DIR']].compact
   sdk_roots = [ENV['SDKROOT']].compact
 
   developer_dirs.each do |developer_dir|

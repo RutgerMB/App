@@ -3,11 +3,14 @@ import Foundation
 import PackageDescription
 
 func hasStoreKit265SDK() -> Bool {
+    // Only inspect the active Xcode/SDK for this build. Probing /Applications/Xcode.app
+    // can enable STOREKIT_26_5 when a newer Xcode is installed but xcode-select points
+    // at Xcode 15.x — that mismatch causes dozens of compile errors in this target.
     let environment = ProcessInfo.processInfo.environment
-    let developerDirs = [
-        environment["DEVELOPER_DIR"],
-        "/Applications/Xcode.app/Contents/Developer"
-    ].compactMap { $0 }
+    guard environment["DEVELOPER_DIR"] != nil || environment["SDKROOT"] != nil else {
+        return false
+    }
+    let developerDirs = [environment["DEVELOPER_DIR"]].compactMap { $0 }
     var sdkRoots = [environment["SDKROOT"]].compactMap { $0 }
 
     for developerDir in developerDirs {

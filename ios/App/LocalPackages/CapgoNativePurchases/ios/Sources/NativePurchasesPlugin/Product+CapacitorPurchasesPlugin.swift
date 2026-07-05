@@ -125,9 +125,11 @@ private extension Product.SubscriptionOffer.OfferType {
         if self == .promotional {
             return 1
         }
+        #if swift(>=6.0)
         if #available(iOS 18.0, *), self == .winBack {
             return 2
         }
+        #endif
 
         assertionFailure("Unknown SubscriptionOffer.OfferType: \(self)")
         return -1

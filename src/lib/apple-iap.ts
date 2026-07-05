@@ -1,7 +1,11 @@
-import { Capacitor } from '@capacitor/core'
-import { NativePurchases, PURCHASE_TYPE } from '@capgo/native-purchases'
+import { Capacitor, registerPlugin } from '@capacitor/core'
 import { apiFetch } from '@/lib/api'
 import { getBearerHeaders } from '@/lib/auth-headers'
+import { PURCHASE_TYPE, type NativePurchasesPlugin } from './apple-iap-types'
+
+const NativePurchases = registerPlugin<NativePurchasesPlugin>('NativePurchases', {
+  web: () => import('./apple-iap-web-stub').then((m) => m.default),
+})
 
 const PRODUCT_ID = import.meta.env.VITE_APPLE_PRODUCT_ID || 'replock_pro_monthly'
 

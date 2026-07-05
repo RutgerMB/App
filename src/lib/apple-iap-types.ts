@@ -1,6 +1,25 @@
+export enum PURCHASE_TYPE {
+  INAPP = 'inapp',
+  SUBS = 'subs',
+}
+
 export interface NativePurchasesPlugin {
-  configure(options: { appUserID?: string }): Promise<void>
-  getProduct(options: { productId: string }): Promise<{ product: { productId: string } | null }>
-  purchaseProduct(options: { productId: string }): Promise<{ transactionId: string }>
-  restorePurchases(): Promise<{ purchases: Array<{ productId: string }> }>
+  getProduct(options: {
+    productIdentifier: string
+    productType?: PURCHASE_TYPE
+  }): Promise<{ product: { identifier: string } | null }>
+
+  purchaseProduct(options: {
+    productIdentifier: string
+    productType?: PURCHASE_TYPE
+    quantity?: number
+  }): Promise<{ transactionId: string }>
+
+  restorePurchases(): Promise<void>
+
+  getPurchases(options?: {
+    productType?: PURCHASE_TYPE
+  }): Promise<{
+    purchases: Array<{ productIdentifier: string; isActive?: boolean }>
+  }>
 }

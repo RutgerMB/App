@@ -2,6 +2,7 @@
 /**
  * Post-process iOS project after `npx cap sync ios`.
  * - Vendors @capgo/native-purchases into ios/App/LocalPackages (Mac has no node_modules)
+ * - Patches native-purchases for Xcode 15.4 (STOREKIT_26_5 probe + winBack SDK gate)
  * - Removes Stripe/StatusBar/SplashScreen SPM entries (Xcode 15.4)
  * - Normalizes Windows backslashes in Package.swift paths
  *
@@ -26,6 +27,89 @@ const spmPackageRemovals = [
   /^\s*\.product\(name: "CapacitorSplashScreen".*\n/gm,
 ]
 
+/** Xcode 15.4 compatibility patches for vendored @capgo/native-purchases */
+function patchNativePurchasesForXcode154(baseDir) {
+  const patches = [
+    {
+      rel: 'Package.swift',
+      from: `func hasStoreKit265SDK() -> Bool {
+    let environment = ProcessInfo.processInfo.environment
+    let developerDirs = [
+        environment["DEVELOPER_DIR"],
+        "/Applications/Xcode.app/Contents/Developer"
+    ].compactMap { $0 }
+    var sdkRoots = [environment["SDKROOT"]].compactMap { $0 }`,
+      to: `func hasStoreKit265SDK() -> Bool {
+    // Only inspect the active Xcode/SDK for this build. Probing /Applications/Xcode.app
+    // can enable STOREKIT_26_5 when a newer Xcode is installed but xcode-select points
+    // at Xcode 15.x — that mismatch causes dozens of compile errors in this target.
+    let environment = ProcessInfo.processInfo.environment
+    guard environment["DEVELOPER_DIR"] != nil || environment["SDKROOT"] != nil else {
+        return false
+    }
+    let developerDirs = [environment["DEVELOPER_DIR"]].compactMap { $0 }
+    var sdkRoots = [environment["SDKROOT"]].compactMap { $0 }`,
+    },
+    {
+      rel: 'CapgoNativePurchases.podspec',
+      from: `def has_storekit_265_sdk?
+  developer_dirs = [
+    ENV['DEVELOPER_DIR'],
+    '/Applications/Xcode.app/Contents/Developer'
+  ].compact`,
+      to: `def has_storekit_265_sdk?
+  # Match Package.swift: only the active DEVELOPER_DIR / SDKROOT, not default Xcode.app.
+  return false unless ENV['DEVELOPER_DIR'] || ENV['SDKROOT']
+
+  developer_dirs = [ENV['DEVELOPER_DIR']].compact`,
+    },
+    {
+      rel: 'ios/Sources/NativePurchasesPlugin/NativePurchasesPlugin.swift',
+      from: `import Foundation
+import Capacitor
+import StoreKit`,
+      to: `import Foundation
+import UIKit
+import Capacitor
+import StoreKit`,
+    },
+    {
+      rel: 'ios/Sources/NativePurchasesPlugin/Product+CapacitorPurchasesPlugin.swift',
+      from: `        if self == .promotional {
+            return 1
+        }
+        if #available(iOS 18.0, *), self == .winBack {
+            return 2
+        }`,
+      to: `        if self == .promotional {
+            return 1
+        }
+        #if swift(>=6.0)
+        if #available(iOS 18.0, *), self == .winBack {
+            return 2
+        }
+        #endif`,
+    },
+  ]
+
+  let patched = 0
+  for (const { rel, from, to } of patches) {
+    const filePath = join(baseDir, rel)
+    if (!existsSync(filePath)) continue
+    const content = readFileSync(filePath, 'utf8')
+    if (content.includes(to)) continue
+    if (!content.includes(from)) {
+      console.warn(`  skip ${rel} (upstream changed — re-check Xcode 15.4 patch)`)
+      continue
+    }
+    writeFileSync(filePath, content.replace(from, to))
+    patched++
+  }
+  if (patched > 0) {
+    console.log(`Applied ${patched} Xcode 15.4 patch(es) to CapgoNativePurchases`)
+  }
+}
+
 let changed = false
 
 if (existsSync(nativePurchasesSrc)) {
@@ -43,6 +127,8 @@ if (existsSync(nativePurchasesSrc)) {
   )
   process.exit(1)
 }
+
+patchNativePurchasesForXcode154(nativePurchasesDest)
 
 if (existsSync(spmPackagePath)) {
   let pkg = readFileSync(spmPackagePath, 'utf8')
