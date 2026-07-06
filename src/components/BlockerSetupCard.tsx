@@ -5,8 +5,10 @@ import { MotionButton } from '@/components/ui/Button'
 import {
   getBlockerStatus,
   openAccessibilitySettings,
+  requestBlockingAuthorization,
   syncAppBlockingRules,
-  isAndroidBlockingAvailable,
+  isNativeBlockingAvailable,
+  isIosBlockingAvailable,
   type BlockerStatus,
 } from '@/lib/app-blocker'
 import { useStore } from '@/store'
@@ -17,9 +19,10 @@ export function BlockerSetupCard({ compact }: { compact?: boolean }) {
   const apps = useStore((s) => s.apps)
   const [status, setStatus] = useState<BlockerStatus | null>(null)
   const [loading, setLoading] = useState(false)
+  const onIos = isIosBlockingAvailable()
 
   const refresh = useCallback(async () => {
-    if (!isAndroidBlockingAvailable()) return
+    if (!isNativeBlockingAvailable()) return
     const next = await getBlockerStatus()
     setStatus(next)
     if (next.ready) {
@@ -32,7 +35,7 @@ export function BlockerSetupCard({ compact }: { compact?: boolean }) {
   }, [refresh])
 
   useEffect(() => {
-    if (!isAndroidBlockingAvailable()) return
+    if (!isNativeBlockingAvailable()) return
 
     const onVisible = () => {
       if (document.visibilityState === 'visible') void refresh()
@@ -45,26 +48,49 @@ export function BlockerSetupCard({ compact }: { compact?: boolean }) {
     }
   }, [refresh])
 
-  if (!isAndroidBlockingAvailable()) return null
+  if (!isNativeBlockingAvailable()) return null
 
   const ready = status?.ready ?? false
-  const appsWithPackage = apps.filter((a) => a.packageName).length
+  const appsConfigured = apps.filter((a) => a.packageName || a.iosTokenId).length
 
   const handleEnable = async () => {
     setLoading(true)
     try {
-      await openAccessibilitySettings()
+      if (onIos) {
+        await requestBlockingAuthorization()
+        await refresh()
+      } else {
+        await openAccessibilitySettings()
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  const Icon = ready ? ShieldCheck : appsWithPackage > 0 ? ShieldAlert : Shield
+  const Icon = ready ? ShieldCheck : appsConfigured > 0 ? ShieldAlert : Shield
   const iconClass = ready
     ? 'text-emerald-400'
-    : appsWithPackage > 0
+    : appsConfigured > 0
       ? 'text-amber-400'
       : 'text-white/40'
+
+  const title = ready
+    ? t('blocker.readyTitle')
+    : onIos
+      ? t('blocker.iosSetupTitle')
+      : t('blocker.setupTitle')
+
+  const desc = ready
+    ? t('blocker.readyDesc')
+    : appsConfigured > 0
+      ? onIos
+        ? t('blocker.iosSetupDesc')
+        : t('blocker.setupDesc')
+      : onIos
+        ? t('blocker.iosSetupNoApps')
+        : t('blocker.setupNoApps')
+
+  const enableLabel = onIos ? t('blocker.iosEnableButton') : t('blocker.enableButton')
 
   return (
     <MotionCard
@@ -75,16 +101,8 @@ export function BlockerSetupCard({ compact }: { compact?: boolean }) {
           <Icon size={20} />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-white/90 mb-1">
-            {ready ? t('blocker.readyTitle') : t('blocker.setupTitle')}
-          </h3>
-          <p className="text-xs text-white/50 leading-relaxed">
-            {ready
-              ? t('blocker.readyDesc')
-              : appsWithPackage > 0
-                ? t('blocker.setupDesc')
-                : t('blocker.setupNoApps')}
-          </p>
+          <h3 className="text-sm font-semibold text-white/90 mb-1">{title}</h3>
+          <p className="text-xs text-white/50 leading-relaxed">{desc}</p>
           {!ready && (
             <MotionButton
               size="sm"
@@ -92,7 +110,7 @@ export function BlockerSetupCard({ compact }: { compact?: boolean }) {
               onClick={handleEnable}
               loading={loading}
             >
-              {t('blocker.enableButton')}
+              {enableLabel}
             </MotionButton>
           )}
         </div>

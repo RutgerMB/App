@@ -20,8 +20,9 @@ import { AppIcon } from '@/components/AppBrandIcon'
 import { TrialBanner } from '@/components/TrialBanner'
 import { ProPromo } from '@/components/ProPromo'
 import { BlockerSetupCard } from '@/components/BlockerSetupCard'
+import { QuickBlockCard, ActiveScheduleCard, TemplatesSection } from '@/components/apps/AppsHubCards'
 import { useTranslation } from '@/i18n/context'
-import { canPickInstalledApps, isNativeIos } from '@/lib/device-apps'
+import { canPickInstalledApps, usesIosActivityPicker } from '@/lib/device-apps'
 import type { DeviceAppDefinition } from '@/data/device-apps'
 
 export function AppsPage() {
@@ -31,8 +32,8 @@ export function AppsPage() {
   const { apps, profile, screenTimeBalance, unlockApp, addApp, removeApp } = useStore()
   const trialStatus = getTrialStatus(profile)
   const appLimitLabel = getAppLimitLabel(profile)
-  const onIos = isNativeIos()
-  const canAddApps = canPickInstalledApps() || !onIos
+  const onIos = usesIosActivityPicker()
+  const canAddApps = canPickInstalledApps() || onIos
 
   const [showPicker, setShowPicker] = useState(false)
   const [pendingApp, setPendingApp] = useState<DeviceAppDefinition | null>(null)
@@ -40,7 +41,12 @@ export function AppsPage() {
   const [showUnlock, setShowUnlock] = useState<string | null>(null)
   const [unlockMinutes, setUnlockMinutes] = useState(15)
 
-  const existingIds = apps.flatMap((a) => [a.brand ?? '', a.packageName ?? '', a.name.toLowerCase()])
+  const existingIds = apps.flatMap((a) => [
+    a.brand ?? '',
+    a.packageName ?? '',
+    a.iosTokenId ?? '',
+    a.name.toLowerCase(),
+  ])
 
   const handleUnlock = () => {
     if (!showUnlock) return
@@ -49,7 +55,14 @@ export function AppsPage() {
       toast(t('apps.unlockedFor', { amount: formatMinutes(unlockMinutes) }), 'success')
       setShowUnlock(null)
     } else {
-      toast(t('apps.notEnoughBalance'), 'error')
+      const today = new Date().toISOString().split('T')[0]
+      const used = profile.openingsDate === today ? (profile.openingsUsedToday ?? 0) : 0
+      const max = profile.dailyOpenings ?? 0
+      if (max > 0 && used >= max) {
+        toast(t('apps.openingsLimitReached'), 'error')
+      } else {
+        toast(t('apps.notEnoughBalance'), 'error')
+      }
     }
   }
 
@@ -65,6 +78,7 @@ export function AppsPage() {
       icon: '',
       brand: pendingApp.brand,
       packageName: pendingApp.packageName,
+      iosTokenId: pendingApp.iosTokenId,
       color: pendingApp.color,
       dailyLimitMinutes: dailyLimit,
     })
@@ -100,8 +114,12 @@ export function AppsPage() {
 
         <div className="space-y-3">
           <TrialBanner compact />
+          <QuickBlockCard />
+          <ActiveScheduleCard />
           <BlockerSetupCard compact />
         </div>
+
+        <TemplatesSection />
 
         <div className="space-y-3">
           {apps.map((app, i) => {

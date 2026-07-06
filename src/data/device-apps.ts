@@ -7,7 +7,9 @@ export interface DeviceAppDefinition {
   color: string
   /** Android package name for installed-app detection */
   packageName?: string
-  category: 'social' | 'entertainment' | 'games' | 'productivity' | 'shopping'
+  /** Opaque Family Controls token id (iOS) */
+  iosTokenId?: string
+  category: 'social' | 'entertainment' | 'games' | 'productivity' | 'shopping' | 'other'
 }
 
 export const DEVICE_APPS: DeviceAppDefinition[] = [
@@ -35,4 +37,45 @@ export const DEVICE_APPS: DeviceAppDefinition[] = [
   { id: 'shein', name: 'SHEIN', brand: 'shein', color: '#000000', packageName: 'com.zzkko', category: 'shopping' },
 ]
 
-export const APP_CATEGORIES = ['social', 'entertainment', 'games', 'productivity', 'shopping'] as const
+export const APP_CATEGORIES = ['social', 'entertainment', 'games', 'productivity', 'shopping', 'other'] as const
+
+const PACKAGE_BRAND_MAP = new Map(
+  DEVICE_APPS.filter((a) => a.packageName).map((a) => [a.packageName!, a])
+)
+
+/** Merge installed app info with known catalog metadata (brand, color, category). */
+export function enrichDeviceApp(app: DeviceAppDefinition): DeviceAppDefinition {
+  const known =
+    PACKAGE_BRAND_MAP.get(app.packageName ?? '') ??
+    DEVICE_APPS.find((d) => d.id === app.id)
+  if (!known) {
+    return { ...app, category: app.category ?? 'other' }
+  }
+  return {
+    ...known,
+    ...app,
+    id: app.packageName ?? app.id,
+    name: app.name || known.name,
+    packageName: app.packageName ?? known.packageName,
+    brand: app.brand ?? known.brand,
+    color: app.color || known.color,
+    category: known.category ?? app.category,
+  }
+}
+
+export function groupAppsByCategory(apps: DeviceAppDefinition[]): { category: string; apps: DeviceAppDefinition[] }[] {
+  const map = new Map<string, DeviceAppDefinition[]>()
+  for (const app of apps) {
+    const cat = app.category ?? 'other'
+    const list = map.get(cat) ?? []
+    list.push(app)
+    map.set(cat, list)
+  }
+  const order = [...APP_CATEGORIES]
+  return order
+    .filter((c) => map.has(c))
+    .map((category) => ({
+      category,
+      apps: (map.get(category) ?? []).sort((a, b) => a.name.localeCompare(b.name)),
+    }))
+}

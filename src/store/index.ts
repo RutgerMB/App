@@ -6,6 +6,8 @@ import { canAddMoreApps, getAppLimit } from '@/lib/trial'
 import { detectLocale } from '@/i18n'
 import { computeEarnedMinutes, FREE_DIFFICULTY } from '@/lib/earning'
 import { scheduleBlockingSync } from '@/lib/blocking-sync'
+import { DEVICE_APPS } from '@/data/device-apps'
+import type { DeviceAppDefinition } from '@/data/device-apps'
 import type { Locale, Difficulty } from '@/types'
 
 function generateId(): string {
@@ -65,6 +67,8 @@ interface StoreActions {
   setLocale: (locale: Locale) => void
   setDifficulty: (difficulty: Difficulty) => void
   setNotificationsEnabled: (enabled: boolean) => void
+  setOnboardingApps: (selectedApps: DeviceAppDefinition[], dailyLimitMinutes: number) => void
+  setBlockingGoal: (openings: number, minutesPerOpening?: number) => void
   completeExercise: (type: ExerciseType, amount: number, durationSeconds: number) => number
   unlockApp: (appId: string, minutes: number) => boolean
   useAppTime: (appId: string, minutes: number) => void
@@ -106,6 +110,34 @@ export const useStore = create<AppState & StoreActions>()(
       setNotificationsEnabled: (enabled) =>
         set((s) => ({
           profile: { ...s.profile, notificationsEnabled: enabled },
+        })),
+
+      setOnboardingApps: (selectedApps, dailyLimitMinutes) => {
+        if (selectedApps.length === 0) return
+        const newApps: LockedApp[] = selectedApps.map((appData) => ({
+          id: generateId(),
+          name: appData.name,
+          icon: '',
+          brand: appData.brand,
+          packageName: appData.packageName,
+          iosTokenId: appData.iosTokenId,
+          color: appData.color,
+          dailyLimitMinutes,
+          usedMinutes: 0,
+          isLocked: true,
+          unlockedUntil: null,
+        }))
+        set({ apps: newApps })
+        scheduleBlockingSync()
+      },
+
+      setBlockingGoal: (openings, minutesPerOpening = 5) =>
+        set((s) => ({
+          profile: { ...s.profile, dailyOpenings: openings, minutesPerOpening },
+          apps: s.apps.map((a) => ({
+            ...a,
+            dailyLimitMinutes: openings * minutesPerOpening,
+          })),
         })),
 
       getEarnedMinutes: (type, amount) => {
@@ -193,16 +225,27 @@ export const useStore = create<AppState & StoreActions>()(
       },
 
       unlockApp: (appId, minutes) => {
-        const { screenTimeBalance, apps } = get()
+        const { screenTimeBalance, apps, profile } = get()
         if (screenTimeBalance < minutes) return false
 
         const app = apps.find((a) => a.id === appId)
         if (!app) return false
 
+        const today = todayString()
+        let openingsUsed = profile.openingsUsedToday ?? 0
+        if (profile.openingsDate !== today) openingsUsed = 0
+        const maxOpenings = profile.dailyOpenings ?? Infinity
+        if (Number.isFinite(maxOpenings) && openingsUsed >= maxOpenings) return false
+
         const unlockUntil = Date.now() + minutes * 60 * 1000
 
         set((s) => ({
           screenTimeBalance: s.screenTimeBalance - minutes,
+          profile: {
+            ...s.profile,
+            openingsUsedToday: openingsUsed + 1,
+            openingsDate: today,
+          },
           apps: s.apps.map((a) =>
             a.id === appId
               ? { ...a, isLocked: false, unlockedUntil: unlockUntil }
@@ -267,6 +310,11 @@ export const useStore = create<AppState & StoreActions>()(
 
       resetDailyUsage: () =>
         set((s) => ({
+          profile: {
+            ...s.profile,
+            openingsUsedToday: 0,
+            openingsDate: todayString(),
+          },
           apps: s.apps.map((a) => ({
             ...a,
             usedMinutes: 0,
@@ -277,7 +325,7 @@ export const useStore = create<AppState & StoreActions>()(
     }),
     {
       name: 'replock-storage',
-      version: 8,
+      version: 10,
       migrate: (persisted, version) => {
         const state = persisted as AppState
         if (version < 2) {
@@ -323,6 +371,20 @@ export const useStore = create<AppState & StoreActions>()(
             }
             return a
           })
+        }
+        if (version < 9) {
+          state.profile = {
+            ...state.profile,
+            dailyOpenings: state.profile.dailyOpenings ?? 3,
+            minutesPerOpening: state.profile.minutesPerOpening ?? 5,
+          }
+        }
+        if (version < 10) {
+          state.profile = {
+            ...state.profile,
+            openingsUsedToday: state.profile.openingsUsedToday ?? 0,
+            openingsDate: state.profile.openingsDate ?? null,
+          }
         }
         return state as AppState & StoreActions
       },

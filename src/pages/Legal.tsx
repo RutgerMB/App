@@ -2,8 +2,9 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { BackButton } from '@/components/ui/BackButton'
 import { useTranslation } from '@/i18n/context'
 import { useAuthStore } from '@/store/auth'
+import { getLegalDocument } from '@/content/legal'
 
-function LegalShell({ title, children }: { title: string; children: React.ReactNode }) {
+function LegalShell({ title, children, lastUpdated }: { title: string; children: React.ReactNode; lastUpdated: string }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { t } = useTranslation()
@@ -31,45 +32,48 @@ function LegalShell({ title, children }: { title: string; children: React.ReactN
       <div className="prose prose-invert prose-sm max-w-none space-y-4 text-white/65 text-sm leading-relaxed">
         {children}
       </div>
-      <p className="text-xs text-white/25 mt-10">Last updated: July 2026</p>
+      <p className="text-xs text-white/25 mt-10">
+        {t('legal.lastUpdated')}: {lastUpdated}
+      </p>
     </div>
   )
 }
 
+function LegalSections({ sections }: { sections: { title: string; paragraphs: string[] }[] }) {
+  return (
+    <>
+      {sections.map((section) => (
+        <div key={section.title}>
+          <h2 className="text-base font-semibold text-white/85 pt-2">{section.title}</h2>
+          {section.paragraphs.map((p) => (
+            <p key={p.slice(0, 40)}>{p}</p>
+          ))}
+        </div>
+      ))}
+    </>
+  )
+}
+
 export function PrivacyPage() {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
+  const doc = getLegalDocument(locale)
 
   return (
-    <LegalShell title={t('legal.privacyTitle')}>
-      <p>{t('legal.privacyIntro')}</p>
-      <h2 className="text-base font-semibold text-white/85 pt-2">{t('legal.dataWeCollect')}</h2>
-      <p>{t('legal.dataWeCollectBody')}</p>
-      <h2 className="text-base font-semibold text-white/85 pt-2">{t('legal.howWeUse')}</h2>
-      <p>{t('legal.howWeUseBody')}</p>
-      <h2 className="text-base font-semibold text-white/85 pt-2">{t('legal.dataStorage')}</h2>
-      <p>{t('legal.dataStorageBody')}</p>
-      <h2 className="text-base font-semibold text-white/85 pt-2">{t('legal.yourRights')}</h2>
-      <p>{t('legal.yourRightsBody')}</p>
-      <h2 className="text-base font-semibold text-white/85 pt-2">{t('legal.contact')}</h2>
-      <p>{t('legal.contactBody')}</p>
+    <LegalShell title={t('legal.privacyTitle')} lastUpdated={doc.lastUpdated}>
+      <p>{doc.privacyIntro}</p>
+      <LegalSections sections={doc.privacySections} />
     </LegalShell>
   )
 }
 
 export function TermsPage() {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
+  const doc = getLegalDocument(locale)
 
   return (
-    <LegalShell title={t('legal.termsTitle')}>
-      <p>{t('legal.termsIntro')}</p>
-      <h2 className="text-base font-semibold text-white/85 pt-2">{t('legal.subscriptions')}</h2>
-      <p>{t('legal.subscriptionsBody')}</p>
-      <h2 className="text-base font-semibold text-white/85 pt-2">{t('legal.acceptableUse')}</h2>
-      <p>{t('legal.acceptableUseBody')}</p>
-      <h2 className="text-base font-semibold text-white/85 pt-2">{t('legal.disclaimer')}</h2>
-      <p>{t('legal.disclaimerBody')}</p>
-      <h2 className="text-base font-semibold text-white/85 pt-2">{t('legal.termination')}</h2>
-      <p>{t('legal.terminationBody')}</p>
+    <LegalShell title={t('legal.termsTitle')} lastUpdated={doc.lastUpdated}>
+      <p>{doc.termsIntro}</p>
+      <LegalSections sections={doc.termsSections} />
     </LegalShell>
   )
 }

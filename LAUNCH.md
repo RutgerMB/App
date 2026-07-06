@@ -56,11 +56,39 @@ Rebuild UI in React Native for full native API access.
 - App icons, screenshots, privacy policy URL
 
 ### Real app blocking on iOS
-Apple provides the **Family Controls** / **Screen Time API**:
-- Framework: `FamilyControls`, `ManagedSettings`, `DeviceActivity`
-- Requires **special entitlement** from Apple: [Family Controls capability](https://developer.apple.com/documentation/familycontrols)
-- Apple reviews these apps carefully — you must justify screen-time/wellbeing use case
-- Users grant permission via system dialog
+
+Apple provides the **Family Controls** / **Screen Time API** (not third-party libraries like on AppBlock’s license screen):
+
+| Framework | Purpose |
+|-----------|---------|
+| `FamilyControls` | User authorization + `FamilyActivityPicker` (user picks apps to limit) |
+| `ManagedSettings` | Apply/remove shields (`ManagedSettingsStore.shield.applications`) |
+| `DeviceActivity` | Schedules, thresholds, monitor extension callbacks |
+
+**Apple constraints (different from Android):**
+
+- You **cannot** list installed apps like `InstalledAppsPlugin` on Android — the user picks apps in Apple’s system picker.
+- App identity is an opaque `ApplicationToken` (store encoded token in App Group, not bundle id).
+- Total daily screen time is **not** one API call — needs a **Device Activity Report** extension (or keep estimate fallback).
+
+**Entitlements & extensions (Xcode on Mac):**
+
+1. Request `com.apple.developer.family-controls` from Apple (wellbeing justification).
+2. App Group: `group.com.replock.app` on main app + extensions.
+3. Extension targets: **Device Activity Monitor** (enforce schedules), **Shield Configuration** (branded block screen), optional **Device Activity Report** (real usage totals).
+
+**Repo status:** Android has `ScreenTimePlugin`, `InstalledAppsPlugin`, `AppBlockerPlugin` (see `android/.../MainActivity.java`). iOS only has `CapgoNativePurchases` in `ios/App/LocalPackages/` — blocking is greenfield.
+
+**Implementation phases (Capacitor 8 + LocalPackages SPM, mirror `CapgoNativePurchases`):**
+
+| Phase | Work | Key paths |
+|-------|------|-----------|
+| 0 | Entitlement + App Group + `App.entitlements` | `ios/App/App/` |
+| 1 | `RepLockControls` plugin: authorize + present `FamilyActivityPicker` | `ios/App/LocalPackages/RepLockControls/`, `src/lib/device-apps.ts`, `BlocklistPicker.tsx` |
+| 2 | `ManagedSettings` shields + unlock flow | `src/lib/app-blocker.ts`, `BlockerSetupCard.tsx`, Shield Configuration extension |
+| 3 | `DeviceActivity` monitor + optional report for real screen time | `src/lib/screen-time.ts`, `OnboardingVisuals.tsx` |
+
+New iOS plugins go in **LocalPackages SPM** (same pattern as purchases); `capacitor.config.ts` `ios.includePlugins` currently lists only `@capgo/native-purchases`. Test on a **physical iPhone** — Simulator has limited Family Controls support.
 
 ### Submission steps
 1. Build signed `.ipa` via Xcode or EAS
@@ -128,7 +156,7 @@ CLIENT_URL=https://replock.app
 
 1. **Now** — Ship PWA, gather feedback, validate pricing (€7.99/mo)
 2. **Phase 2** — Capacitor wrapper → App Store / Play listing (tracking only, honest about blocking limits)
-3. **Phase 3** — Native blocking module (iOS Screen Time API + Android Usage Access)
+3. **Phase 3** — iOS Family Controls (picker + shields + extensions); Android blocking already in repo
 4. **Phase 4** — Account sync, family plans, wearable integrations
 
 ---

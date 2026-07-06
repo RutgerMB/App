@@ -1,5 +1,12 @@
 import { registerPlugin, Capacitor } from '@capacitor/core'
 import type { DeviceAppDefinition } from '@/data/device-apps'
+import { enrichDeviceApp } from '@/data/device-apps'
+import {
+  getIosSelectedApps,
+  isIosControlsAvailable,
+  presentIosActivityPicker,
+  requestIosControlsAuthorization,
+} from '@/lib/replock-controls'
 
 export interface NativeInstalledApp {
   packageName: string
@@ -13,16 +20,26 @@ interface InstalledAppsPlugin {
 const InstalledAppsNative = registerPlugin<InstalledAppsPlugin>('InstalledApps')
 
 function mapInstalledApp(app: NativeInstalledApp): DeviceAppDefinition {
-  return {
+  return enrichDeviceApp({
     id: app.packageName,
     name: app.name,
     color: '#6366F1',
     packageName: app.packageName,
-    category: 'social',
-  }
+    category: 'other',
+  })
 }
 
-/** Android: installed launcher apps. iOS: empty (not allowed by Apple). Web: demo catalog. */
+function mapIosSelectedApp(app: { id: string; name: string }): DeviceAppDefinition {
+  return enrichDeviceApp({
+    id: app.id,
+    name: app.name,
+    color: '#6366F1',
+    iosTokenId: app.id,
+    category: 'other',
+  })
+}
+
+/** Android: installed launcher apps. iOS: Family Activity picker selection. Web: demo catalog. */
 export async function getDeviceApps(): Promise<DeviceAppDefinition[]> {
   if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
     try {
@@ -31,6 +48,11 @@ export async function getDeviceApps(): Promise<DeviceAppDefinition[]> {
     } catch {
       return []
     }
+  }
+
+  if (isIosControlsAvailable()) {
+    const apps = await getIosSelectedApps()
+    return apps.map(mapIosSelectedApp)
   }
 
   if (!Capacitor.isNativePlatform()) {
@@ -51,4 +73,19 @@ export function isNativeIos(): boolean {
 
 export function canPickInstalledApps(): boolean {
   return isNativeAndroid()
+}
+
+export function usesIosActivityPicker(): boolean {
+  return isNativeIos()
+}
+
+export async function ensureIosAuthorization(): Promise<boolean> {
+  if (!isNativeIos()) return false
+  return requestIosControlsAuthorization()
+}
+
+export async function openIosActivityPicker(): Promise<DeviceAppDefinition[]> {
+  if (!isNativeIos()) return []
+  await presentIosActivityPicker()
+  return getDeviceApps()
 }

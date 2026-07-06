@@ -11,6 +11,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(InstalledAppsPlugin.class);
         registerPlugin(AppBlockerPlugin.class);
+        registerPlugin(ScreenTimePlugin.class);
         super.onCreate(savedInstanceState);
     }
 

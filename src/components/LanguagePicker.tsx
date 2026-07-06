@@ -94,8 +94,10 @@ export function LanguagePicker({
   onChange,
   className,
   large,
-}: LanguageDropdownProps & { className?: string; large?: boolean }) {
+  theme = 'dark',
+}: LanguageDropdownProps & { className?: string; large?: boolean; theme?: 'dark' | 'light' }) {
   const sorted = [...LOCALES].sort((a, b) => a.label.localeCompare(b.label))
+  const isLight = theme === 'light'
   return (
     <div className={cn('grid grid-cols-1', large ? 'gap-3' : 'gap-2', className)}>
       {sorted.map((loc) => (
@@ -106,8 +108,12 @@ export function LanguagePicker({
             'flex items-center gap-4 rounded-2xl border transition-all text-left',
             large ? 'p-5' : 'p-4 gap-3',
             value === loc.code
-              ? 'bg-indigo-500/15 border-indigo-500/40'
-              : 'bg-surface-2 border-border hover:border-border-hover'
+              ? isLight
+                ? 'bg-[#3B6FF5]/10 border-[#3B6FF5]/35'
+                : 'bg-indigo-500/15 border-indigo-500/40'
+              : isLight
+                ? 'bg-white border-slate-200 hover:border-slate-300 text-slate-900'
+                : 'bg-surface-2 border-border hover:border-border-hover'
           )}
         >
           <span className={large ? 'text-3xl' : 'text-2xl'}>{loc.flag}</span>

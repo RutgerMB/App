@@ -16,7 +16,7 @@ import { DifficultyPicker } from '@/components/DifficultyPicker'
 import { ProPromo } from '@/components/ProPromo'
 import { BlockerSetupCard } from '@/components/BlockerSetupCard'
 import { Switch } from '@/components/ui/Switch'
-import { isAndroidBlockingAvailable } from '@/lib/app-blocker'
+import { isNativeBlockingAvailable, isIosBlockingAvailable } from '@/lib/app-blocker'
 import { useStore } from '@/store'
 import { useAuthStore } from '@/store/auth'
 import { useToast } from '@/components/ui/Toast'
@@ -232,11 +232,18 @@ export function SettingsPage() {
 
         <BlockerSetupCard />
 
-        {!isAndroidBlockingAvailable() && (
+        {!isNativeBlockingAvailable() && (
           <MotionCard className="p-4 mb-6 border border-amber-500/20 bg-amber-500/5">
             <h3 className="text-sm font-semibold text-amber-200 mb-2">{t('settings.blockingTitle')}</h3>
             <p className="text-xs text-white/50 leading-relaxed mb-2">{t('settings.blockingCurrent')}</p>
             <p className="text-xs text-white/40 leading-relaxed">{t('settings.blockingNative')}</p>
+          </MotionCard>
+        )}
+
+        {isIosBlockingAvailable() && (
+          <MotionCard className="p-4 mb-6 border border-indigo-500/20 bg-indigo-500/5">
+            <h3 className="text-sm font-semibold text-indigo-200 mb-2">{t('settings.iosBlockingTitle')}</h3>
+            <p className="text-xs text-white/50 leading-relaxed">{t('settings.iosBlockingDesc')}</p>
           </MotionCard>
         )}
 

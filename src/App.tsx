@@ -3,6 +3,8 @@ import { ToastProvider } from '@/components/ui/Toast'
 import { useStore } from '@/store'
 import { useAuthStore } from '@/store/auth'
 import { OnboardingPage } from '@/pages/Onboarding'
+import { WelcomePage } from '@/pages/Welcome'
+import { hasCompletedWelcome } from '@/lib/welcome'
 import { LoginPage, RegisterPage } from '@/pages/Auth'
 import { HomePage } from '@/pages/Home'
 import { ExercisePage, ExerciseCategoryPage } from '@/pages/Exercise'
@@ -21,7 +23,10 @@ import { ScrollToTop } from '@/components/layout/ScrollToTop'
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
   const onboardingComplete = useStore((s) => s.profile.onboardingComplete)
-  if (!token) return <Navigate to="/login" replace />
+  if (!token) {
+    if (!hasCompletedWelcome()) return <Navigate to="/welcome" replace />
+    return <Navigate to="/login" replace />
+  }
   if (!onboardingComplete) return <Navigate to="/onboarding" replace />
   return <>{children}</>
 }
@@ -35,7 +40,10 @@ function SignedInRoute({
 }) {
   const token = useAuthStore((s) => s.token)
   const onboardingComplete = useStore((s) => s.profile.onboardingComplete)
-  if (!token) return <Navigate to="/login" replace />
+  if (!token) {
+    if (!hasCompletedWelcome()) return <Navigate to="/welcome" replace />
+    return <Navigate to="/login" replace />
+  }
   if (requireOnboarding && !onboardingComplete) return <Navigate to="/onboarding" replace />
   return <>{children}</>
 }
@@ -46,13 +54,31 @@ function GuestRoute({ children }: { children: React.ReactNode }) {
   if (token) {
     return <Navigate to={onboardingComplete ? '/' : '/onboarding'} replace />
   }
+  if (!hasCompletedWelcome()) {
+    return <Navigate to="/welcome" replace />
+  }
   return <>{children}</>
+}
+
+function WelcomeRoute() {
+  const token = useAuthStore((s) => s.token)
+  const onboardingComplete = useStore((s) => s.profile.onboardingComplete)
+  if (token) {
+    return <Navigate to={onboardingComplete ? '/' : '/onboarding'} replace />
+  }
+  if (hasCompletedWelcome()) {
+    return <Navigate to="/register" replace />
+  }
+  return <WelcomePage />
 }
 
 function OnboardingRoute() {
   const token = useAuthStore((s) => s.token)
   const onboardingComplete = useStore((s) => s.profile.onboardingComplete)
-  if (!token) return <Navigate to="/login" replace />
+  if (!token) {
+    if (!hasCompletedWelcome()) return <Navigate to="/welcome" replace />
+    return <Navigate to="/login" replace />
+  }
   if (onboardingComplete) return <Navigate to="/" replace />
   return <OnboardingPage />
 }
@@ -63,6 +89,7 @@ export default function App() {
       <ScrollToTop />
       <BlockerPermissionPrompt />
       <Routes>
+        <Route path="/welcome" element={<WelcomeRoute />} />
         <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
         <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
         <Route path="/onboarding" element={<OnboardingRoute />} />
@@ -79,7 +106,7 @@ export default function App() {
         <Route path="/apps" element={<AuthRoute><AppsPage /></AuthRoute>} />
         <Route path="/activity" element={<AuthRoute><ActivityPage /></AuthRoute>} />
         <Route path="/settings" element={<AuthRoute><SettingsPage /></AuthRoute>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/welcome" replace />} />
       </Routes>
     </ToastProvider>
   )

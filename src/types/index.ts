@@ -45,6 +45,8 @@ export interface LockedApp {
   icon: string
   brand?: AppBrand
   packageName?: string
+  /** Opaque Family Controls token id (iOS) — not a bundle id */
+  iosTokenId?: string
   color: string
   dailyLimitMinutes: number
   usedMinutes: number
@@ -93,6 +95,10 @@ export interface UserProfile {
   subscriptionId: string | null
   subscriptionStatus: 'active' | 'canceled' | 'past_due' | null
   notificationsEnabled: boolean
+  dailyOpenings?: number
+  minutesPerOpening?: number
+  openingsUsedToday?: number
+  openingsDate?: string | null
   createdAt: number
 }
 

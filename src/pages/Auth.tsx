@@ -1,15 +1,20 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
-import { MotionButton } from '@/components/ui/Button'
-import { BackButton } from '@/components/ui/BackButton'
+import { Mail } from 'lucide-react'
+import {
+  IntroShell,
+  IntroProgressBar,
+  IntroPrimaryButton,
+  IntroAuthButton,
+} from '@/components/onboarding/IntroShell'
 import { Input } from '@/components/ui/Input'
 import { useAuthStore } from '@/store/auth'
 import { useStore } from '@/store'
 import { useToast } from '@/components/ui/Toast'
 import { useTranslation } from '@/i18n/context'
 import { isDevLoginEnabled, validateDevLogin } from '@/lib/dev-auth'
+import { openPrivacy, openTerms } from '@/lib/legal'
 
 const REGISTER_DRAFT_KEY = 'replock-register-draft'
 
@@ -36,6 +41,14 @@ function clearRegisterDraft() {
   sessionStorage.removeItem(REGISTER_DRAFT_KEY)
 }
 
+function AuthCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-3xl bg-surface-2 border border-border p-5 sm:p-6 shadow-xl">
+      {children}
+    </div>
+  )
+}
+
 export function LoginPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -45,6 +58,7 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showForm, setShowForm] = useState(false)
   const [showDevLogin, setShowDevLogin] = useState(false)
   const [devCode, setDevCode] = useState('')
   const [devPassword, setDevPassword] = useState('')
@@ -77,102 +91,80 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-surface-0 noise flex flex-col px-6 py-10 safe-top safe-bottom">
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full"
-      >
-        <div className="text-center mb-10">
-          <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-2xl font-bold">
-            R
-          </div>
-          <h1 className="text-3xl font-bold mb-2">{t('auth.loginTitle')}</h1>
-          <p className="text-white/45 text-base">{t('auth.loginSubtitle')}</p>
-        </div>
+    <IntroShell variant="auth">
+      <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
+        <IntroProgressBar step={1} total={5} />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            id="login-email"
-            type="email"
-            label={t('auth.email')}
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-            required
-            className="h-14 text-base"
-          />
-          <Input
-            id="login-password"
-            type="password"
-            label={t('auth.password')}
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            required
-            className="h-14 text-base"
-          />
-          <MotionButton fullWidth size="xl" type="submit" loading={loading} className="mt-6 h-14 text-lg">
-            {t('auth.signIn')}
-            <ArrowRight size={20} />
-          </MotionButton>
-        </form>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold leading-tight">{t('auth.loginTitle')}</h1>
+          <p className="text-white/50 mt-2 text-base">{t('auth.loginSubtitle')}</p>
+        </motion.div>
 
-        <p className="text-center text-sm text-white/40 mt-8">
+        {!showForm ? (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+            <IntroAuthButton icon={<Mail size={20} />} onClick={() => setShowForm(true)}>
+              {t('intro.continueEmail')}
+            </IntroAuthButton>
+          </motion.div>
+        ) : (
+          <AuthCard>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                id="login-email"
+                type="email"
+                label={t('auth.email')}
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
+                className="h-12 text-base"
+              />
+              <Input
+                id="login-password"
+                type="password"
+                label={t('auth.password')}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                className="h-12 text-base"
+              />
+              <IntroPrimaryButton type="submit" disabled={loading}>
+                {loading ? '…' : t('auth.signIn')}
+              </IntroPrimaryButton>
+            </form>
+          </AuthCard>
+        )}
+
+        <p className="text-center text-sm text-white/50 mt-8">
           {t('auth.noAccount')}{' '}
-          <Link to="/register" className="text-indigo-400 font-medium hover:text-indigo-300">
+          <Link to="/register" className="text-indigo-400 font-semibold hover:underline">
             {t('auth.createAccount')}
           </Link>
         </p>
 
         {showDev && (
-          <div className="mt-8 pt-8 border-t border-white/10">
+          <div className="mt-8 pt-6 border-t border-border">
             <button
               type="button"
               onClick={() => setShowDevLogin((v) => !v)}
-              className="w-full text-center text-sm text-amber-400/80 hover:text-amber-300 font-medium"
+              className="w-full text-center text-sm text-amber-400 font-medium"
             >
               {t('auth.devLogin')}
             </button>
-
             {showDevLogin && (
-              <motion.form
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                onSubmit={handleDevLogin}
-                className="mt-4 space-y-3 overflow-hidden"
-              >
-                <Input
-                  id="dev-code"
-                  label={t('auth.devCode')}
-                  placeholder=""
-                  value={devCode}
-                  onChange={(e) => setDevCode(e.target.value)}
-                  autoComplete="off"
-                  className="h-12 text-base"
-                />
-                <Input
-                  id="dev-password"
-                  type="password"
-                  label={t('auth.devPassword')}
-                  placeholder=""
-                  value={devPassword}
-                  onChange={(e) => setDevPassword(e.target.value)}
-                  autoComplete="off"
-                  className="h-12 text-base"
-                />
-                <MotionButton fullWidth size="lg" type="submit" className="h-12">
-                  {t('auth.devLoginSubmit')}
-                </MotionButton>
-                <p className="text-center text-[11px] text-white/25">{t('auth.devLoginHint')}</p>
-              </motion.form>
+              <form onSubmit={handleDevLogin} className="mt-4 space-y-3">
+                <Input id="dev-code" label={t('auth.devCode')} value={devCode} onChange={(e) => setDevCode(e.target.value)} className="h-11" />
+                <Input id="dev-password" type="password" label={t('auth.devPassword')} value={devPassword} onChange={(e) => setDevPassword(e.target.value)} className="h-11" />
+                <IntroPrimaryButton type="submit">{t('auth.devLoginSubmit')}</IntroPrimaryButton>
+              </form>
             )}
           </div>
         )}
-      </motion.div>
-    </div>
+      </div>
+    </IntroShell>
   )
 }
 
@@ -182,6 +174,7 @@ export function RegisterPage() {
   const { t } = useTranslation()
   const register = useAuthStore((s) => s.register)
   const draft = loadRegisterDraft()
+  const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState(draft?.name ?? '')
   const [email, setEmail] = useState(draft?.email ?? '')
   const [password, setPassword] = useState('')
@@ -221,96 +214,123 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-surface-0 noise flex flex-col safe-top safe-bottom overflow-y-auto">
-      <div className="px-6 pt-4 max-w-md mx-auto w-full">
-        <BackButton onClick={() => navigate('/login')} aria-label={t('common.back')} />
+    <IntroShell variant="auth">
+      <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
+        <button
+          type="button"
+          onClick={() => (showForm ? setShowForm(false) : navigate('/welcome'))}
+          className="text-sm text-white/50 mb-4 self-start hover:text-white/80"
+        >
+          ← {t('common.back')}
+        </button>
+
+        <IntroProgressBar step={1} total={5} />
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
+          <h1 className="text-3xl sm:text-[2rem] font-bold leading-tight">
+            {t('intro.getStartedWith')}{' '}
+            <span className="gradient-text">RepLock</span>
+          </h1>
+        </motion.div>
+
+        {!showForm ? (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+            <IntroAuthButton icon={<Mail size={20} />} onClick={() => setShowForm(true)}>
+              {t('intro.continueEmail')}
+            </IntroAuthButton>
+            <p className="text-center text-sm text-white/50 pt-4">
+              {t('auth.haveAccount')}{' '}
+              <Link to="/login" className="text-indigo-400 font-semibold hover:underline">
+                {t('auth.signIn')}
+              </Link>
+            </p>
+          </motion.div>
+        ) : (
+          <AuthCard>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                id="register-name"
+                label={t('auth.displayName')}
+                placeholder={t('onboarding.namePlaceholder')}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoComplete="name"
+                required
+                className="h-12 text-base"
+              />
+              <Input
+                id="register-email"
+                type="email"
+                label={t('auth.email')}
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
+                className="h-12 text-base"
+              />
+              <Input
+                id="register-password"
+                type="password"
+                label={t('auth.password')}
+                placeholder={t('auth.passwordHint')}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                required
+                className="h-12 text-base"
+              />
+              <Input
+                id="register-confirm"
+                type="password"
+                label={t('auth.confirmPassword')}
+                placeholder="••••••••"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                autoComplete="new-password"
+                required
+                className="h-12 text-base"
+              />
+
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-1 rounded border-border text-indigo-500 focus:ring-indigo-500/40"
+                />
+                <span className="text-xs text-white/50 leading-relaxed">
+                  {t('auth.agreeTerms')}{' '}
+                  <button type="button" onClick={openTerms} className="text-indigo-400 font-medium">
+                    {t('legal.termsTitle')}
+                  </button>
+                  {' · '}
+                  <button type="button" onClick={openPrivacy} className="text-indigo-400 font-medium">
+                    {t('legal.privacyTitle')}
+                  </button>
+                </span>
+              </label>
+
+              <IntroPrimaryButton type="submit" disabled={loading}>
+                {loading ? '…' : t('auth.createAccount')}
+              </IntroPrimaryButton>
+            </form>
+          </AuthCard>
+        )}
+
+        {!showForm && (
+          <p className="text-center text-[11px] text-white/40 leading-relaxed mt-8 px-2">
+            {t('intro.legalPrefix')}{' '}
+            <button type="button" onClick={openPrivacy} className="underline">
+              {t('legal.privacyTitle')}
+            </button>{' '}
+            {t('intro.legalAnd')}{' '}
+            <button type="button" onClick={openTerms} className="underline">
+              {t('legal.termsTitle')}
+            </button>
+          </p>
+        )}
       </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full px-6 py-6 pb-10"
-      >
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-2xl font-bold">
-            R
-          </div>
-          <h1 className="text-3xl font-bold mb-2">{t('auth.registerTitle')}</h1>
-          <p className="text-white/45 text-base">{t('auth.registerSubtitle')}</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            id="register-name"
-            label={t('auth.displayName')}
-            placeholder={t('onboarding.namePlaceholder')}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoComplete="name"
-            required
-            className="h-14 text-base"
-          />
-          <Input
-            id="register-email"
-            type="email"
-            label={t('auth.email')}
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-            required
-            className="h-14 text-base"
-          />
-          <Input
-            id="register-password"
-            type="password"
-            label={t('auth.password')}
-            placeholder={t('auth.passwordHint')}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="new-password"
-            required
-            className="h-14 text-base"
-          />
-          <Input
-            id="register-confirm"
-            type="password"
-            label={t('auth.confirmPassword')}
-            placeholder="••••••••"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            autoComplete="new-password"
-            required
-            className="h-14 text-base"
-          />
-          <MotionButton fullWidth size="xl" type="submit" loading={loading} className="mt-6 h-14 text-lg">
-            {t('auth.createAccount')}
-            <ArrowRight size={20} />
-          </MotionButton>
-
-          <label className="flex items-start gap-3 mt-5 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={acceptedTerms}
-              onChange={(e) => setAcceptedTerms(e.target.checked)}
-              className="mt-1 rounded border-white/20 bg-surface-2 text-indigo-500 focus:ring-indigo-500/40"
-            />
-            <span className="text-xs text-white/45 leading-relaxed">
-              {t('auth.agreeTerms')}{' '}
-              <Link to="/terms" state={{ from: '/register' }} className="text-indigo-400 hover:text-indigo-300">{t('legal.termsTitle')}</Link>
-              {' · '}
-              <Link to="/privacy" state={{ from: '/register' }} className="text-indigo-400 hover:text-indigo-300">{t('legal.privacyTitle')}</Link>
-            </span>
-          </label>
-        </form>
-
-        <p className="text-center text-sm text-white/40 mt-8">
-          {t('auth.haveAccount')}{' '}
-          <Link to="/login" className="text-indigo-400 font-medium hover:text-indigo-300">
-            {t('auth.signIn')}
-          </Link>
-        </p>
-      </motion.div>
-    </div>
+    </IntroShell>
   )
 }
