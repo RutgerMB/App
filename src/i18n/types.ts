@@ -172,6 +172,13 @@ export interface Translations {
     screenTimePermissionAndroid: string
     screenTimePermissionIos: string
     screenTimePermissionIosAuthorize: string
+    screenTimePermissionIosEstimate: string
+    screenTimePermissionIosSkip: string
+    screenTimeIosAuthorized: string
+    screenTimeIosError_denied: string
+    screenTimeIosError_plugin_missing: string
+    screenTimeIosError_failed: string
+    screenTimeIosError_unsupported: string
     screenTimePermissionWeb: string
     screenTimePermissionOpenSettings: string
     screenTimePermissionGranted: string
@@ -339,6 +346,11 @@ export interface Translations {
     iosPickAppsButton: string
     iosPickAppsAgain: string
     iosNoAppsPicked: string
+    iosPickError_denied: string
+    iosPickError_plugin_missing: string
+    iosPickError_auth_required: string
+    iosPickError_failed: string
+    iosPickError_unsupported: string
     iosNotAvailable: string
     noInstalledApps: string
     searchApps: string

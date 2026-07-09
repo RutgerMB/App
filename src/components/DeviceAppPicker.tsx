@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react'
-import { Search, Loader2, Smartphone, Plus } from 'lucide-react'
+import { Search, Loader2, Plus } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { AppBrandIcon } from '@/components/AppBrandIcon'
 import {
   getDeviceApps,
   canPickInstalledApps,
   usesIosActivityPicker,
-  openIosActivityPicker,
-  ensureIosAuthorization,
+  pickIosAppsWithAuth,
 } from '@/lib/device-apps'
 import type { DeviceAppDefinition } from '@/data/device-apps'
 import { useTranslation } from '@/i18n/context'
+import { useToast } from '@/components/ui/Toast'
 
 interface DeviceAppPickerProps {
   open: boolean
@@ -21,6 +21,7 @@ interface DeviceAppPickerProps {
 
 export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceAppPickerProps) {
   const { t } = useTranslation()
+  const { toast } = useToast()
   const [apps, setApps] = useState<DeviceAppDefinition[]>([])
   const installedOnly = canPickInstalledApps()
   const onIos = usesIosActivityPicker()
@@ -37,13 +38,26 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
       .finally(() => setLoading(false))
   }, [open])
 
+  const toastPickError = (reason: string) => {
+    const key = `apps.iosPickError_${reason}` as const
+    const msg = t(key as 'apps.iosPickError_denied')
+    toast(msg !== key ? msg : t('apps.iosPickError_failed'), 'error')
+  }
+
   const handleIosPick = async () => {
     setPickerLoading(true)
     try {
-      const authorized = await ensureIosAuthorization()
-      if (!authorized) return
-      const picked = await openIosActivityPicker()
-      setApps(picked)
+      const result = await pickIosAppsWithAuth()
+      if (!result.ok) {
+        toastPickError(result.reason)
+        return
+      }
+      setApps(result.apps)
+      if (result.apps.length === 0) {
+        toast(t('apps.iosNoAppsPicked'), 'info')
+      }
+    } catch {
+      toast(t('apps.iosPickError_failed'), 'error')
     } finally {
       setPickerLoading(false)
     }
@@ -66,12 +80,12 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
       </p>
 
       {onIos ? (
-        <div className="space-y-4">
+        <div className="space-y-4 relative z-10">
           <button
             type="button"
             onClick={() => void handleIosPick()}
             disabled={pickerLoading}
-            className="w-full flex items-center justify-center gap-2 h-11 rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 font-semibold text-sm hover:bg-indigo-500/30 transition-colors disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-indigo-500/25 border border-indigo-500/40 text-indigo-200 font-semibold text-sm hover:bg-indigo-500/35 active:scale-[0.98] transition-all disabled:opacity-50 touch-manipulation"
           >
             {pickerLoading ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
             {t('apps.iosPickAppsButton')}
@@ -92,7 +106,7 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
                     onSelect(app)
                     onClose()
                   }}
-                  className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-surface-2 border border-border hover:border-indigo-500/40 hover:bg-surface-3 transition-all"
+                  className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-surface-2 border border-border hover:border-indigo-500/40 hover:bg-surface-3 transition-all touch-manipulation"
                 >
                   <AppBrandIcon brand={app.brand} name={app.name} color={app.color} size="md" />
                   <span className="text-[11px] font-medium text-white/70 text-center line-clamp-2 leading-tight">

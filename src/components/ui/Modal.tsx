@@ -40,6 +40,7 @@ export function Modal({
               'fixed left-4 right-4 z-[60] mx-auto max-w-md max-h-[85dvh] overflow-y-auto',
               'bg-surface-1 border border-border rounded-3xl p-6',
               'shadow-2xl shadow-black/40',
+              'pointer-events-auto',
               position === 'center'
                 ? 'top-1/2 -translate-y-1/2'
                 : 'bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))]',

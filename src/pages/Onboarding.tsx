@@ -31,9 +31,11 @@ import { getDeviceApps, isNativeIos, usesIosActivityPicker } from '@/lib/device-
 import {
   checkScreenTimePermission,
   requestScreenTimePermission,
+  requestIosScreenTimeAccess,
   fetchDailyScreenTimeHours,
   getScreenTimePlatform,
 } from '@/lib/screen-time'
+import { useToast } from '@/components/ui/Toast'
 import { LanguagePicker } from '@/components/LanguagePicker'
 import { DifficultyPicker } from '@/components/DifficultyPicker'
 import { Input } from '@/components/ui/Input'
@@ -190,6 +192,7 @@ export function OnboardingPage() {
   const syncNow = useAuthStore((s) => s.syncNow)
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const { toast } = useToast()
 
   const resolvedName = useMemo(
     () => (name.trim() || profileName.trim() || authUser?.name?.trim() || '').trim(),
@@ -214,6 +217,27 @@ export function OnboardingPage() {
         const data = await fetchDailyScreenTimeHours()
         if (data) setActualScreenHours(Math.max(0.5, Math.round(data.hours * 10) / 10))
       }
+    } finally {
+      setScreenTimeChecking(false)
+    }
+  }
+
+  const handleScreenTimeAuthorize = async () => {
+    setScreenTimeChecking(true)
+    try {
+      if (screenTimePlatform === 'ios') {
+        const result = await requestIosScreenTimeAccess()
+        if (!result.ok) {
+          const key = `onboarding.screenTimeIosError_${result.reason}` as const
+          const msg = t(key as 'onboarding.screenTimeIosError_denied')
+          toast(msg !== key ? msg : t('onboarding.screenTimeIosError_failed'), 'error')
+        } else if (result.authorized) {
+          toast(t('onboarding.screenTimePermissionGranted'), 'success')
+        }
+      } else {
+        await requestScreenTimePermission()
+      }
+      await refreshScreenTimeAccess()
     } finally {
       setScreenTimeChecking(false)
     }
@@ -274,7 +298,8 @@ export function OnboardingPage() {
 
   const handleContinue = async () => {
     if (step === STEP.SCREEN_TIME_PERMISSION) {
-      if ((screenTimePlatform === 'android' || screenTimePlatform === 'ios') && !screenTimeGranted) {
+      // Android: Continue opens usage-access settings until granted
+      if (screenTimePlatform === 'android' && !screenTimeGranted) {
         await requestScreenTimePermission()
         await refreshScreenTimeAccess()
         return
@@ -282,6 +307,7 @@ export function OnboardingPage() {
       if (screenTimePlatform === 'android') {
         await refreshScreenTimeAccess()
       }
+      // iOS: Continue always advances — authorize is a separate button; daily hours still use estimate
       advance()
       return
     }
@@ -416,7 +442,7 @@ export function OnboardingPage() {
               platform={screenTimePlatform}
               granted={screenTimeGranted}
               loading={screenTimeChecking}
-              onRequest={() => void requestScreenTimePermission()}
+              onRequest={() => void handleScreenTimeAuthorize()}
               onRefresh={() => void refreshScreenTimeAccess()}
             />
           </>

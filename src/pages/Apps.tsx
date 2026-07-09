@@ -194,7 +194,7 @@ export function AppsPage() {
             </div>
             <p className="text-white/45">{t('apps.noApps')}</p>
             {onIos ? (
-              <p className="text-sm text-white/35 mt-3 max-w-sm mx-auto leading-relaxed">{t('apps.iosNotAvailable')}</p>
+              <p className="text-sm text-white/35 mt-3 max-w-sm mx-auto leading-relaxed">{t('apps.iosPickAppsHint')}</p>
             ) : (
               <Button variant="secondary" className="mt-4" onClick={() => setShowPicker(true)}>
                 {t('apps.addFirst')}

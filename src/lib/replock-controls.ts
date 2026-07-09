@@ -65,8 +65,29 @@ export async function requestIosControlsAuthorization(): Promise<boolean> {
 
 export async function presentIosActivityPicker(): Promise<number> {
   if (!isIosControlsAvailable()) return 0
-  const { count } = await RepLockControlsNative.presentActivityPicker()
-  return count
+  try {
+    const { count } = await RepLockControlsNative.presentActivityPicker()
+    return count
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (msg.includes('not implemented')) {
+      throw new Error('PLUGIN_NOT_IMPLEMENTED')
+    }
+    if (msg.includes('authorization required')) {
+      throw new Error('AUTH_REQUIRED')
+    }
+    throw err
+  }
+}
+
+export async function isRepLockControlsPluginReady(): Promise<boolean> {
+  if (!isIosControlsAvailable()) return false
+  try {
+    const { supported } = await RepLockControlsNative.isSupported()
+    return supported
+  } catch {
+    return false
+  }
 }
 
 export async function getIosSelectedApps(): Promise<IosSelectedApp[]> {

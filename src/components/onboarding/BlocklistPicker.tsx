@@ -7,10 +7,10 @@ import {
   getDeviceApps,
   canPickInstalledApps,
   usesIosActivityPicker,
-  openIosActivityPicker,
-  ensureIosAuthorization,
+  pickIosAppsWithAuth,
 } from '@/lib/device-apps'
 import { groupAppsByCategory, DEVICE_APPS, type DeviceAppDefinition } from '@/data/device-apps'
+import { useToast } from '@/components/ui/Toast'
 
 const CATEGORY_EMOJI: Record<string, string> = {
   social: '💬',
@@ -29,6 +29,7 @@ export function BlocklistPicker({
   onChange: (next: Set<string>) => void
 }) {
   const { t } = useTranslation()
+  const { toast } = useToast()
   const [apps, setApps] = useState<DeviceAppDefinition[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
@@ -52,13 +53,21 @@ export function BlocklistPicker({
   const handleIosPick = async () => {
     setPickerLoading(true)
     try {
-      const authorized = await ensureIosAuthorization()
-      if (!authorized) return
-      const picked = await openIosActivityPicker()
-      setApps(picked)
-      if (picked.length > 0) {
-        onChange(new Set(picked.map((a) => a.id)))
+      const result = await pickIosAppsWithAuth()
+      if (!result.ok) {
+        const key = `apps.iosPickError_${result.reason}` as const
+        const msg = t(key as 'apps.iosPickError_denied')
+        toast(msg !== key ? msg : t('apps.iosPickError_failed'), 'error')
+        return
       }
+      setApps(result.apps)
+      if (result.apps.length > 0) {
+        onChange(new Set(result.apps.map((a) => a.id)))
+      } else {
+        toast(t('apps.iosNoAppsPicked'), 'info')
+      }
+    } catch {
+      toast(t('apps.iosPickError_failed'), 'error')
     } finally {
       setPickerLoading(false)
     }

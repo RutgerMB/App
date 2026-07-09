@@ -12,7 +12,8 @@
     "cap:sync": "npx cap sync",
     "cap:android": "npx cap open android",
     "cap:ios": "npx cap open ios",
-    "cap:ios:sync": "vite build --mode iphone-dev && npx cap sync ios && node scripts/ios-remove-stripe.mjs",
+    "cap:ios:sync": "node scripts/ios-dev-sync.mjs",
+    "cap:ios:live": "node scripts/ios-dev-sync.mjs --live",
     "icons:generate": "node scripts/generate-app-icons.mjs assets/logo-source.png",
     "preview": "vite preview",
     "start": "tsx server/index.ts"

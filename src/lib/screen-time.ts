@@ -1,5 +1,14 @@
 import { Capacitor, registerPlugin } from '@capacitor/core'
-import { getIosControlsStatus, isIosControlsAvailable } from '@/lib/replock-controls'
+import {
+  getIosControlsStatus,
+  isIosControlsAvailable,
+  isRepLockControlsPluginReady,
+  requestIosControlsAuthorization,
+} from '@/lib/replock-controls'
+
+export type IosScreenTimeAuthResult =
+  | { ok: true; authorized: boolean }
+  | { ok: false; reason: 'unsupported' | 'plugin_missing' | 'denied' | 'failed' }
 
 export interface ScreenTimeResult {
   hours: number
@@ -48,13 +57,29 @@ export async function checkScreenTimePermission(): Promise<boolean> {
 
 export async function requestScreenTimePermission(): Promise<void> {
   if (getScreenTimePlatform() === 'ios') {
-    const { requestIosControlsAuthorization } = await import('@/lib/replock-controls')
-    await requestIosControlsAuthorization()
+    await requestIosScreenTimeAccess()
     return
   }
 
   if (getScreenTimePlatform() !== 'android') return
   await ScreenTimeNative.requestPermission()
+}
+
+/** iOS Family Controls authorization (blocking + picker — not daily usage totals yet). */
+export async function requestIosScreenTimeAccess(): Promise<IosScreenTimeAuthResult> {
+  if (!isIosControlsAvailable()) return { ok: false, reason: 'unsupported' }
+
+  const ready = await isRepLockControlsPluginReady()
+  if (!ready) return { ok: false, reason: 'plugin_missing' }
+
+  try {
+    const authorized = await requestIosControlsAuthorization()
+    if (!authorized) return { ok: false, reason: 'denied' }
+    const status = await getIosControlsStatus()
+    return { ok: true, authorized: status.authorized }
+  } catch {
+    return { ok: false, reason: 'failed' }
+  }
 }
 
 export async function fetchDailyScreenTimeHours(): Promise<ScreenTimeResult | null> {

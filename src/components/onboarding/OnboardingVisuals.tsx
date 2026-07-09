@@ -59,7 +59,7 @@ export function ScreenTimePermissionStep({
   const { t } = useTranslation()
 
   return (
-    <div className="flex flex-col items-center text-center">
+    <div className="flex flex-col items-center text-center w-full">
       <div className="w-16 h-16 rounded-2xl bg-indigo-500/15 flex items-center justify-center mb-6">
         <BarChart3 size={32} className="text-indigo-400" />
       </div>
@@ -91,27 +91,29 @@ export function ScreenTimePermissionStep({
 
       {platform === 'ios' && (
         <>
-          <p className="text-sm text-white/55 leading-relaxed mb-6 max-w-sm">{t('onboarding.screenTimePermissionIos')}</p>
+          <p className="text-sm text-white/55 leading-relaxed mb-4 max-w-sm">{t('onboarding.screenTimePermissionIos')}</p>
+          <p className="text-xs text-white/35 leading-relaxed mb-6 max-w-sm">{t('onboarding.screenTimePermissionIosEstimate')}</p>
           {granted ? (
-            <p className="text-sm text-emerald-400 font-medium">{t('onboarding.screenTimePermissionGranted')}</p>
+            <p className="text-sm text-emerald-400 font-medium mb-4">{t('onboarding.screenTimeIosAuthorized')}</p>
           ) : (
             <button
               type="button"
               disabled={loading}
               onClick={onRequest}
-              className="text-sm font-semibold text-indigo-400 hover:text-indigo-300 underline underline-offset-2 disabled:opacity-50"
+              className="w-full max-w-xs h-12 rounded-xl bg-indigo-500/25 border border-indigo-500/40 text-indigo-200 font-semibold text-sm hover:bg-indigo-500/35 active:scale-[0.98] transition-all disabled:opacity-50 touch-manipulation"
             >
-              {t('onboarding.screenTimePermissionIosAuthorize')}
+              {loading ? t('common.loading') : t('onboarding.screenTimePermissionIosAuthorize')}
             </button>
           )}
           <button
             type="button"
             disabled={loading}
             onClick={onRefresh}
-            className="mt-4 text-xs text-white/35 hover:text-white/55"
+            className="mt-4 text-xs text-white/35 hover:text-white/55 touch-manipulation"
           >
             {loading ? t('common.loading') : t('onboarding.screenTimePermissionRefresh')}
           </button>
+          <p className="text-xs text-white/30 mt-6 max-w-xs leading-relaxed">{t('onboarding.screenTimePermissionIosSkip')}</p>
         </>
       )}
 

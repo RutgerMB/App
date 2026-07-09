@@ -144,8 +144,16 @@ export const nl: Translations = {
     screenTimePermissionAndroid:
       'Tik hieronder om Android-instellingen te openen, zoek RepLock en zet "Gebruikstoegang toestaan" aan. Kom terug en tik op Doorgaan.',
     screenTimePermissionIos:
-      'RepLock gebruikt Apple Screen Time om apps te blokkeren die jij kiest. Autoriseer hieronder — dagelijkse gebruiksdata volgt later.',
+      'Sta RepLock toe Apple Screen Time te gebruiken om apps te kiezen en te blokkeren. Apple toont een systeemdialoog — tik op Sta toe.',
     screenTimePermissionIosAuthorize: 'Screen Time-toegang autoriseren',
+    screenTimePermissionIosEstimate:
+      'Dagelijkse schermtijd op iPhone gebruikt voorlopig je schatting op het volgende scherm. Autorisatie maakt echt blokkeren mogelijk.',
+    screenTimePermissionIosSkip: 'Tik op Doorgaan om over te slaan — je kunt later autoriseren via Apps.',
+    screenTimeIosAuthorized: 'Screen Time geautoriseerd — je kunt apps blokkeren in de volgende stappen.',
+    screenTimeIosError_denied: 'Screen Time geweigerd. Sta het later toe via Instellingen → Schermtijd.',
+    screenTimeIosError_plugin_missing: 'Blokkeer-plugin niet geladen. Run op je Mac: npm run cap:ios:sync, daarna Run ▶ in Xcode.',
+    screenTimeIosError_failed: 'Kon Apple\'s dialoog niet tonen. Rebuild vanuit Xcode na cap:ios:sync.',
+    screenTimeIosError_unsupported: 'Screen Time-autorisatie werkt alleen op iPhone.',
     screenTimePermissionWeb: 'Schermtijd kan niet in de browser worden gelezen. Je schatting personaliseert je plan.',
     screenTimePermissionOpenSettings: 'Open gebruikstoegang',
     screenTimePermissionGranted: 'Toegang verleend — we kunnen je schermtijd lezen',
@@ -340,6 +348,11 @@ export const nl: Translations = {
     iosPickAppsButton: 'Kies apps om te blokkeren',
     iosPickAppsAgain: 'Geselecteerde apps wijzigen',
     iosNoAppsPicked: 'Nog geen apps gekozen. Tik op de knop hierboven.',
+    iosPickError_denied: 'Screen Time-toegang geweigerd. Sta RepLock toe via Instellingen → Schermtijd.',
+    iosPickError_plugin_missing: 'Blokkeer-plugin niet geladen. Run op je Mac: npm run cap:ios:sync, daarna opnieuw Run ▶ in Xcode.',
+    iosPickError_auth_required: 'Autoriseer eerst Screen Time (blokkeer-kaart op Apps-pagina).',
+    iosPickError_failed: 'Kon Apple\'s app-kiezer niet openen. Probeer opnieuw.',
+    iosPickError_unsupported: 'App-kiezer werkt alleen op iPhone.',
     iosNotAvailable:
       'Gebruik de Screen Time-kiezer om apps toe te voegen. Werkt blokkering niet? Autoriseer Screen Time in Instellingen → RepLock.',
     noInstalledApps: 'Geen andere startbare apps gevonden op dit apparaat.',

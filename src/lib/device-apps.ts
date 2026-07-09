@@ -4,9 +4,15 @@ import { enrichDeviceApp } from '@/data/device-apps'
 import {
   getIosSelectedApps,
   isIosControlsAvailable,
+  isRepLockControlsPluginReady,
   presentIosActivityPicker,
   requestIosControlsAuthorization,
+  getIosControlsStatus,
 } from '@/lib/replock-controls'
+
+export type IosPickAppsResult =
+  | { ok: true; apps: DeviceAppDefinition[] }
+  | { ok: false; reason: 'unsupported' | 'denied' | 'plugin_missing' | 'auth_required' | 'failed' }
 
 export interface NativeInstalledApp {
   packageName: string
@@ -88,4 +94,31 @@ export async function openIosActivityPicker(): Promise<DeviceAppDefinition[]> {
   if (!isNativeIos()) return []
   await presentIosActivityPicker()
   return getDeviceApps()
+}
+
+/** Authorize (if needed) and open Apple's app picker — with explicit error reasons. */
+export async function pickIosAppsWithAuth(): Promise<IosPickAppsResult> {
+  if (!isNativeIos()) return { ok: false, reason: 'unsupported' }
+
+  const ready = await isRepLockControlsPluginReady()
+  if (!ready) return { ok: false, reason: 'plugin_missing' }
+
+  try {
+    let status = await getIosControlsStatus()
+    if (!status.authorized) {
+      const authorized = await requestIosControlsAuthorization()
+      if (!authorized) return { ok: false, reason: 'denied' }
+      status = await getIosControlsStatus()
+      if (!status.authorized) return { ok: false, reason: 'denied' }
+    }
+
+    await presentIosActivityPicker()
+    const apps = (await getIosSelectedApps()).map(mapIosSelectedApp)
+    return { ok: true, apps }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (msg === 'PLUGIN_NOT_IMPLEMENTED') return { ok: false, reason: 'plugin_missing' }
+    if (msg === 'AUTH_REQUIRED') return { ok: false, reason: 'auth_required' }
+    return { ok: false, reason: 'failed' }
+  }
 }
