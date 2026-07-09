@@ -11,14 +11,18 @@ let package = Package(
             targets: ["CapApp-SPM"])
     ],
     dependencies: [
-        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.1")
+        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.1"),
+        .package(name: "CapgoNativePurchases", path: "../LocalPackages/CapgoNativePurchases"),
+        .package(name: "RepLockControls", path: "../LocalPackages/RepLockControls")
     ],
     targets: [
         .target(
             name: "CapApp-SPM",
             dependencies: [
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
-                .product(name: "Cordova", package: "capacitor-swift-pm")
+                .product(name: "Cordova", package: "capacitor-swift-pm"),
+                .product(name: "CapgoNativePurchases", package: "CapgoNativePurchases"),
+                .product(name: "RepLockControls", package: "RepLockControls")
             ]
         )
     ]

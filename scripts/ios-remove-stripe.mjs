@@ -130,7 +130,7 @@ function ensureLocalPackage(pkg, { name, path }) {
   if (existing.test(pkg)) {
     return pkg.replace(existing, line)
   }
-  return pkg.replace(/dependencies: \[\n/, `dependencies: [\n        ${line},\n`)
+  return pkg.replace(/dependencies: \[\r?\n/, `dependencies: [\n        ${line},\n`)
 }
 
 function ensureProduct(pkg, { product, package: packageName }) {
@@ -158,9 +158,14 @@ function ensureCapAppSpmImports() {
     return false
   }
 
-  const requiredImports = ['import CapgoNativePurchases', 'import RepLockControls']
+  // SPM importable modules use target names (NativePurchasesPlugin), not product names (CapgoNativePurchases).
+  const requiredImports = ['import NativePurchasesPlugin', 'import RepLockControlsPlugin']
   let content = readFileSync(capAppSpmSwiftPath, 'utf8')
   const before = content
+
+  content = content
+    .replace(/^import CapgoNativePurchases\r?\n/gm, '')
+    .replace(/^import RepLockControls\r?\n/gm, '')
 
   for (const imp of requiredImports) {
     if (!content.includes(imp)) {
