@@ -36,14 +36,14 @@ export function getApiBases(): string[] {
       bases.push(trimBase(import.meta.env.VITE_API_URL_NATIVE))
     }
 
-    // Android emulator: 10.0.2.2 = host PC localhost
-    if (Capacitor.getPlatform() === 'android') {
-      bases.push(`http://10.0.2.2:${API_PORT}`)
-    }
-
     const lanHost = lanHostFromWindow()
     if (lanHost) {
       bases.push(`http://${lanHost}:${API_PORT}`)
+    }
+
+    // Android emulator: 10.0.2.2 = host PC localhost
+    if (Capacitor.getPlatform() === 'android') {
+      bases.push(`http://10.0.2.2:${API_PORT}`)
     }
 
     if (Capacitor.getPlatform() === 'ios') {
