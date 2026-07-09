@@ -142,7 +142,13 @@ function ensureProduct(pkg, { product, package: packageName }) {
   )
 }
 
+function ensureMinimumIos16(pkg) {
+  // RepLockControls (Family Controls) requires iOS 16+; cap sync defaults CapApp-SPM to 15.
+  return pkg.replace(/platforms: \[\.iOS\(\.v15\)\]/, 'platforms: [.iOS(.v16)]')
+}
+
 function ensureLocalPackagesAndProducts(pkg) {
+  pkg = ensureMinimumIos16(pkg)
   for (const entry of REQUIRED_LOCAL_PACKAGES) {
     pkg = ensureLocalPackage(pkg, entry)
   }
