@@ -11,8 +11,8 @@ let package = Package(
             targets: ["CapApp-SPM"])
     ],
     dependencies: [
-        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.1"),
-        .package(name: "RepLockControls", path: "../LocalPackages/RepLockControls")
+        .package(name: "RepLockControls", path: "../LocalPackages/RepLockControls"),
+        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.1")
     ],
     targets: [
         .target(
