@@ -2,7 +2,7 @@ import Foundation
 import FamilyControls
 
 enum RepLockControlsConstants {
-    static let appGroupId = "group.com.replock.app"
+    static let appGroupId = "group.com.replock.fitness"
     static let selectionKey = "replock.familyActivitySelection"
     static let unlockMapKey = "replock.unlockMap"
 }

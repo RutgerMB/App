@@ -74,7 +74,7 @@ Apple provides the **Family Controls** / **Screen Time API** (not third-party li
 **Entitlements & extensions (Xcode on Mac):**
 
 1. Request `com.apple.developer.family-controls` from Apple (wellbeing justification).
-2. App Group: `group.com.replock.app` on main app + extensions.
+2. App Group: `group.com.replock.fitness` on main app + extensions.
 3. Extension targets: **Device Activity Monitor** (enforce schedules), **Shield Configuration** (branded block screen), optional **Device Activity Report** (real usage totals).
 
 **Repo status:** Android has `ScreenTimePlugin`, `InstalledAppsPlugin`, `AppBlockerPlugin` (see `android/.../MainActivity.java`). iOS only has `CapgoNativePurchases` in `ios/App/LocalPackages/` — blocking is greenfield.
