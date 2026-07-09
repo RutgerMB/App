@@ -1,5 +1,6 @@
 import Foundation
 import FamilyControls
+import ManagedSettings
 
 enum RepLockControlsConstants {
     static let appGroupId = "group.com.replock.fitness"

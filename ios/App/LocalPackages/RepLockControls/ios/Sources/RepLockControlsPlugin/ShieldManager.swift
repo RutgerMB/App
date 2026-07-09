@@ -22,7 +22,11 @@ enum ShieldManager {
             blockedTokens.insert(token)
         }
 
-        store.shield.applications = blockedTokens.isEmpty ? nil : blockedTokens
+        if blockedTokens.isEmpty {
+            store.shield.applications = nil as Set<ApplicationToken>?
+        } else {
+            store.shield.applications = blockedTokens
+        }
     }
 
     static func clearShields() {

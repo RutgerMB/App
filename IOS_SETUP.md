@@ -171,6 +171,10 @@ That’s expected if you didn’t run `cap:ios:sync` — browser uses `localhost
 
 If it still fails, in Xcode: **File → Packages → Reset Package Caches**, then Clean Build Folder and Run again.
 
+**Swift errors in RepLockControls (`reject`, `viewController`, `ApplicationToken`)**
+
+The repo includes Xcode 15.4 compatibility shims in `RepLockControls`. Pull latest, then Clean Build Folder and Run. Capacitor 8 officially requires Xcode 26; if *other* plugins (e.g. NativePurchases) fail with similar API errors, upgrading Xcode is the long-term fix.
+
 ---
 
 ## Simulator vs physical iPhone
