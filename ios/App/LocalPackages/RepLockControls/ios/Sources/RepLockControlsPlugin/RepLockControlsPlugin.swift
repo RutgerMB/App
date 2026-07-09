@@ -7,7 +7,7 @@ import FamilyControls
 // Use Obj-C properties (`errorHandler`, `options`) which stay visible.
 
 private func repLockReject(_ call: CAPPluginCall, _ message: String, code: String? = nil) {
-    call.errorHandler(CAPPluginCallError(message: message, code: code, error: nil, data: [:]))
+    RepLockRejectPluginCall(call, message as NSString, (code ?? "ERROR") as NSString)
 }
 
 private func repLockPresenter(for plugin: CAPPlugin) -> UIViewController? {
