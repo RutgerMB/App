@@ -7,10 +7,10 @@ const config: CapacitorConfig = {
   appId: 'com.replock.app',
   appName: 'RepLock',
   webDir: 'dist',
-  // iOS (Xcode 15.4): no npm Capacitor plugins — Capacitor 8 SPM plugins need Xcode 26+.
-  // Splash uses LaunchScreen.storyboard; status bar uses Info.plist. Android keeps all plugins.
+  // iOS (Xcode 15.4): Capacitor 8 SPM plugin Swift APIs need Xcode 26+.
+  // Only RepLockControls (local) is linked; NativePurchases is JS-stubbed on iOS.
   ios: {
-    includePlugins: ['@capgo/native-purchases'],
+    includePlugins: [],
   },
   android: {
     includePlugins: [

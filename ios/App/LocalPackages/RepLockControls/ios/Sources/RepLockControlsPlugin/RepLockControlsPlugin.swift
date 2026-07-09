@@ -2,6 +2,41 @@ import UIKit
 import Capacitor
 import FamilyControls
 
+// MARK: - Xcode 15.4 + Capacitor 8 SPM helpers
+// Capacitor 8 binaries hide `reject` / typed `getArray` when not built with Xcode 26.
+// Use Obj-C properties (`errorHandler`, `options`) which stay visible.
+
+private func repLockReject(_ call: CAPPluginCall, _ message: String, code: String? = nil) {
+    call.errorHandler(CAPPluginCallError(message: message, code: code, error: nil, data: [:]))
+}
+
+private func repLockPresenter(for plugin: CAPPlugin) -> UIViewController? {
+    if let bridgeObject = plugin.bridge as? NSObject,
+       let vc = bridgeObject.value(forKey: "viewController") as? UIViewController {
+        return vc
+    }
+
+    let scenes = UIApplication.shared.connectedScenes
+    let windowScene = scenes.first { $0.activationState == .foregroundActive } as? UIWindowScene
+    var root = windowScene?.windows.first { $0.isKeyWindow }?.rootViewController
+    while let presented = root?.presentedViewController {
+        root = presented
+    }
+    return root
+}
+
+private func repLockRules(from call: CAPPluginCall) -> [IosBlockRule]? {
+    guard let raw = call.options["rules"] as? [Any] else { return nil }
+    let rules: [IosBlockRule] = raw.compactMap { item in
+        guard let dict = item as? [String: Any] else { return nil }
+        guard let tokenId = dict["tokenId"] as? String else { return nil }
+        let blocked = dict["blocked"] as? Bool ?? true
+        let unlockedUntil = dict["unlockedUntil"] as? Double ?? 0
+        return IosBlockRule(tokenId: tokenId, blocked: blocked, unlockedUntil: unlockedUntil)
+    }
+    return rules
+}
+
 @objc(RepLockControlsPlugin)
 public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "RepLockControlsPlugin"
@@ -38,7 +73,7 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func requestAuthorization(_ call: CAPPluginCall) {
         guard #available(iOS 16.0, *) else {
-            call.replockReject("Family Controls requires iOS 16+")
+            repLockReject(call, "Family Controls requires iOS 16+")
             return
         }
 
@@ -50,19 +85,19 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
                     "status": AuthorizationManager.statusLabel(),
                 ])
             } catch {
-                call.replockReject("Authorization failed: \(error.localizedDescription)")
+                repLockReject(call, "Authorization failed: \(error.localizedDescription)")
             }
         }
     }
 
     @objc func presentActivityPicker(_ call: CAPPluginCall) {
         guard #available(iOS 16.0, *) else {
-            call.replockReject("Family Controls requires iOS 16+")
+            repLockReject(call, "Family Controls requires iOS 16+")
             return
         }
 
         guard AuthorizationManager.isAuthorized() else {
-            call.replockReject("Screen Time authorization required")
+            repLockReject(call, "Screen Time authorization required")
             return
         }
 
@@ -71,12 +106,12 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
 
         DispatchQueue.main.async { [weak self] in
             guard let self else {
-                call.replockReject("Plugin unavailable")
+                repLockReject(call, "Plugin unavailable")
                 return
             }
 
-            guard let presenter = RepLockPluginUI.viewController(for: self) else {
-                call.replockReject("Unable to present app picker")
+            guard let presenter = repLockPresenter(for: self) else {
+                repLockReject(call, "Unable to present app picker")
                 return
             }
 
@@ -105,26 +140,18 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func applyRules(_ call: CAPPluginCall) {
         guard #available(iOS 16.0, *) else {
-            call.replockReject("Family Controls requires iOS 16+")
+            repLockReject(call, "Family Controls requires iOS 16+")
             return
         }
 
         guard AuthorizationManager.isAuthorized() else {
-            call.replockReject("Screen Time authorization required")
+            repLockReject(call, "Screen Time authorization required")
             return
         }
 
-        guard let rulesArray = call.getArray("rules") else {
-            call.replockReject("rules array required")
+        guard let rules = repLockRules(from: call) else {
+            repLockReject(call, "rules array required")
             return
-        }
-
-        let rules: [IosBlockRule] = rulesArray.compactMap { item in
-            guard let dict = item as? JSObject else { return nil }
-            guard let tokenId = dict["tokenId"] as? String else { return nil }
-            let blocked = dict["blocked"] as? Bool ?? true
-            let unlockedUntil = dict["unlockedUntil"] as? Double ?? 0
-            return IosBlockRule(tokenId: tokenId, blocked: blocked, unlockedUntil: unlockedUntil)
         }
 
         let selection = SelectionStore.shared.loadSelection()
@@ -142,8 +169,8 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getDailyScreenTimeHours(_ call: CAPPluginCall) {
-        // Phase 3: Device Activity Report extension will write totals to App Group.
-        call.replockReject(
+        repLockReject(
+            call,
             "Screen time totals require a Device Activity Report extension (not yet configured)",
             code: "UNIMPLEMENTED"
         )

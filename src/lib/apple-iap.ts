@@ -5,6 +5,7 @@ import { PURCHASE_TYPE, type NativePurchasesPlugin } from './apple-iap-types'
 
 const NativePurchases = registerPlugin<NativePurchasesPlugin>('NativePurchases', {
   web: () => import('./apple-iap-web-stub').then((m) => m.default),
+  ios: () => import('./apple-iap-ios-stub').then((m) => m.default),
 })
 
 const PRODUCT_ID = import.meta.env.VITE_APPLE_PRODUCT_ID || 'replock_pro_monthly'

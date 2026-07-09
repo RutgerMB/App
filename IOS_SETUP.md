@@ -6,6 +6,20 @@ Follow **every step** below on your **Mac** (not Windows).
 
 ---
 
+## Xcode 15.4 limitation (important)
+
+**Capacitor 8’s iOS SPM binaries require Xcode 26** to compile third-party native plugins (`@capgo/native-purchases`, etc.). If your Mac only supports **Xcode 15.4**, this project is configured as follows:
+
+| Feature | Xcode 15.4 dev build |
+|--------|----------------------|
+| Login / API | Works (`npm run cap:ios:sync`) |
+| Screen Time / app blocking | Works (`RepLockControls` local plugin) |
+| Apple In-App Purchase | **Not in native build** — JS stub shows a clear message; add IAP when you can build with Xcode 26 |
+
+Do **not** add `CapgoNativePurchases` back to `CapApp-SPM/Package.swift` on Xcode 15.4 — it will produce dozens of Swift errors.
+
+---
+
 ## Prerequisites
 
 - Mac with the project cloned (same repo as this guide)
@@ -162,7 +176,7 @@ That’s expected if you didn’t run `cap:ios:sync` — browser uses `localhost
 
 **"Blocking plugin not loaded" (Screen Time / app blocking)**
 
-`npx cap sync ios` resets `ios/App/CapApp-SPM/Package.swift` to Capacitor-only and drops local SPM plugins. The post-sync script (`scripts/ios-remove-stripe.mjs`, run automatically by `npm run cap:ios:sync`) re-adds `RepLockControls` and `CapgoNativePurchases`.
+`npx cap sync ios` resets `ios/App/CapApp-SPM/Package.swift` to Capacitor-only and drops local SPM plugins. The post-sync script (`scripts/ios-remove-stripe.mjs`, run automatically by `npm run cap:ios:sync`) re-adds **only** `RepLockControls` (not NativePurchases on Xcode 15.4).
 
 1. Run `npm run cap:ios:sync` (not just `npx cap sync ios` alone).
 2. Open `ios/App/App.xcodeproj` in Xcode.
@@ -171,9 +185,9 @@ That’s expected if you didn’t run `cap:ios:sync` — browser uses `localhost
 
 If it still fails, in Xcode: **File → Packages → Reset Package Caches**, then Clean Build Folder and Run again.
 
-**Swift errors in RepLockControls (`reject`, `viewController`, `ApplicationToken`)**
+**Swift compile errors (many `reject` / `NativePurchases` errors)**
 
-The repo includes Xcode 15.4 compatibility shims in `RepLockControls`. Pull latest, then Clean Build Folder and Run. Capacitor 8 officially requires Xcode 26; if *other* plugins (e.g. NativePurchases) fail with similar API errors, upgrading Xcode is the long-term fix.
+You are building **CapgoNativePurchases** on Xcode 15.4 — remove it. Run `npm run cap:ios:sync` (pull latest first), then in Xcode: **File → Packages → Reset Package Caches**, **Clean Build Folder**, **Run ▶**. Only `RepLockControls` should appear under SPM packages.
 
 ---
 
