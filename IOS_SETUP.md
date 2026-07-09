@@ -11,6 +11,7 @@ Follow **every step** below on your **Mac** (not Windows).
 - Mac with the project cloned (same repo as this guide)
 - iPhone on the **same Wi‑Fi** as the Mac
 - Xcode 15.4+ with signing set up (`app.replock.bleeker`, Family Controls, App Group `group.com.replock.fitness`)
+- **iOS 16+** on the test iPhone (Family Controls / app blocking requires it; app deployment target is 16.0)
 - Node.js installed (`node -v`)
 
 ---
