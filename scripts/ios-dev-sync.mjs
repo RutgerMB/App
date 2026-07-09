@@ -54,11 +54,8 @@ const capEnv = live ? { ...process.env, CAPACITOR_DEV_SERVER: viteUrl } : proces
 console.log('✓ Syncing Capacitor iOS...')
 execSync('npx cap sync ios', { cwd: root, stdio: 'inherit', env: capEnv })
 
-try {
-  execSync('node scripts/ios-remove-stripe.mjs', { cwd: root, stdio: 'inherit' })
-} catch {
-  /* optional */
-}
+console.log('✓ Post-processing iOS packages (local plugins)...')
+execSync('node scripts/ios-remove-stripe.mjs', { cwd: root, stdio: 'inherit' })
 
 console.log(`
 ✅ Done. Next steps:

@@ -159,6 +159,17 @@ You skipped Step 5 or ran Xcode without syncing. Run `npm run cap:ios:sync` agai
 
 That’s expected if you didn’t run `cap:ios:sync` — browser uses `localhost`, iPhone needs LAN IP.
 
+**"Blocking plugin not loaded" (Screen Time / app blocking)**
+
+`npx cap sync ios` resets `ios/App/CapApp-SPM/Package.swift` to Capacitor-only and drops local SPM plugins. The post-sync script (`scripts/ios-remove-stripe.mjs`, run automatically by `npm run cap:ios:sync`) re-adds `RepLockControls` and `CapgoNativePurchases`.
+
+1. Run `npm run cap:ios:sync` (not just `npx cap sync ios` alone).
+2. Open `ios/App/App.xcodeproj` in Xcode.
+3. **Product → Clean Build Folder** (⇧⌘K) if you synced recently.
+4. **Run ▶** on a **physical iPhone** (blocking does not work in Simulator).
+
+If it still fails, in Xcode: **File → Packages → Reset Package Caches**, then Clean Build Folder and Run again.
+
 ---
 
 ## Simulator vs physical iPhone

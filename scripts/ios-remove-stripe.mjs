@@ -4,6 +4,8 @@
  * - Vendors @capgo/native-purchases into ios/App/LocalPackages (Mac has no node_modules)
  * - Patches native-purchases for Xcode 15.4 (STOREKIT_26_5 probe + winBack SDK gate)
  * - Removes Stripe/StatusBar/SplashScreen SPM entries (Xcode 15.4)
+ * - Re-injects RepLockControls + CapgoNativePurchases (cap sync wipes them from Package.swift)
+ * - Ensures CapApp-SPM.swift imports local plugins so they link into the app
  * - Normalizes Windows backslashes in Package.swift paths
  *
  * Usage: node scripts/ios-remove-stripe.mjs
@@ -13,10 +15,22 @@ import { join } from 'path'
 
 const root = process.cwd()
 const spmPackagePath = join(root, 'ios', 'App', 'CapApp-SPM', 'Package.swift')
+const capAppSpmSwiftPath = join(root, 'ios', 'App', 'CapApp-SPM', 'Sources', 'CapApp-SPM', 'CapApp-SPM.swift')
 const podfilePath = join(root, 'ios', 'App', 'Podfile')
 const nativePurchasesSrc = join(root, 'node_modules', '@capgo', 'native-purchases')
 const nativePurchasesDest = join(root, 'ios', 'App', 'LocalPackages', 'CapgoNativePurchases')
 const LOCAL_PURCHASES_SPM_PATH = '../LocalPackages/CapgoNativePurchases'
+const LOCAL_REPLOCK_CONTROLS_PATH = '../LocalPackages/RepLockControls'
+
+const REQUIRED_LOCAL_PACKAGES = [
+  { name: 'CapgoNativePurchases', path: LOCAL_PURCHASES_SPM_PATH },
+  { name: 'RepLockControls', path: LOCAL_REPLOCK_CONTROLS_PATH },
+]
+
+const REQUIRED_PRODUCTS = [
+  { product: 'CapgoNativePurchases', package: 'CapgoNativePurchases' },
+  { product: 'RepLockControls', package: 'RepLockControls' },
+]
 
 const spmPackageRemovals = [
   /^\s*\.package\(name: "CapacitorCommunityStripe".*\n/gm,
@@ -110,6 +124,64 @@ import StoreKit`,
   }
 }
 
+function ensureLocalPackage(pkg, { name, path }) {
+  const line = `.package(name: "${name}", path: "${path}")`
+  const existing = new RegExp(`\\.package\\(name: "${name}", path: "[^"]+"\\)`)
+  if (existing.test(pkg)) {
+    return pkg.replace(existing, line)
+  }
+  return pkg.replace(/dependencies: \[\n/, `dependencies: [\n        ${line},\n`)
+}
+
+function ensureProduct(pkg, { product, package: packageName }) {
+  const line = `.product(name: "${product}", package: "${packageName}")`
+  if (pkg.includes(line)) return pkg
+  return pkg.replace(
+    /\.product\(name: "Cordova", package: "capacitor-swift-pm"\)/,
+    (match) => `${match},\n                ${line}`
+  )
+}
+
+function ensureLocalPackagesAndProducts(pkg) {
+  for (const entry of REQUIRED_LOCAL_PACKAGES) {
+    pkg = ensureLocalPackage(pkg, entry)
+  }
+  for (const entry of REQUIRED_PRODUCTS) {
+    pkg = ensureProduct(pkg, entry)
+  }
+  return pkg
+}
+
+function ensureCapAppSpmImports() {
+  if (!existsSync(capAppSpmSwiftPath)) {
+    console.log('No CapApp-SPM.swift — skip import patch')
+    return false
+  }
+
+  const requiredImports = ['import CapgoNativePurchases', 'import RepLockControls']
+  let content = readFileSync(capAppSpmSwiftPath, 'utf8')
+  const before = content
+
+  for (const imp of requiredImports) {
+    if (!content.includes(imp)) {
+      content = `${imp}\n${content}`
+    }
+  }
+
+  if (!content.includes('public let isCapacitorApp = true')) {
+    content = content.trimEnd() + '\npublic let isCapacitorApp = true\n'
+  }
+
+  if (content !== before) {
+    writeFileSync(capAppSpmSwiftPath, content)
+    console.log('Patched CapApp-SPM.swift (plugin imports)')
+    return true
+  }
+
+  console.log('CapApp-SPM.swift already has plugin imports')
+  return false
+}
+
 let changed = false
 
 if (existsSync(nativePurchasesSrc)) {
@@ -137,19 +209,20 @@ if (existsSync(spmPackagePath)) {
     pkg = pkg.replace(pattern, '')
   }
   pkg = pkg.replace(/path: "([^"]*)"/g, (_, p) => `path: "${p.replace(/\\/g, '/')}"`)
-  pkg = pkg.replace(
-    /\.package\(name: "CapgoNativePurchases", path: "[^"]+"\)/g,
-    `.package(name: "CapgoNativePurchases", path: "${LOCAL_PURCHASES_SPM_PATH}")`
-  )
+  pkg = ensureLocalPackagesAndProducts(pkg)
   if (pkg !== before) {
     writeFileSync(spmPackagePath, pkg)
-    console.log('Patched CapApp-SPM/Package.swift')
+    console.log('Patched CapApp-SPM/Package.swift (local plugins + stripe removal)')
     changed = true
   } else {
-    console.log('CapApp-SPM/Package.swift already clean')
+    console.log('CapApp-SPM/Package.swift already up to date')
   }
 } else {
   console.log('No ios/App/CapApp-SPM/Package.swift — skip SPM patch')
+}
+
+if (ensureCapAppSpmImports()) {
+  changed = true
 }
 
 if (existsSync(podfilePath)) {
