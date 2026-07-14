@@ -80,6 +80,17 @@ Recommended frames (6–8 per platform):
 - Offer free Pro lifetime for honest review video
 - Provide B-roll pack (screen recordings + logo)
 
+### Gymbro TikTok
+
+Target **18–30 male gym-regulars** with slideshow carousels — relatable gymbro problems (skip legs, rest-timer scroll, no gains, gym crush cardio skip) → pivot to RepLock → CTA.
+
+- **Full scripts:** [`docs/marketing/tiktok-gymbro-slideshows.md`](../../docs/marketing/tiktok-gymbro-slideshows.md) — 5 ready-to-film slideshows with hooks, slide text, captions, sounds, and production notes
+- **Tone:** Bro-humor, meme-adjacent, self-aware — never corporate
+- **Format:** 6–7 slides, phonk/gym edit audio, bold on-screen text over dark gym B-roll
+- **Hook pattern:** "POV: [gym relatable]" → shame/comedy beat → "RepLock locks apps until you rep"
+- **Hashtags:** `#gymbro #gymtok #legday #screentime #pushupchallenge #appblocker #gymmotivation`
+- **Post cadence:** 1 slideshow/day for 5 days pre-launch; repost top performer
+
 ## Launch checklist
 
 - [ ] App Store / Play screenshots + preview video (15–30s)
