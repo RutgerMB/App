@@ -24,13 +24,13 @@ public struct RepLockPaywallView: View {
             }
             .onPurchaseCompleted { customerInfo in
                 Task { @MainActor in
-                    await RevenueCatManager.shared.refreshCustomerInfo()
+                    try? await RevenueCatManager.shared.refreshCustomerInfo()
                     _ = customerInfo
                 }
             }
             .onRestoreCompleted { _ in
                 Task { @MainActor in
-                    await RevenueCatManager.shared.refreshCustomerInfo()
+                    try? await RevenueCatManager.shared.refreshCustomerInfo()
                 }
             }
             .toolbar {

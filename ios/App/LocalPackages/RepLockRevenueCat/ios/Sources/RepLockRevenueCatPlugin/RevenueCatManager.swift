@@ -5,6 +5,7 @@ public enum RevenueCatManagerError: LocalizedError {
     case notConfigured
     case noCurrentOffering
     case packageUnavailable(String)
+    case purchaseCancelled
     case purchaseSucceededWithoutEntitlement
     case underlying(Error)
 
@@ -16,11 +17,18 @@ public enum RevenueCatManagerError: LocalizedError {
             return "No current offering is available. Check RevenueCat dashboard setup."
         case .packageUnavailable(let period):
             return "\(period.capitalized) plan is not available yet."
+        case .purchaseCancelled:
+            return nil
         case .purchaseSucceededWithoutEntitlement:
             return "Purchase completed but RepLocks Pro was not activated."
         case .underlying(let error):
             return error.localizedDescription
         }
+    }
+
+    public var isPurchaseCancelled: Bool {
+        if case .purchaseCancelled = self { return true }
+        return false
     }
 }
 
@@ -138,7 +146,12 @@ public final class RevenueCatManager: NSObject, ObservableObject {
                 throw RevenueCatManagerError.purchaseSucceededWithoutEntitlement
             }
             return result.customerInfo
+        } catch let error as RevenueCatManagerError {
+            throw error
         } catch {
+            if Self.isPurchaseCancelled(error) {
+                throw RevenueCatManagerError.purchaseCancelled
+            }
             throw RevenueCatManagerError.underlying(error)
         }
     }
@@ -196,6 +209,12 @@ public final class RevenueCatManager: NSObject, ObservableObject {
         customerInfo = info
         isPro = info.entitlements.active[RepLockRevenueCatConstants.entitlementIdentifier] != nil
         lastErrorMessage = nil
+    }
+
+    private static func isPurchaseCancelled(_ error: Error) -> Bool {
+        let nsError = error as NSError
+        return nsError.domain == ErrorCode.errorDomain &&
+            nsError.code == ErrorCode.purchaseCancelledError.rawValue
     }
 }
 

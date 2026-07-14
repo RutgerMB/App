@@ -86,7 +86,11 @@ public class RepLockRevenueCatPlugin: CAPPlugin, CAPBridgedPlugin {
                 let info = try await RevenueCatManager.shared.purchase(period: period)
                 call.resolve(RevenueCatManager.serializeCustomerInfo(info))
             } catch let error as RevenueCatManagerError {
-                repLockReject(call, error.localizedDescription)
+                if error.isPurchaseCancelled {
+                    call.resolve(["cancelled": true, "isPro": RevenueCatManager.shared.hasProEntitlement()])
+                    return
+                }
+                repLockReject(call, error.localizedDescription ?? "Purchase failed")
             } catch {
                 repLockReject(call, error.localizedDescription)
             }

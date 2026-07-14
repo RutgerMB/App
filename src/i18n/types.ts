@@ -168,6 +168,8 @@ export interface Translations {
     selectAppsDesc: string
     selectAppsHint: string
     selectAppsSkipHint: string
+    selectAppsRequired: string
+    usePopularDefaults: string
     screenTimePermissionTitle: string
     screenTimePermissionDesc: string
     screenTimePermissionAndroid: string
@@ -316,6 +318,7 @@ export interface Translations {
     watchDemo: string
     watchDemoHint: string
     invalidType: string
+    workoutNotFound: string
   }
   exercises: Record<string, { name: string; description: string; howTo?: string; focus?: string }>
   categories: Record<string, string>
@@ -363,6 +366,10 @@ export interface Translations {
     allCategories: string
     noAppsFound: string
     setDailyLimit: string
+    editLimit: string
+    editLimitTitle: string
+    saveLimit: string
+    limitUpdated: string
     categories: Record<string, string>
     quickBlockTitle: string
     quickBlockDesc: string
@@ -475,7 +482,12 @@ export interface Translations {
     termsOfService: string
     contactSupport: string
     notificationsNote: string
+    notificationsPermissionGranted: string
+    notificationsPermissionDenied: string
     deleteAccount: string
+    manageSubscription: string
+    manageSubscriptionDesc: string
+    subscriptionNativeFailed: string
   }
   trial: {
     fullAccess: string
@@ -489,6 +501,7 @@ export interface Translations {
     activeDesc: string
     viewPro: string
     upgradePro: string
+    appsRemoved: string
   }
   pricing: {
     title: string

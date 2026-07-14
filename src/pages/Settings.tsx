@@ -17,12 +17,18 @@ import { ProPromo } from '@/components/ProPromo'
 import { BlockerSetupCard } from '@/components/BlockerSetupCard'
 import { Switch } from '@/components/ui/Switch'
 import { isNativeBlockingAvailable, isIosBlockingAvailable } from '@/lib/app-blocker'
+import {
+  isNativeRevenueCatAvailable,
+  presentNativeCustomerCenter,
+  presentNativePaywall,
+} from '@/lib/replock-revenuecat-native'
 import { useStore } from '@/store'
 import { useAuthStore } from '@/store/auth'
 import { useToast } from '@/components/ui/Toast'
 import { formatMinutes } from '@/lib/utils'
 import { openSupport } from '@/lib/legal'
 import { isDevToken } from '@/lib/dev-auth'
+import { requestPushPermission } from '@/lib/push-notifications'
 import { useTranslation } from '@/i18n/context'
 
 export function SettingsPage() {
@@ -57,6 +63,34 @@ export function SettingsPage() {
     }
   }
 
+  const handleSubscriptionPress = () => {
+    if (isNativeRevenueCatAvailable()) {
+      void (async () => {
+        try {
+          if (profile.isPro) {
+            await presentNativeCustomerCenter()
+          } else {
+            await presentNativePaywall()
+          }
+        } catch {
+          toast(t('settings.subscriptionNativeFailed'), 'error')
+        }
+      })()
+      return
+    }
+    navigate('/pricing')
+  }
+
+  const handleManageSubscription = () => {
+    void (async () => {
+      try {
+        await presentNativeCustomerCenter()
+      } catch {
+        toast(t('settings.subscriptionNativeFailed'), 'error')
+      }
+    })()
+  }
+
   const menuSections = [
     {
       title: t('settings.profile'),
@@ -65,9 +99,19 @@ export function SettingsPage() {
           icon: Crown,
           label: t('settings.subscription'),
           value: profile.isPro ? t('common.pro') : t('common.free'),
-          action: () => navigate('/pricing'),
+          action: handleSubscriptionPress,
           badge: profile.isPro ? 'pro' as const : undefined,
         },
+        ...(isNativeRevenueCatAvailable()
+          ? [
+              {
+                icon: Crown,
+                label: t('settings.manageSubscription'),
+                value: t('settings.manageSubscriptionDesc'),
+                action: handleManageSubscription,
+              },
+            ]
+          : []),
       ],
     },
     {
@@ -148,7 +192,15 @@ export function SettingsPage() {
               variant="outline"
               fullWidth
               className="mt-4 border-indigo-500/25 bg-indigo-500/5 text-indigo-300 hover:bg-indigo-500/10"
-              onClick={() => navigate('/pricing')}
+              onClick={() => {
+                if (isNativeRevenueCatAvailable()) {
+                  void presentNativePaywall().catch(() => {
+                    toast(t('settings.subscriptionNativeFailed'), 'error')
+                  })
+                  return
+                }
+                navigate('/pricing')
+              }}
             >
               <Crown size={16} className="text-indigo-400" />
               <span className="flex-1 text-left">{t('settings.upgradePro')}</span>
@@ -182,11 +234,21 @@ export function SettingsPage() {
                     id="notifications-toggle"
                     checked={profile.notificationsEnabled !== false}
                     onChange={(enabled) => {
-                      setNotificationsEnabled(enabled)
-                      toast(
-                        enabled ? t('settings.notificationsEnabled') : t('settings.notificationsDisabled'),
-                        'info'
-                      )
+                      void (async () => {
+                        if (enabled) {
+                          const granted = await requestPushPermission()
+                          setNotificationsEnabled(granted)
+                          toast(
+                            granted
+                              ? t('settings.notificationsPermissionGranted')
+                              : t('settings.notificationsPermissionDenied'),
+                            granted ? 'success' : 'info'
+                          )
+                        } else {
+                          setNotificationsEnabled(false)
+                          toast(t('settings.notificationsDisabled'), 'info')
+                        }
+                      })()
                     }}
                   />
                 </div>

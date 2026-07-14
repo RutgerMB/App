@@ -140,6 +140,8 @@ export const en: Translations = {
     selectAppsDesc: 'Pick the distractions you want to earn back through workouts.',
     selectAppsHint: 'Tap to select or deselect. You can also continue with popular defaults.',
     selectAppsSkipHint: 'Using popular defaults for now — pick real apps anytime in Apps.',
+    selectAppsRequired: 'Select at least one app to block, or tap Use popular defaults.',
+    usePopularDefaults: 'Use popular defaults (Instagram, TikTok, X)',
     screenTimePermissionTitle: 'See your real screen time',
     screenTimePermissionDesc: 'RepLock needs usage access to show your actual daily screen time — not a guess.',
     screenTimePermissionAndroid:
@@ -353,6 +355,7 @@ export const en: Translations = {
     watchDemo: 'Watch exercise demo',
     watchDemoHint: 'Tap to open the video demo on MuscleWiki.',
     invalidType: 'Unknown exercise — pick one from the list.',
+    workoutNotFound: 'Workout not found',
   },
   exercises: {
     pushups: {
@@ -530,6 +533,10 @@ export const en: Translations = {
     allCategories: 'All',
     noAppsFound: 'No apps found',
     setDailyLimit: 'Set how long you can use it per day',
+    editLimit: 'Edit daily limit',
+    editLimitTitle: 'Edit daily limit',
+    saveLimit: 'Save limit',
+    limitUpdated: 'Daily limit set to {amount} minutes',
     categories: {
       social: 'Social',
       entertainment: 'Entertainment',
@@ -655,8 +662,13 @@ export const en: Translations = {
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
     contactSupport: 'Contact support',
-    notificationsNote: 'Push workout reminders and streak alerts are not available yet.',
+    notificationsNote: 'Permission saved — scheduled workout reminders coming in a future update.',
+    notificationsPermissionGranted: 'Notification permission enabled',
+    notificationsPermissionDenied: 'Notification permission denied — enable in system settings',
     deleteAccount: 'Delete account',
+    manageSubscription: 'Manage subscription',
+    manageSubscriptionDesc: 'Restore, cancel, or change plan',
+    subscriptionNativeFailed: 'Could not open subscription screen',
   },
   trial: {
     fullAccess: 'Full access trial',
@@ -672,6 +684,7 @@ export const en: Translations = {
       'Enjoy unlimited apps and all Pro features during your trial. Keep them with a Pro subscription.',
     viewPro: 'View Pro plans',
     upgradePro: 'Upgrade to Pro',
+    appsRemoved: 'Trial ended — {count} app(s) removed. Upgrade to Pro to keep them all.',
   },
   pricing: {
     title: 'Invest in your discipline',

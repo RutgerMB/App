@@ -7,7 +7,6 @@ import { MotionCard } from '@/components/ui/Card'
 import { MotionButton } from '@/components/ui/Button'
 import { StatCard, StatGrid } from '@/components/ui/StatCard'
 import { CircularProgress } from '@/components/ui/Progress'
-import { ProPromo } from '@/components/ProPromo'
 import { TrialBanner } from '@/components/TrialBanner'
 import { AppBrandIcon } from '@/components/AppBrandIcon'
 import { DifficultyHomeModal } from '@/components/DifficultyHomeModal'
@@ -191,8 +190,6 @@ export function HomePage() {
             </p>
           </div>
         )}
-
-        <ProPromo variant="home" compact />
 
         <StatGrid>
           <StatCard

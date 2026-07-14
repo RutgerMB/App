@@ -18,6 +18,7 @@ import { SuccessPage } from '@/pages/Success'
 import { CancelPage } from '@/pages/Cancel'
 import { PrivacyPage, TermsPage } from '@/pages/Legal'
 import { BlockerPermissionPrompt } from '@/components/BlockerPermissionPrompt'
+import { TrialExpiryNotifier } from '@/components/TrialExpiryNotifier'
 import { ScrollToTop } from '@/components/layout/ScrollToTop'
 
 function AuthRoute({ children }: { children: React.ReactNode }) {
@@ -86,6 +87,7 @@ function OnboardingRoute() {
 export default function App() {
   return (
     <ToastProvider>
+      <TrialExpiryNotifier />
       <ScrollToTop />
       <BlockerPermissionPrompt />
       <Routes>

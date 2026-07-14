@@ -302,18 +302,70 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 ```
 
-### 6.8 SubscriptionViewModel (custom UI)
+### 6.8 Settings integration (React / Capacitor)
+
+On iOS, Settings opens the native paywall or Customer Center:
+
+```typescript
+// src/pages/Settings.tsx
+import {
+  isNativeRevenueCatAvailable,
+  presentNativePaywall,
+  presentNativeCustomerCenter,
+} from '@/lib/replock-revenuecat-native'
+
+// Subscription row: paywall if free, Customer Center if Pro
+if (isNativeRevenueCatAvailable()) {
+  profile.isPro ? await presentNativeCustomerCenter() : await presentNativePaywall()
+} else {
+  navigate('/pricing')
+}
+```
+
+A dedicated **Manage subscription** row always calls `presentNativeCustomerCenter()` on iOS.
+
+### 6.9 SubscriptionViewModel — custom SwiftUI plan picker
 
 Use when you build your own plan picker instead of the server-driven paywall:
 
 ```swift
-@MainActor
-let viewModel = SubscriptionViewModel()
+import SwiftUI
+import RevenueCat
 
-Task {
-    await viewModel.loadOfferings()
-    await viewModel.purchaseYearly()
-    await viewModel.restore()
+struct RepLockSubscriptionPlansView: View {
+    @StateObject private var viewModel = SubscriptionViewModel()
+
+    var body: some View {
+        VStack(spacing: 16) {
+            if viewModel.isPro {
+                Label("RepLocks Pro active", systemImage: "checkmark.seal.fill")
+            }
+
+            if let yearly = viewModel.yearlyPackage {
+                Button("Yearly — \(yearly.storeProduct.localizedPriceString)") {
+                    Task { await viewModel.purchaseYearly() }
+                }
+            }
+
+            if let monthly = viewModel.monthlyPackage {
+                Button("Monthly — \(monthly.storeProduct.localizedPriceString)") {
+                    Task { await viewModel.purchaseMonthly() }
+                }
+            }
+
+            Button("Restore purchases") {
+                Task { await viewModel.restore() }
+            }
+
+            if let error = viewModel.errorMessage {
+                Text(error).foregroundStyle(.red)
+            }
+        }
+        .task {
+            await viewModel.loadOfferings()
+            await viewModel.refreshEntitlement()
+        }
+    }
 }
 ```
 
@@ -374,7 +426,7 @@ import { presentNativePaywall } from '@/lib/replock-revenuecat-native'
 ## 9. Error handling best practices
 
 1. **Never assume purchase = entitlement** — always verify `entitlements.active["pro"]`
-2. **Handle user cancel** — StoreKit cancellation is not an error; RevenueCat throws `ErrorCode.purchaseCancelledError`
+2. **Handle user cancel** — StoreKit cancellation is not an error; map `ErrorCode.purchaseCancelledError` to a silent `RevenueCatManagerError.purchaseCancelled` (see `RevenueCatManager.purchase`)
 3. **Refresh on foreground** — `PurchasesDelegate` in `RevenueCatManager` listens for `receivedUpdated`
 4. **Log level** — `.debug` in DEBUG, `.warn` in Release
 5. **Offerings empty** — means dashboard/App Store Connect misconfiguration, not a code bug

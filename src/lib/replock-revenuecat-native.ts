@@ -31,13 +31,21 @@ export function isNativeRevenueCatAvailable(): boolean {
 /** Present the native RevenueCat Paywall (server-driven SwiftUI). */
 export async function presentNativePaywall(): Promise<void> {
   if (!isNativeRevenueCatAvailable()) return
-  await RepLockRevenueCatNative.presentPaywall()
+  try {
+    await RepLockRevenueCatNative.presentPaywall()
+  } catch (error) {
+    throw error instanceof Error ? error : new Error('Failed to present paywall')
+  }
 }
 
 /** Present RevenueCat Customer Center for subscription management. */
 export async function presentNativeCustomerCenter(): Promise<void> {
   if (!isNativeRevenueCatAvailable()) return
-  await RepLockRevenueCatNative.presentCustomerCenter()
+  try {
+    await RepLockRevenueCatNative.presentCustomerCenter()
+  } catch (error) {
+    throw error instanceof Error ? error : new Error('Failed to present customer center')
+  }
 }
 
 export async function getNativeCustomerInfo(): Promise<RepLockRevenueCatCustomerInfo | null> {

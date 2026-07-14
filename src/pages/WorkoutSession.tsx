@@ -160,7 +160,7 @@ export function WorkoutSessionPage() {
   if (!plan || !current || !exercise) {
     return (
       <div className="min-h-dvh bg-surface-0 flex flex-col items-center justify-center gap-4 px-6 safe-top safe-bottom">
-        <p className="text-white/50 text-sm">Workout not found</p>
+        <p className="text-white/50 text-sm">{t('exercise.workoutNotFound')}</p>
         <BackButton onClick={() => navigate('/exercise')} aria-label={t('common.back')} />
       </div>
     )

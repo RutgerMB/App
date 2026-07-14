@@ -312,6 +312,22 @@ export function OnboardingPage() {
     })
   }
 
+  const handleUsePopularDefaults = async () => {
+    const catalog = appCatalog.length > 0 ? appCatalog : await getDeviceApps()
+    const fallbackCatalog = catalog.length > 0 ? catalog : DEVICE_APPS
+    const defaults = DEFAULT_SELECTED_APPS.map((id) => fallbackCatalog.find((a) => a.id === id)).filter(
+      (a): a is DeviceAppDefinition => Boolean(a)
+    )
+    if (defaults.length === 0) {
+      toast(t('onboarding.selectAppsRequired'), 'error')
+      return
+    }
+    setSelectedApps(new Set(defaults.map((a) => a.id)))
+    setAppCatalog(fallbackCatalog)
+    toast(t('onboarding.selectAppsSkipHint'), 'info')
+    setStep((s) => s + 1)
+  }
+
   const advance = () => setStep((s) => s + 1)
 
   const handleContinue = async () => {
@@ -331,18 +347,8 @@ export function OnboardingPage() {
     }
     if (step === STEP.SELECT_APPS) {
       if (selectedApps.size === 0) {
-        const catalog = appCatalog.length > 0 ? appCatalog : await getDeviceApps()
-        const fallbackCatalog = catalog.length > 0 ? catalog : DEVICE_APPS
-        const defaults = DEFAULT_SELECTED_APPS.map((id) => fallbackCatalog.find((a) => a.id === id)).filter(
-          (a): a is DeviceAppDefinition => Boolean(a)
-        )
-        if (defaults.length > 0) {
-          setSelectedApps(new Set(defaults.map((a) => a.id)))
-          setAppCatalog(fallbackCatalog)
-          if (usesIosActivityPicker()) {
-            toast(t('onboarding.selectAppsSkipHint'), 'info')
-          }
-        }
+        toast(t('onboarding.selectAppsRequired'), 'error')
+        return
       }
       advance()
       return
@@ -350,13 +356,11 @@ export function OnboardingPage() {
     if (step === STEP.CREATE_GOAL) {
       const catalog = appCatalog.length > 0 ? appCatalog : await getDeviceApps()
       const fallbackCatalog = catalog.length > 0 ? catalog : DEVICE_APPS
-      let resolved = resolveSelectedApps(selectedApps, fallbackCatalog)
+      const resolved = resolveSelectedApps(selectedApps, fallbackCatalog)
       if (resolved.length === 0) {
-        resolved = DEFAULT_SELECTED_APPS.map((id) => fallbackCatalog.find((a) => a.id === id)).filter(
-          (a): a is DeviceAppDefinition => Boolean(a)
-        )
+        toast(t('onboarding.selectAppsRequired'), 'error')
+        return
       }
-      if (resolved.length === 0) return
       setBlockingGoal(openingsPerDay, MINUTES_PER_OPENING)
       setOnboardingApps(resolved, openingsPerDay * MINUTES_PER_OPENING)
       setStep(STEP.GOAL_CONFIRMED)
@@ -396,9 +400,27 @@ export function OnboardingPage() {
           ? t('intro.yearsCta')
           : undefined
 
-  const continueDisabled = step === STEP.NAME && !name.trim()
+  const continueDisabled =
+    (step === STEP.NAME && !name.trim()) || (step === STEP.SELECT_APPS && selectedApps.size === 0)
   const hideFooter = step === STEP.BENEFITS || step === STEP.NOTIFICATIONS
   const hidePrimaryOnTrial = step === STEP.TRIAL
+
+  const selectAppsFooter = (
+    <div className="space-y-2">
+      <IntroPrimaryButton onClick={handleContinue} disabled={selectedApps.size === 0}>
+        {t('common.continue')}
+      </IntroPrimaryButton>
+      {selectedApps.size === 0 && (
+        <button
+          type="button"
+          onClick={() => void handleUsePopularDefaults()}
+          className="w-full py-3 rounded-2xl border border-border bg-surface-2 text-sm font-semibold text-white/70 hover:bg-surface-3 transition-colors"
+        >
+          {t('onboarding.usePopularDefaults')}
+        </button>
+      )}
+    </div>
+  )
 
   const footer = hideFooter ? undefined : hidePrimaryOnTrial ? (
     <div className="space-y-2">
@@ -644,7 +666,7 @@ export function OnboardingPage() {
 
   return (
     <>
-      <IntroShell variant="setup" footer={step === STEP.NOTIFICATIONS ? notificationsFooter : footer}>
+      <IntroShell variant="setup" footer={step === STEP.NOTIFICATIONS ? notificationsFooter : step === STEP.SELECT_APPS ? selectAppsFooter : footer}>
         <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
           <AnimatePresence mode="wait">
             <motion.div

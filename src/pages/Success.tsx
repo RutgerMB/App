@@ -19,7 +19,7 @@ export function SuccessPage() {
     if (searchParams.get('native') === '1') {
       refreshEntitlementFromServer(true)
         .then(() => setStatus('success'))
-        .catch(() => setStatus('success'))
+        .catch(() => setStatus('error'))
       return
     }
 

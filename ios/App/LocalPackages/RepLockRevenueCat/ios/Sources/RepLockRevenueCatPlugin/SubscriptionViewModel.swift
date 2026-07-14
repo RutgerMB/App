@@ -83,7 +83,9 @@ public final class SubscriptionViewModel: ObservableObject {
             customerInfo = info
             isPro = manager.hasProEntitlement()
         } catch let error as RevenueCatManagerError {
-            errorMessage = error.localizedDescription
+            if !error.isPurchaseCancelled {
+                errorMessage = error.localizedDescription
+            }
         } catch {
             errorMessage = error.localizedDescription
         }

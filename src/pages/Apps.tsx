@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Trash2, Unlock, Clock, Grid3X3 } from 'lucide-react'
+import { Plus, Trash2, Unlock, Clock, Grid3X3, Pencil } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { MotionCard } from '@/components/ui/Card'
@@ -30,8 +30,9 @@ export function AppsPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const { t } = useTranslation()
-  const { apps, profile, screenTimeBalance, unlockApp, addApp, removeApp } = useStore()
+  const { apps, profile, screenTimeBalance, unlockApp, addApp, removeApp, updateAppLimit } = useStore()
   const trialStatus = getTrialStatus(profile)
+  const canEditLimits = profile.isPro || trialStatus === 'trial'
   const appLimitLabel = getAppLimitLabel(profile)
   const onIos = usesIosActivityPicker()
   const canAddApps = canPickInstalledApps() || onIos
@@ -41,6 +42,8 @@ export function AppsPage() {
   const [dailyLimit, setDailyLimit] = useState(30)
   const [showUnlock, setShowUnlock] = useState<string | null>(null)
   const [unlockMinutes, setUnlockMinutes] = useState(15)
+  const [editLimitApp, setEditLimitApp] = useState<string | null>(null)
+  const [editLimitValue, setEditLimitValue] = useState(30)
 
   const existingIds = apps.flatMap((a) => [
     a.brand ?? '',
@@ -97,6 +100,19 @@ export function AppsPage() {
     }
   }
 
+  const openEditLimit = (appId: string, currentLimit: number) => {
+    setEditLimitApp(appId)
+    setEditLimitValue(currentLimit)
+  }
+
+  const handleSaveLimit = () => {
+    if (!editLimitApp) return
+    const clamped = Math.max(5, Math.min(180, editLimitValue))
+    updateAppLimit(editLimitApp, clamped)
+    toast(t('apps.limitUpdated', { amount: clamped }), 'success')
+    setEditLimitApp(null)
+  }
+
   return (
     <AppShell>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
@@ -151,6 +167,15 @@ export function AppsPage() {
                       )}
                     </p>
                   </div>
+                  {canEditLimits && (
+                    <button
+                      onClick={() => openEditLimit(app.id, app.dailyLimitMinutes)}
+                      className="p-2 rounded-lg hover:bg-indigo-500/10 text-white/20 hover:text-indigo-400 transition-colors"
+                      aria-label={t('apps.editLimit')}
+                    >
+                      <Pencil size={16} />
+                    </button>
+                  )}
                   <button
                     onClick={() => removeApp(app.id)}
                     className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-colors"
@@ -243,6 +268,29 @@ export function AppsPage() {
             </MotionButton>
           </div>
         )}
+      </Modal>
+
+      <Modal
+        open={!!editLimitApp}
+        onClose={() => setEditLimitApp(null)}
+        title={t('apps.editLimitTitle')}
+        position="center"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-white/50">{t('apps.setDailyLimit')}</p>
+          <Input
+            id="edit-daily-limit"
+            label={t('apps.dailyLimitLabel')}
+            type="number"
+            min={5}
+            max={180}
+            value={editLimitValue}
+            onChange={(e) => setEditLimitValue(Number(e.target.value))}
+          />
+          <MotionButton fullWidth size="lg" onClick={handleSaveLimit}>
+            {t('apps.saveLimit')}
+          </MotionButton>
+        </div>
       </Modal>
 
       <Modal open={!!showUnlock} onClose={() => setShowUnlock(null)} title={t('apps.unlockApp')} position="center">
