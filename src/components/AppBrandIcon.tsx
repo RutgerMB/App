@@ -133,14 +133,14 @@ export function AppBrandIcon({
 
 export function AppIcon({
   brand,
-  icon,
+  icon = '',
   name,
   color,
   size = 'md',
   grayscale,
 }: {
   brand?: AppBrand
-  icon: string
+  icon?: string
   name?: string
   color: string
   size?: 'sm' | 'md' | 'lg'

@@ -263,6 +263,10 @@ export interface Translations {
     lastWorkout: string
     quickStart: string
     changeDifficultyDesc: string
+    earnFirst: string
+    emptyBalanceHint: string
+    viewAllApps: string
+    appsStatusSummary: string
   }
   exercise: {
     title: string
@@ -311,6 +315,7 @@ export interface Translations {
     completedTotal: string
     watchDemo: string
     watchDemoHint: string
+    invalidType: string
   }
   exercises: Record<string, { name: string; description: string; howTo?: string; focus?: string }>
   categories: Record<string, string>
@@ -448,6 +453,7 @@ export interface Translations {
     app: string
     resetDaily: string
     resetDailyDesc: string
+    resetDailySuccess: string
     resetConfirm: string
     resetConfirmDesc: string
     help: string
@@ -542,6 +548,7 @@ export interface Translations {
     restorePurchases: string
     restored: string
     noRestore: string
+    checkoutFailed: string
     appleTerms: string
     stripeTerms: string
   }

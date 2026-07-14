@@ -74,6 +74,11 @@ describe('revenuecat-webhook', () => {
     expect(result.handled).toBe(false)
   })
 
+  it('rejects webhooks when secret is missing', () => {
+    expect(verifyRevenueCatAuthorization('secret123', undefined)).toBe(false)
+    expect(verifyRevenueCatAuthorization(undefined, undefined)).toBe(false)
+  })
+
   it('verifies authorization header', () => {
     expect(verifyRevenueCatAuthorization('secret123', 'secret123')).toBe(true)
     expect(verifyRevenueCatAuthorization('Bearer secret123', 'secret123')).toBe(true)

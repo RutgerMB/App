@@ -99,7 +99,7 @@ export function verifyRevenueCatAuthorization(
   authHeader: string | undefined,
   expectedSecret: string | undefined
 ): boolean {
-  if (!expectedSecret) return process.env.NODE_ENV !== 'production'
+  if (!expectedSecret) return false
   if (!authHeader) return false
   return authHeader === expectedSecret || authHeader === `Bearer ${expectedSecret}`
 }

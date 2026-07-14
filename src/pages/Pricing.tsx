@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
-  Check, Sparkles, Grid3X3, BarChart3, Shield, Sliders, Dumbbell, Smartphone,
+  Check, Sparkles, Grid3X3, BarChart3, Sliders, Dumbbell, Smartphone,
 } from 'lucide-react'
 import { MotionButton } from '@/components/ui/Button'
 import { BackButton } from '@/components/ui/BackButton'
@@ -17,6 +17,7 @@ import { useToast } from '@/components/ui/Toast'
 import { useStore } from '@/store'
 import { PRO_PRICE_MONTHLY, PRO_PRICE_YEARLY, TRIAL_APP_LIMIT } from '@/types'
 import type { BillingPeriod } from '@/lib/revenuecat'
+import { getRevenueCatPackages } from '@/lib/revenuecat'
 import {
   getTrialDaysRemaining,
   getTrialHoursRemaining,
@@ -33,30 +34,51 @@ export function PricingPage() {
   const { profile } = useStore()
   const [loading, setLoading] = useState(false)
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('yearly')
+  const [storePrices, setStorePrices] = useState<{
+    monthly: { price: number; priceString: string } | null
+    yearly: { price: number; priceString: string } | null
+  } | null>(null)
   const storeCheckout = usesStoreSubscriptions()
   const revenueCat = usesRevenueCat()
+
+  useEffect(() => {
+    if (!revenueCat || !storeCheckout) return
+    getRevenueCatPackages()
+      .then(({ monthly, yearly }) => {
+        setStorePrices({
+          monthly: monthly
+            ? { price: monthly.product.price, priceString: monthly.product.priceString }
+            : null,
+          yearly: yearly
+            ? { price: yearly.product.price, priceString: yearly.product.priceString }
+            : null,
+        })
+      })
+      .catch(() => {})
+  }, [revenueCat, storeCheckout])
 
   const trialStatus = getTrialStatus(profile)
   const daysLeft = getTrialDaysRemaining(profile.createdAt)
   const hoursLeft = getTrialHoursRemaining(profile.createdAt)
   const isUrgent = trialStatus === 'trial' && daysLeft <= 2
   const isExpired = trialStatus === 'expired'
-  const yearlyMonthlyEquivalent = PRO_PRICE_YEARLY / 12
-  const yearlySavings = PRO_PRICE_MONTHLY * 12 - PRO_PRICE_YEARLY
-  const yearlyDiscountPct = Math.round((1 - PRO_PRICE_YEARLY / (PRO_PRICE_MONTHLY * 12)) * 100)
+  const monthlyPrice = storePrices?.monthly?.price ?? PRO_PRICE_MONTHLY
+  const yearlyPrice = storePrices?.yearly?.price ?? PRO_PRICE_YEARLY
+  const yearlyMonthlyEquivalent = yearlyPrice / 12
+  const yearlySavings = monthlyPrice * 12 - yearlyPrice
+  const yearlyDiscountPct = Math.round((1 - yearlyPrice / (monthlyPrice * 12)) * 100)
 
   const features = [
     { icon: Grid3X3, titleKey: 'pricing.feature1Title', descKey: 'pricing.feature1Desc' },
     { icon: Dumbbell, titleKey: 'pricing.feature5Title', descKey: 'pricing.feature5Desc' },
     { icon: Sliders, titleKey: 'pricing.feature2Title', descKey: 'pricing.feature2Desc' },
-    { icon: Shield, titleKey: 'pricing.feature3Title', descKey: 'pricing.feature3Desc' },
     { icon: BarChart3, titleKey: 'pricing.feature4Title', descKey: 'pricing.feature4Desc' },
   ]
 
   const trialTimeLeft =
     daysLeft > 0
       ? `${daysLeft} ${t('common.days')}`
-      : `${hoursLeft} hours`
+      : t('trial.hoursLeft', { count: hoursLeft })
 
   const returnToOnboarding = () => {
     if (onboardingReturn?.from === 'onboarding' && typeof onboardingReturn.step === 'number') {
@@ -93,7 +115,7 @@ export function PricingPage() {
       toast(t('pricing.onPro'), 'success')
       navigate('/success?native=1', { replace: true, state: successNavigateState })
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Checkout failed', 'error')
+      toast(err instanceof Error ? err.message : t('pricing.checkoutFailed'), 'error')
     } finally {
       setLoading(false)
     }
@@ -122,7 +144,9 @@ export function PricingPage() {
   }
 
   const displayPrice =
-    billingPeriod === 'yearly' ? PRO_PRICE_YEARLY : PRO_PRICE_MONTHLY
+    billingPeriod === 'yearly'
+      ? storePrices?.yearly?.priceString ?? formatPrice(yearlyPrice)
+      : storePrices?.monthly?.priceString ?? formatPrice(monthlyPrice)
   const priceSuffix =
     billingPeriod === 'yearly' ? t('pricing.perYear') : t('pricing.perMonth')
 
@@ -239,7 +263,7 @@ export function PricingPage() {
           )}
 
           <div className="flex items-baseline gap-1 mb-1">
-            <span className="text-4xl font-bold">{formatPrice(displayPrice)}</span>
+            <span className="text-4xl font-bold">{displayPrice}</span>
             <span className="text-white/40 text-sm">{priceSuffix}</span>
           </div>
           {billingPeriod === 'yearly' ? (
@@ -294,7 +318,6 @@ export function PricingPage() {
             <ul className="space-y-2 text-white/60 text-xs">
               <li className="flex items-center gap-1.5"><Check size={12} className="text-indigo-400" /> {t('pricing.unlimitedApps')}</li>
               <li className="flex items-center gap-1.5"><Check size={12} className="text-indigo-400" /> {t('pricing.customLimits')}</li>
-              <li className="flex items-center gap-1.5"><Check size={12} className="text-indigo-400" /> {t('pricing.streakProtection')}</li>
               <li className="flex items-center gap-1.5"><Check size={12} className="text-indigo-400" /> {t('pricing.difficultyModes')}</li>
               <li className="flex items-center gap-1.5"><Check size={12} className="text-indigo-400" /> {t('pricing.deepAnalytics')}</li>
             </ul>

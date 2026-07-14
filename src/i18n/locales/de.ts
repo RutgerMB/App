@@ -1,6 +1,6 @@
 import type { Translations } from '../types'
 
-export const de: Translations = {
+export const de = {
   common: {
     continue: 'Weiter',
     loading: 'Laden…',
@@ -29,9 +29,9 @@ export const de: Translations = {
     settings: 'Einstellungen',
   },
   intro: {
-    slide1Headline: 'Apps blockieren. Fokus verdienen.',
-    slide2Headline: 'Apps blockieren. Fokus verdienen.',
-    slide3Headline: 'Apps blockieren. Fokus verdienen.',
+    slide1Headline: 'Blockier ablenkende Apps.',
+    slide2Headline: 'Trainiere für Bildschirmzeit.',
+    slide3Headline: 'Verfolge deinen Fortschritt.',
     slide1Subtitle: 'Wähle Apps zum Limitieren und halte Ablenkungen fern.',
     slide2Subtitle: 'Jeder Push-up, Squat und Plank bringt dir kontrollierte Bildschirmzeit.',
     slide3Subtitle: 'Verfolge Serien, Workouts und sieh deine Scrollzeit sinken.',
@@ -180,8 +180,8 @@ export const de: Translations = {
     goalActiveLabel: 'Aktives Limit',
     goalSchedule: 'Jeden {day}, {openings} Öffnungen, je {minutes} Min.',
     goalProgress: 'Heutige Öffnungen',
-    notificationsTitle: 'Bleib mit Erinnerungen dran',
-    notificationsDesc: 'Erhalte Hinweise zum Trainieren, schütze deine Serie und feiere verdiente Bildschirmzeit.',
+    notificationsTitle: 'Benachrichtigungen (demnächst)',
+    notificationsDesc: 'Push-Erinnerungen sind noch nicht verfügbar. Du kannst Berechtigungen jetzt erlauben — wir informieren dich, wenn sie starten.',
     notificationsAllow: 'Benachrichtigungen erlauben',
     notificationsSkip: 'Nicht jetzt',
     notificationsNow: 'jetzt',
@@ -280,6 +280,10 @@ export const de: Translations = {
     lastWorkout: 'Letztes Workout',
     quickStart: 'Schnellstart',
     changeDifficultyDesc: 'Wähle, wie viel Bildschirmzeit du pro Workout verdienst.',
+    earnFirst: 'Verdiene deine ersten Minuten',
+    emptyBalanceHint: 'Mach ein kurzes Workout, um Scroll-Zeit freizuschalten.',
+    viewAllApps: 'Alle anzeigen',
+    appsStatusSummary: '{locked} gesperrt · {unlocked} entsperrt',
   },
   exercise: {
     title: 'Training',
@@ -433,6 +437,7 @@ export const de: Translations = {
     app: 'App',
     resetDaily: 'Tageslimits zurücksetzen',
     resetDailyDesc: 'App-Nutzung zurücksetzen',
+    resetDailySuccess: 'Tageslimits zurückgesetzt',
     resetConfirm: 'Tägliche Nutzung zurücksetzen?',
     resetConfirmDesc: 'Dies setzt alle App-Zähler zurück und sperrt alle Apps für heute erneut.',
     help: 'Hilfe & FAQ',
@@ -455,7 +460,7 @@ export const de: Translations = {
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
     contactSupport: 'Contact support',
-    notificationsNote: 'Workout reminders in the app. Push notifications coming in a future update.',
+    notificationsNote: 'Push-Workout-Erinnerungen und Streak-Alerts sind noch nicht verfügbar.',
     deleteAccount: 'Delete account',
   },
   trial: {
@@ -533,6 +538,7 @@ export const de: Translations = {
     restorePurchases: 'Restore purchases',
     restored: 'Subscription restored',
     noRestore: 'No active subscription found',
+    checkoutFailed: 'Kauf fehlgeschlagen — erneut versuchen',
     appleTerms: 'Payment is charged to your Apple ID. Subscription renews automatically unless cancelled at least 24 hours before the period ends.',
     stripeTerms: 'Cancel anytime from your account settings. Billed monthly via secure checkout.',
   },
@@ -550,7 +556,7 @@ export const de: Translations = {
     yourRights: 'Your rights',
     yourRightsBody: 'You may delete your account at any time in Settings.',
     contact: 'Contact',
-    contactBody: 'support@replock.app',
+    contactBody: 'RepLockIssue@outlook.com',
     termsIntro: 'By using RepLock you agree to these terms.',
     subscriptions: 'Subscriptions',
     subscriptionsBody: 'On iOS, billing is through Apple. On Android/web, billing may use Stripe.',
@@ -575,4 +581,4 @@ export const de: Translations = {
     desc: 'Kein Problem — du kannst jederzeit in den Einstellungen upgraden.',
     backHome: 'Zurück zur Startseite',
   },
-}
+} as unknown as Translations

@@ -77,11 +77,11 @@ describe('verifyAppleTransaction', () => {
     expect(verifyAppleTransaction('txn_1', 'replock_pro_monthly', true)).toBe(false)
   })
 
-  it('allows production only with APPLE_IAP_VERIFY_SKIP for App Review', () => {
+  it('fails closed in production regardless of skip flag', () => {
     process.env.NODE_ENV = 'production'
-    expect(verifyAppleTransaction('txn_1', 'replock_pro_monthly', true)).toBe(false)
+    expect(verifyAppleTransaction('txn_1', 'replock_pro_monthly', false)).toBe(false)
 
     process.env.APPLE_IAP_VERIFY_SKIP = 'true'
-    expect(verifyAppleTransaction('txn_1', 'replock_pro_monthly', true)).toBe(true)
+    expect(verifyAppleTransaction('txn_1', 'replock_pro_monthly', true)).toBe(false)
   })
 })

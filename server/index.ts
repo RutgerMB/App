@@ -167,6 +167,9 @@ app.use(express.json())
 
 app.post('/api/webhooks/revenuecat', async (req, res) => {
   const webhookSecret = process.env.REVENUECAT_WEBHOOK_SECRET
+  if (!webhookSecret) {
+    console.warn('REVENUECAT_WEBHOOK_SECRET is not set — RevenueCat webhooks are rejected')
+  }
   const authHeader = req.headers.authorization
 
   if (!verifyRevenueCatAuthorization(
@@ -352,6 +355,11 @@ app.get('/api/verify-session', authMiddleware, async (req, res) => {
     }
 
     const session = await stripe.checkout.sessions.retrieve(sessionId)
+
+    const sessionUserId = session.metadata?.userId
+    if (sessionUserId && sessionUserId !== auth.userId) {
+      return res.status(403).json({ error: 'Session does not belong to this account' })
+    }
 
     if (session.payment_status === 'paid' || session.status === 'complete') {
       const customerId = session.customer as string

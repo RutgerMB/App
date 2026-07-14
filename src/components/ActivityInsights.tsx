@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
-import type { TooltipProps } from 'recharts'
 import { Lock, TrendingUp, TrendingDown, Sparkles } from 'lucide-react'
 import { MotionCard } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -24,7 +23,15 @@ import { cn } from '@/lib/utils'
 
 const PERIODS: StatsPeriod[] = ['week', 'month', 'year']
 
-function ChartTooltip({ active, payload, label }: TooltipProps<number, string>) {
+function ChartTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean
+  payload?: Array<{ value?: number }>
+  label?: string
+}) {
   const { t } = useTranslation()
   if (!active || !payload?.length) return null
   const minutes = Math.round(payload[0].value ?? 0)

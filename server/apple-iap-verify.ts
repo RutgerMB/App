@@ -15,7 +15,11 @@ export function isDemoMode(stripeConfigured: boolean): boolean {
   return process.env.NODE_ENV !== 'production' && !stripeConfigured
 }
 
-/** Returns true when purchase verification is allowed without App Store Server API. */
+/**
+ * Returns true when purchase verification succeeds.
+ * Production always fails closed until App Store Server API is integrated.
+ * Dev may skip via APPLE_IAP_VERIFY_SKIP or demo mode (no Stripe key).
+ */
 export function verifyAppleTransaction(
   transactionId: string,
   productId: string,
@@ -24,12 +28,9 @@ export function verifyAppleTransaction(
   if (!transactionId.trim() || !productId.trim()) return false
   if (!isValidAppleProductId(productId)) return false
 
-  const isProduction = process.env.NODE_ENV === 'production'
-
-  if (!isProduction) {
-    return process.env.APPLE_IAP_VERIFY_SKIP === 'true' || isDemoMode(stripeConfigured)
+  if (process.env.NODE_ENV === 'production') {
+    return false
   }
 
-  // Production: only App Review bypass until App Store Server API is integrated.
-  return process.env.APPLE_IAP_VERIFY_SKIP === 'true'
+  return process.env.APPLE_IAP_VERIFY_SKIP === 'true' || isDemoMode(stripeConfigured)
 }

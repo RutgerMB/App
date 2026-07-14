@@ -10,7 +10,7 @@ Paste this into **App Review Information → Notes**:
 
 ```
 Demo account (email login):
-Email: review@replock.app
+Email: RepLockIssue@outlook.com
 Password: [your APP_REVIEW_PASSWORD from server .env]
 
 How to test:
@@ -28,7 +28,7 @@ Subscriptions on iOS use Apple In-App Purchase (product ID: replock_pro_monthly)
 Add to production `.env`:
 
 ```env
-APP_REVIEW_EMAIL=review@replock.app
+APP_REVIEW_EMAIL=RepLockIssue@outlook.com
 APP_REVIEW_PASSWORD=ChooseAStrongReviewPassword1!
 JWT_SECRET=generate-a-long-random-secret
 ```
@@ -114,7 +114,7 @@ In Xcode:
 ```env
 # Required
 JWT_SECRET=
-APP_REVIEW_EMAIL=review@replock.app
+APP_REVIEW_EMAIL=RepLockIssue@outlook.com
 APP_REVIEW_PASSWORD=
 
 # iOS
@@ -124,10 +124,11 @@ VITE_APPLE_PRODUCT_ID=replock_pro_monthly
 VITE_STRIPE_PUBLISHABLE_KEY=
 STRIPE_SECRET_KEY=
 
-# Legal (optional — defaults to in-app /privacy and /terms)
-VITE_PRIVACY_URL=https://replock.app/privacy
-VITE_TERMS_URL=https://replock.app/terms
-VITE_SUPPORT_EMAIL=support@replock.app
+# Legal (optional — defaults to GitHub Pages URLs in production builds)
+VITE_PRIVACY_URL=https://rutgermb.github.io/App/legal/privacy.html
+VITE_TERMS_URL=https://rutgermb.github.io/App/legal/terms.html
+VITE_SUPPORT_URL=https://rutgermb.github.io/App/legal/support.html
+VITE_SUPPORT_EMAIL=RepLockIssue@outlook.com
 
 # Do NOT set in production:
 # VITE_ENABLE_DEV_LOGIN

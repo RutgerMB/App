@@ -7,7 +7,7 @@ import { BackButton } from '@/components/ui/BackButton'
 import { Input } from '@/components/ui/Input'
 import { ExerciseDemoVideo } from '@/components/ExerciseDemoVideo'
 import { useStore } from '@/store'
-import { EXERCISES, isTimerExercise, type ExerciseType } from '@/types'
+import { EXERCISES, isTimerExercise, isExerciseType, type ExerciseType } from '@/types'
 import { distributeAcrossSets } from '@/lib/exercise-sets'
 import { getEncouragingMessage } from '@/lib/encouragement'
 import { useToast } from '@/components/ui/Toast'
@@ -17,7 +17,9 @@ type Phase = 'intro' | 'plan' | 'setActive' | 'setRest' | 'paused' | 'complete'
 
 export function ExerciseSessionPage() {
   const [searchParams] = useSearchParams()
-  const type = (searchParams.get('type') as ExerciseType) || 'pushups'
+  const rawType = searchParams.get('type')
+  const invalidType = rawType != null && !isExerciseType(rawType)
+  const type: ExerciseType = isExerciseType(rawType) ? rawType : 'pushups'
   const exercise = EXERCISES[type]
   const isTimer = isTimerExercise(type)
 
@@ -112,6 +114,15 @@ export function ExerciseSessionPage() {
   }, [elapsed, phase, isTimer, currentSetTarget])
 
   useEffect(() => () => clearTimer(), [])
+
+  useEffect(() => {
+    if (invalidType) {
+      toast(t('exercise.invalidType'), 'error')
+      navigate('/exercise', { replace: true })
+    }
+  }, [invalidType, navigate, toast, t])
+
+  if (invalidType) return null
 
   const formatTimer = (seconds: number) => {
     const m = Math.floor(seconds / 60)

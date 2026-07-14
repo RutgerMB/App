@@ -1,4 +1,4 @@
-import type { Translations } from './types'
+import type { Translations } from '../types'
 
 export const en: Translations = {
   common: {
@@ -29,9 +29,9 @@ export const en: Translations = {
     settings: 'Settings',
   },
   intro: {
-    slide1Headline: 'Block apps. Earn your focus.',
-    slide2Headline: 'Block apps. Earn your focus.',
-    slide3Headline: 'Block apps. Earn your focus.',
+    slide1Headline: 'Block distracting apps.',
+    slide2Headline: 'Exercise to earn scroll time.',
+    slide3Headline: 'Track your progress.',
     slide1Subtitle: 'Pick the apps to limit and keep distractions at bay.',
     slide2Subtitle: 'Every push-up, squat, and plank earns screen time you control.',
     slide3Subtitle: 'Track streaks, workouts, and watch your scroll time drop.',
@@ -185,8 +185,8 @@ export const en: Translations = {
     goalActiveLabel: 'Active limit',
     goalSchedule: 'Every {day}, {openings} openings, {minutes} min each',
     goalProgress: 'Today\'s openings',
-    notificationsTitle: 'Stay on track with reminders',
-    notificationsDesc: 'Get nudges when it\'s time to train, protect your streak, and celebrate earned screen time.',
+    notificationsTitle: 'Notifications (coming soon)',
+    notificationsDesc: 'Push reminders aren\'t live yet. You can allow permissions now — we\'ll notify you when they\'re ready.',
     notificationsAllow: 'Allow notifications',
     notificationsSkip: 'Not now',
     notificationsNow: 'now',
@@ -263,7 +263,7 @@ export const en: Translations = {
     cta: 'View Pro plans',
     home: {
       title: 'Go Pro for the full toolkit',
-      desc: 'Unlimited apps, custom difficulties, deep analytics, and streak protection.',
+      desc: 'Unlimited apps, custom difficulties, and deep analytics.',
     },
     exercise: {
       title: 'Unlock all difficulty modes',
@@ -279,7 +279,7 @@ export const en: Translations = {
     },
     settings: {
       title: 'Upgrade to RepLock Pro',
-      desc: 'All difficulties, unlimited apps, analytics, and streak protection in one plan.',
+      desc: 'All difficulties, unlimited apps, and analytics in one plan.',
     },
   },
   home: {
@@ -300,6 +300,10 @@ export const en: Translations = {
     lastWorkout: 'Last workout',
     quickStart: 'Quick start',
     changeDifficultyDesc: 'Choose how much screen time you earn per workout.',
+    earnFirst: 'Earn your first minutes',
+    emptyBalanceHint: 'Complete a quick workout to unlock scroll time.',
+    viewAllApps: 'View all',
+    appsStatusSummary: '{locked} locked · {unlocked} unlocked',
   },
   exercise: {
     title: 'Exercise',
@@ -348,6 +352,7 @@ export const en: Translations = {
     completedTotal: '{amount} {unit} completed',
     watchDemo: 'Watch exercise demo',
     watchDemoHint: 'Tap to open the video demo on MuscleWiki.',
+    invalidType: 'Unknown exercise — pick one from the list.',
   },
   exercises: {
     pushups: {
@@ -626,6 +631,7 @@ export const en: Translations = {
     app: 'App',
     resetDaily: 'Reset daily limits',
     resetDailyDesc: 'Reset app usage',
+    resetDailySuccess: 'Daily limits reset',
     resetConfirm: 'Reset daily usage?',
     resetConfirmDesc: 'This will reset all app usage counters and re-lock all apps for today.',
     help: 'Help & FAQ',
@@ -649,7 +655,7 @@ export const en: Translations = {
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
     contactSupport: 'Contact support',
-    notificationsNote: 'Workout reminders in the app. Push notifications coming in a future update.',
+    notificationsNote: 'Push workout reminders and streak alerts are not available yet.',
     deleteAccount: 'Delete account',
   },
   trial: {
@@ -661,7 +667,7 @@ export const en: Translations = {
     trialFeatures: '{days}-day trial with all features',
     onlyLeft: 'Only {time} on full access',
     endedDesc:
-      'Free plan now includes 1 locked app. Upgrade to Pro for unlimited apps, custom limits, and streak protection.',
+      'Free plan now includes 1 locked app. Upgrade to Pro for unlimited apps and custom limits.',
     activeDesc:
       'Enjoy unlimited apps and all Pro features during your trial. Keep them with a Pro subscription.',
     viewPro: 'View Pro plans',
@@ -689,8 +695,8 @@ export const en: Translations = {
     feature1Desc: 'Block every distraction — Instagram, TikTok, games, and more',
     feature2Title: 'Custom daily limits',
     feature2Desc: 'Set per-app time caps that match your goals',
-    feature3Title: 'Streak protection',
-    feature3Desc: "One free pass per month so a missed day doesn't break your streak",
+    feature3Title: 'Planned workout routines',
+    feature3Desc: 'Structured multi-exercise sessions with bonus screen time',
     feature4Title: 'Deep activity insights',
     feature4Desc: 'Weekly reports on workouts, screen time saved, and habits',
     feature5Title: 'All difficulty modes',
@@ -727,6 +733,7 @@ export const en: Translations = {
     restorePurchases: 'Restore purchases',
     restored: 'Subscription restored',
     noRestore: 'No active subscription found',
+    checkoutFailed: 'Purchase failed — try again',
     appleTerms:
       'Payment is charged to your Apple ID. Subscription renews automatically unless cancelled at least 24 hours before the period ends. Manage in Settings → Apple ID → Subscriptions.',
     stripeTerms: 'Cancel anytime from your account settings. Billed monthly via secure checkout.',
@@ -750,7 +757,7 @@ export const en: Translations = {
     yourRightsBody:
       'You may request access to or deletion of your data. Account deletion is available in Settings → Delete account. EU users have additional rights under GDPR.',
     contact: 'Contact',
-    contactBody: 'Questions about privacy: support@replock.app',
+    contactBody: 'Questions about privacy: RepLockIssue@outlook.com',
     termsIntro:
       'By using RepLock you agree to these terms. RepLock helps you earn screen time through exercise and manage app usage within the app.',
     subscriptions: 'Subscriptions',
@@ -769,7 +776,7 @@ export const en: Translations = {
   success: {
     confirming: 'Confirming your subscription...',
     welcome: 'Welcome to Pro!',
-    welcomeDesc: 'Unlimited apps, custom limits, and streak protection are now active.',
+    welcomeDesc: 'Unlimited apps and custom limits are now active.',
     startEarning: 'Start earning',
     error: 'Something went wrong',
     errorDesc: "We couldn't verify your payment. Please try again.",

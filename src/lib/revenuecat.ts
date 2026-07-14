@@ -5,6 +5,7 @@ import {
   PRODUCT_ID_YEARLY,
   REVENUECAT_ENTITLEMENT,
 } from '@/types'
+import { identifyNativeRevenueCatUser } from '@/lib/replock-revenuecat-native'
 
 export type BillingPeriod = 'monthly' | 'yearly'
 
@@ -43,13 +44,16 @@ export async function identifyRevenueCatUser(appUserId: string): Promise<void> {
   if (!isRevenueCatConfigured()) return
   if (!configured) await initRevenueCat(appUserId)
   await Purchases.logIn({ appUserID: appUserId })
+  if (Capacitor.getPlatform() === 'ios') {
+    await identifyNativeRevenueCatUser(appUserId).catch(() => {})
+  }
 }
 
 export async function getRevenueCatPackages(): Promise<{
   monthly: PurchasesPackage | null
   yearly: PurchasesPackage | null
 }> {
-  const { offerings } = await Purchases.getOfferings()
+  const offerings = await Purchases.getOfferings()
   const current = offerings.current
   if (!current) {
     return { monthly: null, yearly: null }

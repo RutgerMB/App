@@ -16,7 +16,7 @@ import {
   restoreFirebaseSession,
 } from '@/lib/firebase-auth'
 import { stripProFieldsFromSnapshot } from '@/lib/entitlement-sanitize'
-import { refreshEntitlementFromServer } from '@/lib/entitlement'
+import { syncEntitlementOnLaunch } from '@/lib/entitlement'
 import { initMobilePurchases } from '@/lib/mobile-purchases'
 import { mapAuthError } from '@/lib/auth-errors'
 import { useStore } from '@/store'
@@ -62,6 +62,7 @@ let unsubscribeAuth: (() => void) | null = null
 
 async function linkMobilePurchases(userId: string) {
   await initMobilePurchases(userId).catch(() => {})
+  await syncEntitlementOnLaunch().catch(() => {})
 }
 
 export function scheduleCloudSync() {
@@ -104,7 +105,6 @@ export const useAuthStore = create<AuthState>()(
               usesFirebase: true,
             })
             applyAppState(session.appState)
-            await refreshEntitlementFromServer().catch(() => {})
             await linkMobilePurchases(session.user.id)
           })
         }
@@ -117,7 +117,6 @@ export const useAuthStore = create<AuthState>()(
             usesFirebase: true,
           })
           applyAppState(session.appState)
-          await refreshEntitlementFromServer().catch(() => {})
           await linkMobilePurchases(session.user.id)
         } else {
           set({ token: null, user: null, usesFirebase: true })
@@ -157,7 +156,6 @@ export const useAuthStore = create<AuthState>()(
             const res = await firebaseLogin(email, password)
             set({ token: res.idToken, user: res.user, usesFirebase: true })
             applyAppState(res.appState)
-            await refreshEntitlementFromServer().catch(() => {})
             await linkMobilePurchases(res.user.id)
             return
           }
@@ -165,7 +163,6 @@ export const useAuthStore = create<AuthState>()(
           const res = await loginAccount(email, password)
           set({ token: res.token, user: res.user, usesFirebase: false })
           applyAppState(res.appState)
-          await refreshEntitlementFromServer().catch(() => {})
           await linkMobilePurchases(res.user.id)
         } catch (err) {
           throw mapAuthError(err)
@@ -201,7 +198,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       deleteAccount: async (password) => {
-        const { token, user, usesFirebase } = get()
+        const { token, usesFirebase } = get()
         if (!token || isDevToken(token)) {
           throw new Error('Cannot delete a local dev session. Sign out instead.')
         }

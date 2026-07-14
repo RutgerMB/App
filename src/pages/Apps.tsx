@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Trash2, Lock, Unlock, Clock, Grid3X3 } from 'lucide-react'
+import { Plus, Trash2, Unlock, Clock, Grid3X3 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { MotionCard } from '@/components/ui/Card'
@@ -21,7 +21,7 @@ import { AppIcon } from '@/components/AppBrandIcon'
 import { TrialBanner } from '@/components/TrialBanner'
 import { ProPromo } from '@/components/ProPromo'
 import { BlockerSetupCard } from '@/components/BlockerSetupCard'
-import { QuickBlockCard, ActiveScheduleCard, TemplatesSection } from '@/components/apps/AppsHubCards'
+import { QuickBlockCard, ActiveScheduleCard } from '@/components/apps/AppsHubCards'
 import { useTranslation } from '@/i18n/context'
 import { canPickInstalledApps, usesIosActivityPicker } from '@/lib/device-apps'
 import type { DeviceAppDefinition } from '@/data/device-apps'
@@ -119,8 +119,6 @@ export function AppsPage() {
           <ActiveScheduleCard />
           <BlockerSetupCard compact />
         </div>
-
-        <TemplatesSection />
 
         <div className="space-y-3">
           {apps.map((app, i) => {
@@ -223,7 +221,7 @@ export function AppsPage() {
         {pendingApp && (
           <div className="space-y-4">
             <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-3 border border-border">
-              <AppIcon brand={pendingApp.brand} name={pendingApp.name} color={pendingApp.color} size="lg" />
+              <AppIcon brand={pendingApp.brand} name={pendingApp.name} icon="" color={pendingApp.color} size="lg" />
               <div>
                 <p className="font-semibold text-sm">{pendingApp.name}</p>
                 <p className="text-xs text-white/40">{t('apps.setDailyLimit')}</p>

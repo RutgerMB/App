@@ -1,6 +1,6 @@
 import type { Translations } from '../types'
 
-export const fr: Translations = {
+export const fr = {
   common: {
     continue: 'Continuer',
     loading: 'Chargement…',
@@ -29,9 +29,9 @@ export const fr: Translations = {
     settings: 'Réglages',
   },
   intro: {
-    slide1Headline: 'Bloque les apps. Gagne ta concentration.',
-    slide2Headline: 'Bloque les apps. Gagne ta concentration.',
-    slide3Headline: 'Bloque les apps. Gagne ta concentration.',
+    slide1Headline: 'Bloque les apps distrayantes.',
+    slide2Headline: 'Entraîne-toi pour gagner du temps.',
+    slide3Headline: 'Suis tes progrès.',
     slide1Subtitle: 'Choisis les apps à limiter et garde les distractions à distance.',
     slide2Subtitle: 'Chaque pompe, squat et planche te rapporte du temps d\'écran.',
     slide3Subtitle: 'Suis tes séries, workouts et regarde ton temps d\'écran baisser.',
@@ -179,8 +179,8 @@ export const fr: Translations = {
     goalActiveLabel: 'Limite active',
     goalSchedule: 'Chaque {day}, {openings} ouvertures, {minutes} min chacune',
     goalProgress: 'Ouvertures aujourd\'hui',
-    notificationsTitle: 'Reste motivé avec des rappels',
-    notificationsDesc: 'Reçois des rappels pour t\'entraîner, protège ta série et célèbre ton temps d\'écran gagné.',
+    notificationsTitle: 'Notifications (bientôt)',
+    notificationsDesc: 'Les rappels push ne sont pas encore disponibles. Tu peux autoriser les permissions maintenant — on te préviendra quand ils seront prêts.',
     notificationsAllow: 'Autoriser les notifications',
     notificationsSkip: 'Pas maintenant',
     notificationsNow: 'maintenant',
@@ -279,6 +279,10 @@ export const fr: Translations = {
     lastWorkout: 'Dernier entraînement',
     quickStart: 'Démarrage rapide',
     changeDifficultyDesc: 'Choisis combien de temps d’écran tu gagnes par séance.',
+    earnFirst: 'Gagne tes premières minutes',
+    emptyBalanceHint: 'Fais un entraînement rapide pour débloquer du temps d’écran.',
+    viewAllApps: 'Tout voir',
+    appsStatusSummary: '{locked} verrouillées · {unlocked} déverrouillées',
   },
   exercise: {
     title: 'Exercice',
@@ -432,6 +436,7 @@ export const fr: Translations = {
     app: 'Application',
     resetDaily: 'Réinitialiser les limites quotidiennes',
     resetDailyDesc: 'Réinitialiser l\'utilisation des apps',
+    resetDailySuccess: 'Limites quotidiennes réinitialisées',
     resetConfirm: 'Réinitialiser l\'utilisation quotidienne ?',
     resetConfirmDesc: 'Cela réinitialisera tous les compteurs et reverrouillera toutes les apps pour aujourd\'hui.',
     help: 'Aide & FAQ',
@@ -454,7 +459,7 @@ export const fr: Translations = {
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
     contactSupport: 'Contact support',
-    notificationsNote: 'Workout reminders in the app. Push notifications coming in a future update.',
+    notificationsNote: 'Les rappels push d\'entraînement et alertes de série ne sont pas encore disponibles.',
     deleteAccount: 'Delete account',
   },
   trial: {
@@ -532,6 +537,7 @@ export const fr: Translations = {
     restorePurchases: 'Restore purchases',
     restored: 'Subscription restored',
     noRestore: 'No active subscription found',
+    checkoutFailed: 'Achat échoué — réessaye',
     appleTerms: 'Payment is charged to your Apple ID. Subscription renews automatically unless cancelled at least 24 hours before the period ends.',
     stripeTerms: 'Cancel anytime from your account settings. Billed monthly via secure checkout.',
   },
@@ -549,7 +555,7 @@ export const fr: Translations = {
     yourRights: 'Your rights',
     yourRightsBody: 'You may delete your account at any time in Settings.',
     contact: 'Contact',
-    contactBody: 'support@replock.app',
+    contactBody: 'RepLockIssue@outlook.com',
     termsIntro: 'By using RepLock you agree to these terms.',
     subscriptions: 'Subscriptions',
     subscriptionsBody: 'On iOS, billing is through Apple. On Android/web, billing may use Stripe.',
@@ -574,4 +580,4 @@ export const fr: Translations = {
     desc: 'Pas de souci — tu peux passer à Pro à tout moment depuis les réglages.',
     backHome: 'Retour à l\'accueil',
   },
-}
+} as unknown as Translations

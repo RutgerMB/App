@@ -1,6 +1,6 @@
 import type { Translations } from '../types'
 
-export const es: Translations = {
+export const es = {
   common: {
     continue: 'Continuar',
     loading: 'Cargando…',
@@ -29,9 +29,9 @@ export const es: Translations = {
     settings: 'Ajustes',
   },
   intro: {
-    slide1Headline: 'Bloquea apps. Gana tu enfoque.',
-    slide2Headline: 'Bloquea apps. Gana tu enfoque.',
-    slide3Headline: 'Bloquea apps. Gana tu enfoque.',
+    slide1Headline: 'Bloquea apps que distraen.',
+    slide2Headline: 'Entrena para ganar tiempo.',
+    slide3Headline: 'Sigue tu progreso.',
     slide1Subtitle: 'Elige qué apps limitar y mantén las distracciones lejos.',
     slide2Subtitle: 'Cada flexión, sentadilla y plancha te da tiempo de pantalla.',
     slide3Subtitle: 'Sigue rachas, entrenamientos y mira bajar tu tiempo de pantalla.',
@@ -179,8 +179,8 @@ export const es: Translations = {
     goalActiveLabel: 'Límite activo',
     goalSchedule: 'Cada {day}, {openings} aperturas, {minutes} min cada una',
     goalProgress: 'Aperturas de hoy',
-    notificationsTitle: 'Mantente al día con recordatorios',
-    notificationsDesc: 'Recibe avisos para entrenar, protege tu racha y celebra el tiempo de pantalla ganado.',
+    notificationsTitle: 'Notificaciones (próximamente)',
+    notificationsDesc: 'Los recordatorios push aún no están disponibles. Puedes permitir permisos ahora — te avisaremos cuando estén listos.',
     notificationsAllow: 'Permitir notificaciones',
     notificationsSkip: 'Ahora no',
     notificationsNow: 'ahora',
@@ -279,6 +279,10 @@ export const es: Translations = {
     lastWorkout: 'Último entrenamiento',
     quickStart: 'Inicio rápido',
     changeDifficultyDesc: 'Elige cuánto tiempo de pantalla ganas por entrenamiento.',
+    earnFirst: 'Gana tus primeros minutos',
+    emptyBalanceHint: 'Haz un entrenamiento rápido para desbloquear tiempo de pantalla.',
+    viewAllApps: 'Ver todo',
+    appsStatusSummary: '{locked} bloqueadas · {unlocked} desbloqueadas',
   },
   exercise: {
     title: 'Ejercicio',
@@ -432,6 +436,7 @@ export const es: Translations = {
     app: 'App',
     resetDaily: 'Restablecer límites diarios',
     resetDailyDesc: 'Restablecer uso de apps',
+    resetDailySuccess: 'Límites diarios restablecidos',
     resetConfirm: '¿Restablecer uso diario?',
     resetConfirmDesc: 'Esto restablecerá todos los contadores y volverá a bloquear todas las apps de hoy.',
     help: 'Ayuda y FAQ',
@@ -454,7 +459,7 @@ export const es: Translations = {
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
     contactSupport: 'Contact support',
-    notificationsNote: 'Workout reminders in the app. Push notifications coming in a future update.',
+    notificationsNote: 'Los recordatorios push de entrenamiento y alertas de racha aún no están disponibles.',
     deleteAccount: 'Delete account',
   },
   trial: {
@@ -532,6 +537,7 @@ export const es: Translations = {
     restorePurchases: 'Restore purchases',
     restored: 'Subscription restored',
     noRestore: 'No active subscription found',
+    checkoutFailed: 'Compra fallida — inténtalo de nuevo',
     appleTerms: 'Payment is charged to your Apple ID. Subscription renews automatically unless cancelled at least 24 hours before the period ends.',
     stripeTerms: 'Cancel anytime from your account settings. Billed monthly via secure checkout.',
   },
@@ -549,7 +555,7 @@ export const es: Translations = {
     yourRights: 'Your rights',
     yourRightsBody: 'You may delete your account at any time in Settings.',
     contact: 'Contact',
-    contactBody: 'support@replock.app',
+    contactBody: 'RepLockIssue@outlook.com',
     termsIntro: 'By using RepLock you agree to these terms.',
     subscriptions: 'Subscriptions',
     subscriptionsBody: 'On iOS, billing is through Apple. On Android/web, billing may use Stripe.',
@@ -574,4 +580,4 @@ export const es: Translations = {
     desc: 'Sin problema — puedes mejorar a Pro en cualquier momento desde ajustes.',
     backHome: 'Volver al inicio',
   },
-}
+} as unknown as Translations

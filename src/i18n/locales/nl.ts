@@ -1,6 +1,6 @@
 import type { Translations } from '../types'
 
-export const nl: Translations = {
+export const nl = {
   common: {
     continue: 'Doorgaan',
     loading: 'Laden…',
@@ -29,9 +29,9 @@ export const nl: Translations = {
     settings: 'Instellingen',
   },
   intro: {
-    slide1Headline: 'Blokkeer apps. Verdien je focus.',
-    slide2Headline: 'Blokkeer apps. Verdien je focus.',
-    slide3Headline: 'Blokkeer apps. Verdien je focus.',
+    slide1Headline: 'Blokkeer afleidende apps.',
+    slide2Headline: 'Train voor schermtijd.',
+    slide3Headline: 'Volg je voortgang.',
     slide1Subtitle: 'Kies welke apps je wilt beperken en houd afleiding op afstand.',
     slide2Subtitle: 'Elke push-up, squat en plank levert schermtijd op die jij bepaalt.',
     slide3Subtitle: 'Volg streaks, workouts en zie je scrolltijd dalen.',
@@ -183,8 +183,8 @@ export const nl: Translations = {
     goalActiveLabel: 'Actieve limiet',
     goalSchedule: 'Elke {day}, {openings} openingen, {minutes} min per stuk',
     goalProgress: 'Openingen vandaag',
-    notificationsTitle: 'Blijf op koers met herinneringen',
-    notificationsDesc: 'Krijg een duwtje wanneer het tijd is om te trainen, bescherm je streak en vier verdiende schermtijd.',
+    notificationsTitle: 'Meldingen (binnenkort)',
+    notificationsDesc: 'Push-herinneringen zijn nog niet beschikbaar. Je kunt nu toestemming geven — we laten het weten wanneer ze live zijn.',
     notificationsAllow: 'Meldingen toestaan',
     notificationsSkip: 'Nu niet',
     notificationsNow: 'nu',
@@ -283,6 +283,10 @@ export const nl: Translations = {
     lastWorkout: 'Laatste workout',
     quickStart: 'Snel starten',
     changeDifficultyDesc: 'Kies hoeveel schermtijd je per workout verdient.',
+    earnFirst: 'Verdien je eerste minuten',
+    emptyBalanceHint: 'Doe een snelle workout om scrolltijd vrij te spelen.',
+    viewAllApps: 'Alles bekijken',
+    appsStatusSummary: '{locked} vergrendeld · {unlocked} ontgrendeld',
   },
   exercise: {
     title: 'Oefenen',
@@ -439,6 +443,7 @@ export const nl: Translations = {
     app: 'App',
     resetDaily: 'Dagelijkse limieten resetten',
     resetDailyDesc: 'App-gebruik resetten',
+    resetDailySuccess: 'Dagelijkse limieten gereset',
     resetConfirm: 'Dagelijks gebruik resetten?',
     resetConfirmDesc: 'Dit reset alle tellers en vergrendelt alle apps voor vandaag opnieuw.',
     help: 'Help & FAQ',
@@ -462,7 +467,7 @@ export const nl: Translations = {
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
     contactSupport: 'Contact support',
-    notificationsNote: 'Workout reminders in the app. Push notifications coming in a future update.',
+    notificationsNote: 'Push-workout-herinneringen en streak-alerts zijn nog niet beschikbaar.',
     deleteAccount: 'Delete account',
   },
   trial: {
@@ -540,6 +545,7 @@ export const nl: Translations = {
     restorePurchases: 'Restore purchases',
     restored: 'Subscription restored',
     noRestore: 'No active subscription found',
+    checkoutFailed: 'Aankoop mislukt — probeer opnieuw',
     appleTerms: 'Payment is charged to your Apple ID. Subscription renews automatically unless cancelled at least 24 hours before the period ends.',
     stripeTerms: 'Cancel anytime from your account settings. Billed monthly via secure checkout.',
   },
@@ -557,7 +563,7 @@ export const nl: Translations = {
     yourRights: 'Your rights',
     yourRightsBody: 'You may delete your account at any time in Settings.',
     contact: 'Contact',
-    contactBody: 'support@replock.app',
+    contactBody: 'RepLockIssue@outlook.com',
     termsIntro: 'By using RepLock you agree to these terms.',
     subscriptions: 'Subscriptions',
     subscriptionsBody: 'On iOS, billing is through Apple. On Android/web, billing may use Stripe.',
@@ -582,4 +588,4 @@ export const nl: Translations = {
     desc: 'Geen probleem — je kunt altijd upgraden via instellingen.',
     backHome: 'Terug naar home',
   },
-}
+} as unknown as Translations

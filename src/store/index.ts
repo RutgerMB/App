@@ -8,7 +8,6 @@ import { canAddMoreApps, getAppLimit } from '@/lib/trial'
 import { detectLocale } from '@/i18n'
 import { computeEarnedMinutes, FREE_DIFFICULTY } from '@/lib/earning'
 import { scheduleBlockingSync } from '@/lib/blocking-sync'
-import { DEVICE_APPS } from '@/data/device-apps'
 import type { DeviceAppDefinition } from '@/data/device-apps'
 import type { Locale, Difficulty } from '@/types'
 
@@ -76,7 +75,7 @@ export const useStore = create<AppState & StoreActions>()(
 
       completeOnboarding: (name, difficulty = 'medium') =>
         set((s) => ({
-          profile: { ...s.profile, name, difficulty, onboardingComplete: true, createdAt: Date.now() },
+          profile: { ...s.profile, name, difficulty, onboardingComplete: true },
         })),
 
       setLocale: (locale) =>
@@ -233,7 +232,13 @@ export const useStore = create<AppState & StoreActions>()(
           },
           apps: s.apps.map((a) =>
             a.id === appId
-              ? { ...a, isLocked: false, unlockedUntil: unlockUntil }
+              ? {
+                  ...a,
+                  isLocked: false,
+                  unlockedUntil: unlockUntil,
+                  unlockedAt: Date.now(),
+                  usedMinutesAtUnlock: a.usedMinutes,
+                }
               : a
           ),
         }))
@@ -390,16 +395,55 @@ if (typeof window !== 'undefined') {
   setInterval(() => {
     const state = useStore.getState()
     const now = Date.now()
-    const needsUpdate = state.apps.some(
-      (a) => !a.isLocked && a.unlockedUntil && a.unlockedUntil < now
-    )
+    const needsUpdate = state.apps.some((a) => {
+      if (!a.isLocked || !a.unlockedUntil) return false
+      if (a.unlockedUntil < now) return true
+      if (a.unlockedAt) {
+        const baseline = a.usedMinutesAtUnlock ?? a.usedMinutes
+        const elapsed = Math.ceil((now - a.unlockedAt) / 60_000)
+        return baseline + elapsed !== a.usedMinutes
+      }
+      return false
+    })
     if (needsUpdate) {
       useStore.setState({
-        apps: state.apps.map((a) =>
-          a.unlockedUntil && a.unlockedUntil < now
-            ? { ...a, isLocked: true, unlockedUntil: null }
-            : a
-        ),
+        apps: state.apps.map((a) => {
+          if (!a.isLocked || !a.unlockedUntil) return a
+
+          if (a.unlockedUntil < now) {
+            const baseline = a.usedMinutesAtUnlock ?? a.usedMinutes
+            const sessionMinutes = a.unlockedAt
+              ? Math.max(1, Math.ceil((a.unlockedUntil - a.unlockedAt) / 60_000))
+              : 0
+            const newUsed = baseline + sessionMinutes
+            return {
+              ...a,
+              usedMinutes: newUsed,
+              isLocked: true,
+              unlockedUntil: null,
+              unlockedAt: null,
+              usedMinutesAtUnlock: null,
+            }
+          }
+
+          if (a.unlockedAt) {
+            const baseline = a.usedMinutesAtUnlock ?? a.usedMinutes
+            const elapsed = Math.ceil((now - a.unlockedAt) / 60_000)
+            const newUsed = baseline + elapsed
+            if (newUsed === a.usedMinutes) return a
+            const limitReached = newUsed >= a.dailyLimitMinutes
+            return {
+              ...a,
+              usedMinutes: newUsed,
+              isLocked: limitReached,
+              unlockedUntil: limitReached ? null : a.unlockedUntil,
+              unlockedAt: limitReached ? null : a.unlockedAt,
+              usedMinutesAtUnlock: limitReached ? null : a.usedMinutesAtUnlock,
+            }
+          }
+
+          return a
+        }),
       })
       scheduleBlockingSync()
     }

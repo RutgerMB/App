@@ -1,23 +1,82 @@
 # RepLock Gymbro TikTok — Post-Ready Pack
 
-**Press post:** upload PNGs from `docs/marketing/slides/slideshow-N/` in order.  
+**Press post:** upload PNGs from `docs/marketing/slides/slideshow-N/` in order (`slide-01` → `slide-06`).  
+**Regenerate:** `npm run marketing:slides` or `node scripts/generate-tiktok-slides.mjs all`  
 **Figma storyboards:** [RepLock TikTok Gymbro Storyboards](https://www.figma.com/slides/XyrQQqqQWJxi4h6ODvDl7a)
 
 ---
 
-## Posting order (5-day quick start)
+## Pre-flight (every post)
 
-For a **30-day launch campaign**, see `docs/marketing/CONTENT-CALENDAR.md` (10 slideshow packs, 1–2 posts/day).
+- [ ] **6 PNGs** in order — not 5, not 7
+- [ ] Slide 1 is **full-bleed photo** (not black gradient)
+- [ ] Slides 4–5 show **real RepLock app UI** (composited from `docs/app-store/`)
+- [ ] CTA says **RepLock** — never "RepLocks"
+- [ ] Trending **instrumental** sound attached (no lyrics over text)
+- [ ] Beat drop synced to **slide 4** (solution reveal)
+- [ ] Pin comment posted within **60 seconds**
 
-| Day | Slideshow | Folder | Sound |
-|-----|-----------|--------|-------|
-| Day 1 | Leg Day Excuses | `slideshow-1/` | Phonk / METAMORPHOSIS gym edit |
-| Day 2 | Rest Timer Scrolling | `slideshow-2/` | Slowed gym edit |
-| Day 3 | No Gains Arc | `slideshow-3/` | Dark phonk / sigma parody |
-| Day 4 | Gym Crush Cardio | `slideshow-4/` | Comedic phonk drop |
-| Day 5 | Phone Spotter | `slideshow-5/` | Heavy bass phonk |
+---
 
-Upload `slide-01.png` → `slide-07.png` per day. Use **Photo carousel** on TikTok.
+## Upload checklist
+
+1. TikTok → **+** → **Photo** → select `slide-01.png` through `slide-06.png` (6 images)
+2. **Add sound before posting** — slideshows without audio get less reach
+3. Sync beat drop to **slide 4** (solution / app reveal)
+4. Paste caption + hashtags from the day below
+5. Post
+6. Pin comment: **Search RepLock** (switch to **Link in bio — free download** after App Store live)
+
+---
+
+## Slide structure (all packs)
+
+| # | Role | Visual | Copy rule |
+|---|------|--------|-----------|
+| 1 | Hook | Full-bleed gym/phone photo | Open loop — force the swipe |
+| 2 | Agitate | Photo + phone inset | ≤8 words |
+| 3 | Agitate | Photo + context | ≤8 words |
+| 4 | Solution | Real app screenshot in phone frame | Mechanic reveal |
+| 5 | Proof | App UI or stat line | Social proof / feature |
+| 6 | CTA | Locker/gym bg + RepLock branding | Search RepLock |
+
+---
+
+## Audio sync guide
+
+| Day | Slideshow | Sound type | Sync note |
+|-----|-----------|------------|-----------|
+| 1 | Leg Day Excuses | METAMORPHOSIS / gym phonk | Drop on slide 4 |
+| 2 | Rest Timer Scrolling | Slowed gym edit | Build through slide 3 |
+| 3 | No Gains Arc | Dark phonk, no lyrics | Drop on slide 5 proof |
+| 4 | Gym Crush Cardio | Comedic phonk | Bass drop slide 3 |
+| 5 | Phone Spotter | Heavy bass phonk | Drop on slide 5 "I chose violence" |
+| 6 | Morning Scroll | Lo-fi / sleepy edit → phonk | Wake-up drop slide 4 |
+| 7 | Plateau Theory | Sigma parody (self-aware) | Drop slide 4 pivot |
+| 8 | Sunday Reset | Chill reset → phonk | Drop slide 4 |
+| 9 | Push-Up Tax | Trending gym edit | Hook sync slide 1 |
+| 10 | Mirror vs Phone | Mirror selfie audio trend | Drop slide 4 |
+
+Use **Photo carousel** on TikTok. Rotate sounds weekly on reposts.
+
+---
+
+## Posting order (10-day quick start)
+
+For a **30-day launch campaign**, see `docs/marketing/CONTENT-CALENDAR.md`.
+
+| Day | Slideshow | Folder | Hook |
+|-----|-----------|--------|------|
+| 1 | Leg Day Excuses | `slideshow-1/` | skipped legs again. see slide 4 |
+| 2 | Rest Timer Scrolling | `slideshow-2/` | 90 sec rest. 90 min scroll. |
+| 3 | No Gains Arc | `slideshow-3/` | 6 months in. same mirror pic? |
+| 4 | Gym Crush Cardio | `slideshow-4/` | she's on cardio. you're on reels. |
+| 5 | Phone Spotter | `slideshow-5/` | spotter vs phone. guess who won |
+| 6 | Morning Scroll | `slideshow-6/` | 6am alarm. already scrolling? |
+| 7 | Plateau Theory | `slideshow-7/` | same weight 3 months? |
+| 8 | Sunday Reset | `slideshow-8/` | meal prep ✓ 4hr phone ✓ |
+| 9 | Push-Up Tax | `slideshow-9/` | scroll tax is real. slide 4 changed it |
+| 10 | Mirror vs Phone | `slideshow-10/` | form checks: 2 phone checks: 47 |
 
 ---
 
@@ -31,6 +90,8 @@ bro my phone had to bully me into squats 💀 RepLock locks your apps until you 
 ```
 
 **Hashtags:** `#legday #skiplegs #gymbro #pushupchallenge #screentime #appblocker #fitnessmotivation #gymmotivation`
+
+**Hook A/B (repost day 14):** swap slide 1 text to `leg day? brain said no.`
 
 ---
 
@@ -84,20 +145,118 @@ needed a spotter for my screen time fr. RepLock blocks apps until you knock out 
 
 **Hashtags:** `#gymbro #spotter #screentime #pushups #appblocker #gymtok #fitnessmotivation #digitaldetox`
 
+**Priority post** — strongest metaphor; consider pinning if it converts.
+
 ---
 
-## TikTok upload checklist
+## Slideshow 6: Morning Scroll
 
-1. TikTok → **+** → **Photo** → select all 7 PNGs in order
-2. Paste caption + hashtags from the day above
-3. Add sound (trending gym phonk)
-4. Post
-5. Pin comment: **Search RepLock** (switch to link in bio after App Store live)
+**Folder:** `docs/marketing/slides/slideshow-6/`
 
-## Regenerate all slides
-
-```bash
-npm run marketing:slides
+**Caption:**
+```
+6am alarm went off. I opened TikTok instead of the gym bag. RepLock fixed that — apps stay locked until you earn scroll time with real reps. morning scroll tax = push-ups 💀
 ```
 
-Single slideshow: `node scripts/generate-tiktok-slides.mjs 3`
+**Hashtags:** `#morningroutine #screentime #gymbro #digitaldetox #selfimprovement #pushupchallenge #appblocker`
+
+---
+
+## Slideshow 7: Plateau Theory
+
+**Folder:** `docs/marketing/slides/slideshow-7/`
+
+**Caption:**
+```
+same weight for 3 months. tracked every macro. scrolled every rest timer. maybe it wasn't the program — maybe it was the phone. RepLock = reps before reels.
+```
+
+**Hashtags:** `#plateau #nogains #gymbro #screentime #fitnessmotivation #appblocker #gymmotivation`
+
+---
+
+## Slideshow 8: Sunday Reset
+
+**Folder:** `docs/marketing/slides/slideshow-8/`
+
+**Caption:**
+```
+meal prep done ✓ deleted TikTok ✓ reinstalled TikTok ✓ new week same habits. RepLock blocks apps till you actually move — finally a reset that sticks.
+```
+
+**Hashtags:** `#sundayreset #mealprep #screentime #gymbro #digitaldetox #selfimprovement #appblocker`
+
+---
+
+## Slideshow 9: Push-Up Tax
+
+**Folder:** `docs/marketing/slides/slideshow-9/`
+
+**Caption:**
+```
+scroll tax is real. Instagram = 10 push-ups. YouTube = squats. RepLock makes every minute cost reps — and honestly the feed isn't worth it anymore.
+```
+
+**Hashtags:** `#pushupchallenge #screentime #gymbro #appblocker #fitnessmotivation #digitaldetox #gymtok`
+
+---
+
+## Slideshow 10: Mirror vs Phone
+
+**Folder:** `docs/marketing/slides/slideshow-10/`
+
+**Caption:**
+```
+2 form checks. 47 phone checks. rest timer became entertainment timer. RepLock turns rest into reps — lock apps till you earn your scroll.
+```
+
+**Hashtags:** `#gymmirror #gymhumor #gymbro #screentime #restday #appblocker #fitnessmotivation`
+
+---
+
+## Post-launch CTA switch
+
+| Phase | Final slide text | Pin comment |
+|-------|------------------|-------------|
+| Pre-launch | Search RepLock | Search RepLock on App Store |
+| Store live | Link in bio | Link in bio — free download 👆 |
+
+Regenerate slide 6 only after launch if you add a `postLaunch: true` flag to the script, or swap text manually in TikTok's editor.
+
+---
+
+## Metrics to track
+
+| Metric | Target | Why |
+|--------|--------|-----|
+| **Completion rate** | >40% | slide 6 views ÷ slide 1 views — primary algorithm signal |
+| **Saves** | >2% of views | strongest intent signal for app carousels |
+| **Slide 4 drop-off** | <25% | if high, solution visual is too weak |
+| **Profile visits** | trend up | curiosity bridge to bio |
+| **Bio link clicks** | track UTM | `?utm_source=tiktok&utm_medium=slideshow&utm_campaign=gymbro-N` |
+| **Installs** | — | attribute via UTM + App Store Connect source |
+
+Log weekly: top 3 posts by completion rate → repost with new sound.
+
+---
+
+## Regenerate slides
+
+```bash
+# All 10 packs (downloads missing backgrounds to docs/marketing/assets/bg/)
+npm run marketing:slides
+
+# Single pack
+node scripts/generate-tiktok-slides.mjs 3
+```
+
+Backgrounds are cached locally after first download. Re-run requires network only for new bg keys.
+
+---
+
+## Claims checklist (stay honest)
+
+- ✅ "Apps locked until you exercise" — requires OS permissions; blocking is real on supported platforms
+- ✅ "Earn scroll time with push-ups, squats, planks" — accurate in-app mechanic
+- ❌ Don't claim RepLock builds muscle, fixes sleep, or replaces a training program
+- ❌ Don't imply the gym crush will notice you — keep it joke energy

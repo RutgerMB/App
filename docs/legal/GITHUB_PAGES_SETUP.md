@@ -30,5 +30,5 @@ Use the **Support** URL for Support URL field.
 
 ## Support email
 
-**Address:** `support@replock.app`  
-**Setup:** see `docs/legal/EMAIL_SETUP.md` (forward to your personal inbox).
+**Address:** RepLockIssue@outlook.com  
+**Setup:** see `docs/legal/EMAIL_SETUP.md` (Outlook inbox — no domain required).

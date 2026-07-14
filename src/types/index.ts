@@ -52,6 +52,10 @@ export interface LockedApp {
   usedMinutes: number
   isLocked: boolean
   unlockedUntil: number | null
+  /** When the current unlock session started (for daily usage tracking) */
+  unlockedAt?: number | null
+  /** Snapshot of usedMinutes when unlock started */
+  usedMinutesAtUnlock?: number | null
 }
 
 export interface ExerciseSession {
@@ -143,6 +147,10 @@ export const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
   leg_raises: { id: 'leg_raises', category: 'core', unit: 'reps', earnRate: 1.4, tier: 'standard', color: '#0D9488', gradient: 'from-teal-600 to-emerald-600', defaultTarget: 12 },
   bicycle_crunches: { id: 'bicycle_crunches', category: 'core', unit: 'reps', earnRate: 1.5, tier: 'high', color: '#059669', gradient: 'from-emerald-600 to-green-600', defaultTarget: 20 },
   tricep_dips: { id: 'tricep_dips', category: 'arms', unit: 'reps', earnRate: 1.7, tier: 'high', color: '#3B82F6', gradient: 'from-blue-500 to-indigo-600', defaultTarget: 10 },
+}
+
+export function isExerciseType(value: string | null | undefined): value is ExerciseType {
+  return value != null && value in EXERCISES
 }
 
 export const WORKOUT_PLANS: WorkoutPlan[] = [

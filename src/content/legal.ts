@@ -10,7 +10,7 @@ export type LegalDocument = {
   lastUpdated: string
 }
 
-const SUPPORT_EMAIL = 'support@replock.app'
+const SUPPORT_EMAIL = 'RepLockIssue@outlook.com'
 
 const legalEn: LegalDocument = {
   lastUpdated: 'July 2026',

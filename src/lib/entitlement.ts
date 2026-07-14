@@ -1,5 +1,6 @@
 import { apiFetch } from '@/lib/api'
 import { getBearerHeaders } from '@/lib/auth-headers'
+import { hasRevenueCatProEntitlement, isRevenueCatConfigured } from '@/lib/revenuecat'
 import { useStore } from '@/store'
 
 export interface ServerEntitlement {
@@ -9,6 +10,14 @@ export interface ServerEntitlement {
   subscriptionStatus: 'active' | 'canceled' | 'past_due' | null
   source: string | null
 }
+
+/**
+ * Pro entitlement security model:
+ * - Server `/api/subscription/status` and webhooks (Stripe / RevenueCat) are authoritative.
+ * - Client `profile.isPro` is synced from the server on login and app launch; never trusted from local storage alone.
+ * - RevenueCat SDK on native validates store receipts on launch when configured (fills webhook lag).
+ * - Client → server sync strips isPro fields (see entitlement-sanitize.ts).
+ */
 
 export async function fetchServerEntitlement(refresh = false): Promise<ServerEntitlement | null> {
   const headers = await getBearerHeaders()
@@ -36,4 +45,40 @@ export async function refreshEntitlementFromServer(refreshStripe = false): Promi
   if (!entitlement) return false
   applyServerEntitlement(entitlement)
   return entitlement.isPro
+}
+
+/** Sync server + RevenueCat SDK entitlement on app launch (after purchases SDK init). */
+export async function syncEntitlementOnLaunch(): Promise<boolean> {
+  let rcPro = false
+  if (isRevenueCatConfigured()) {
+    try {
+      rcPro = await hasRevenueCatProEntitlement()
+    } catch {
+      // SDK unavailable — rely on server only
+    }
+  }
+
+  const serverEntitlement = await fetchServerEntitlement(false)
+
+  if (serverEntitlement?.isPro) {
+    applyServerEntitlement(serverEntitlement)
+    return true
+  }
+
+  if (rcPro) {
+    applyServerEntitlement({
+      isPro: true,
+      stripeCustomerId: serverEntitlement?.stripeCustomerId ?? null,
+      subscriptionId: serverEntitlement?.subscriptionId ?? null,
+      subscriptionStatus: 'active',
+      source: 'revenuecat',
+    })
+    return true
+  }
+
+  if (serverEntitlement) {
+    applyServerEntitlement(serverEntitlement)
+  }
+
+  return false
 }

@@ -13,7 +13,8 @@ let package = Package(
     dependencies: [
         .package(name: "RepLockControls", path: "../LocalPackages/RepLockControls"),
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.1"),
-        .package(name: "CapgoNativePurchases", path: "../LocalPackages/CapgoNativePurchases")
+        .package(name: "CapgoNativePurchases", path: "../LocalPackages/CapgoNativePurchases"),
+        .package(name: "RepLockRevenueCat", path: "../LocalPackages/RepLockRevenueCat")
     ],
     targets: [
         .target(
@@ -22,7 +23,8 @@ let package = Package(
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
                 .product(name: "Cordova", package: "capacitor-swift-pm"),
                 .product(name: "RepLockControls", package: "RepLockControls"),
-                .product(name: "CapgoNativePurchases", package: "CapgoNativePurchases")
+                .product(name: "CapgoNativePurchases", package: "CapgoNativePurchases"),
+                .product(name: "RepLockRevenueCat", package: "RepLockRevenueCat")
             ]
         )
     ]

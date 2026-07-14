@@ -1,54 +1,34 @@
-# Set up support@replock.app
+# RepLocks support email
 
-The support page links to **support@replock.app**. You need to own the domain **replock.app** (or change the address everywhere to a domain you control).
+**Contact address:** RepLockIssue@outlook.com
 
-## Option A — Cloudflare Email Routing (free, recommended)
+This is the official support inbox for RepLocks (App Store, privacy requests, user help).
 
-If **replock.app** uses Cloudflare DNS:
+## Setup
 
-1. Cloudflare dashboard → **replock.app** → **Email** → **Email Routing**
-2. Enable Email Routing
-3. Add **destination address** → your personal Gmail (verify it)
-4. Create **custom address:** `support@replock.app` → forward to your Gmail
-5. Send a test email to support@replock.app
+1. Sign in at https://outlook.com with **RepLockIssue@outlook.com**
+2. Enable two-factor authentication (recommended)
+3. Install Outlook on your phone for notifications
+4. Send a test email to yourself from another account
 
-No inbox to manage — mail forwards to Gmail. Replies can use “Send mail as” in Gmail settings.
+## App Store Connect
 
-## Option B — ImprovMX (free tier)
+Use the same address for:
 
-1. Sign up at https://improvmx.com
-2. Add domain **replock.app**
-3. Add ImprovMX MX records to your domain DNS (they show exact values)
-4. Create alias `support@replock.app` → your Gmail
-5. Verify and test
+- **DSA trader contact email**
+- Any **Support / contact** field that asks for email (Support URL stays the GitHub Pages link below)
 
-## Option C — Google Workspace (paid)
+## Public support page
 
-~€6/user/month — full mailbox at support@replock.app. Only needed if you want a separate inbox.
-
-## If you do NOT own replock.app yet
-
-Until the domain works:
-
-1. Register **replock.app** (or **replocks.app** if available for the new name)
-2. Complete Option A or B above
-3. Or temporarily use your personal email on the support page only (update `support.html` and App Store Connect)
-
-## After email works
-
-App Store Connect **Support URL** (HTTPS, not mailto):
-
-```
 https://rutgermb.github.io/App/legal/support.html
-```
 
-DSA trader contact email can be the same: `support@replock.app`
-
-## App env (optional)
+## Optional app env
 
 ```env
-VITE_SUPPORT_EMAIL=support@replock.app
+VITE_SUPPORT_EMAIL=RepLockIssue@outlook.com
 VITE_SUPPORT_URL=https://rutgermb.github.io/App/legal/support.html
-VITE_PRIVACY_URL=https://rutgermb.github.io/App/legal/privacy.html
-VITE_TERMS_URL=https://rutgermb.github.io/App/legal/terms.html
 ```
+
+## Automation (optional, later)
+
+Outlook supports IMAP and Microsoft Graph API if you want agents or filters to triage mail. Not required for launch.

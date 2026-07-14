@@ -6,7 +6,7 @@ export const LEGAL = {
   termsUrl:
     import.meta.env.VITE_TERMS_URL ||
     'https://rutgermb.github.io/App/legal/terms.html',
-  supportEmail: import.meta.env.VITE_SUPPORT_EMAIL || 'support@replock.app',
+  supportEmail: import.meta.env.VITE_SUPPORT_EMAIL || 'RepLockIssue@outlook.com',
   supportUrl:
     import.meta.env.VITE_SUPPORT_URL ||
     'https://rutgermb.github.io/App/legal/support.html',

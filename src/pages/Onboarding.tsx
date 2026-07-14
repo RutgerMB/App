@@ -216,8 +216,10 @@ export function OnboardingPage() {
   )
 
   const needsNameStep = resolvedName.length === 0
-  const totalSteps = needsNameStep ? 17 : 16
-  const progressStep = Math.min(step, totalSteps)
+  const SKIPPED_ONBOARDING_STEPS = 2 // POTENTIAL + WEEK_ONE skipped after YEARS
+  const totalSteps = (needsNameStep ? 17 : 16) - SKIPPED_ONBOARDING_STEPS
+  const progressStep =
+    step > STEP.YEARS + SKIPPED_ONBOARDING_STEPS ? step - SKIPPED_ONBOARDING_STEPS : step
   const screenTimePlatform = getScreenTimePlatform()
 
   useEffect(() => {
@@ -373,7 +375,7 @@ export function OnboardingPage() {
       return
     }
     if (step === STEP.YEARS) {
-      advance()
+      setStep(STEP.BENEFITS)
       return
     }
     advance()
@@ -396,31 +398,27 @@ export function OnboardingPage() {
 
   const continueDisabled = step === STEP.NAME && !name.trim()
   const hideFooter = step === STEP.BENEFITS || step === STEP.NOTIFICATIONS
+  const hidePrimaryOnTrial = step === STEP.TRIAL
 
-  const footer = hideFooter ? undefined : (
+  const footer = hideFooter ? undefined : hidePrimaryOnTrial ? (
+    <div className="space-y-2">
+      <IntroPrimaryButton onClick={() => navigate('/pricing', { state: { from: 'onboarding', step: STEP.TRIAL } })}>
+        {t('onboarding.trialViewPro')}
+      </IntroPrimaryButton>
+      <button
+        type="button"
+        onClick={() => setStep(STEP.DIFFICULTY)}
+        className="w-full py-3 rounded-2xl border border-border bg-surface-2 text-sm font-semibold text-white/80 hover:bg-surface-3 transition-colors"
+      >
+        {t('onboarding.trialContinueFree')}
+        <span className="block text-xs font-normal text-white/40 mt-0.5">{t('onboarding.trialContinueFreeDesc')}</span>
+      </button>
+    </div>
+  ) : (
     <>
       <IntroPrimaryButton onClick={handleContinue} disabled={continueDisabled}>
         {continueLabel ?? t('common.continue')}
       </IntroPrimaryButton>
-      {step === STEP.TRIAL && (
-        <div className="mt-3 space-y-2">
-          <button
-            type="button"
-            onClick={() => navigate('/pricing', { state: { from: 'onboarding', step: STEP.TRIAL } })}
-            className="w-full text-sm text-indigo-400 hover:text-indigo-300 font-medium"
-          >
-            {t('onboarding.trialViewPro')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setStep(STEP.DIFFICULTY)}
-            className="w-full py-3 rounded-2xl border border-border bg-surface-2 text-sm font-semibold text-white/80 hover:bg-surface-3 transition-colors"
-          >
-            {t('onboarding.trialContinueFree')}
-            <span className="block text-xs font-normal text-white/40 mt-0.5">{t('onboarding.trialContinueFreeDesc')}</span>
-          </button>
-        </div>
-      )}
     </>
   )
 

@@ -2,8 +2,8 @@
 /**
  * Post-process iOS project after `npx cap sync ios`.
  * - Removes Stripe/StatusBar/SplashScreen SPM entries (web-only on iOS)
- * - Re-injects RepLockControls + CapgoNativePurchases (cap sync wipes local SPM plugins)
- * - Ensures CapApp-SPM.swift imports RepLockControlsPlugin + NativePurchasesPlugin
+ * - Re-injects RepLockControls + CapgoNativePurchases + RepLockRevenueCat (cap sync wipes local SPM plugins)
+ * - Ensures CapApp-SPM.swift imports RepLockControlsPlugin + NativePurchasesPlugin + RepLockRevenueCatPlugin
  * - Normalizes Windows backslashes in Package.swift paths
  *
  * Usage: node scripts/ios-remove-stripe.mjs
@@ -18,14 +18,18 @@ const podfilePath = join(root, 'ios', 'App', 'Podfile')
 const LOCAL_REPLOCK_CONTROLS_PATH = '../LocalPackages/RepLockControls'
 const LOCAL_CAPGO_NATIVE_PURCHASES_PATH = '../LocalPackages/CapgoNativePurchases'
 
+const LOCAL_REPLOCK_REVENUECAT_PATH = '../LocalPackages/RepLockRevenueCat'
+
 const REQUIRED_LOCAL_PACKAGES = [
   { name: 'RepLockControls', path: LOCAL_REPLOCK_CONTROLS_PATH },
   { name: 'CapgoNativePurchases', path: LOCAL_CAPGO_NATIVE_PURCHASES_PATH },
+  { name: 'RepLockRevenueCat', path: LOCAL_REPLOCK_REVENUECAT_PATH },
 ]
 
 const REQUIRED_PRODUCTS = [
   { product: 'RepLockControls', package: 'RepLockControls' },
   { product: 'CapgoNativePurchases', package: 'CapgoNativePurchases' },
+  { product: 'RepLockRevenueCat', package: 'RepLockRevenueCat' },
 ]
 
 const spmPackageRemovals = [
@@ -76,7 +80,11 @@ function ensureCapAppSpmImports() {
     return false
   }
 
-  const requiredImports = ['import RepLockControlsPlugin', 'import NativePurchasesPlugin']
+  const requiredImports = [
+    'import RepLockControlsPlugin',
+    'import NativePurchasesPlugin',
+    'import RepLockRevenueCatPlugin',
+  ]
   let content = readFileSync(capAppSpmSwiftPath, 'utf8')
   const before = content
 
@@ -96,7 +104,7 @@ function ensureCapAppSpmImports() {
 
   if (content !== before) {
     writeFileSync(capAppSpmSwiftPath, content)
-    console.log('Patched CapApp-SPM.swift (RepLockControls + NativePurchases)')
+    console.log('Patched CapApp-SPM.swift (RepLockControls + NativePurchases + RepLockRevenueCat)')
     return true
   }
 
@@ -116,7 +124,7 @@ if (existsSync(spmPackagePath)) {
   pkg = ensureLocalPackagesAndProducts(pkg)
   if (pkg !== before) {
     writeFileSync(spmPackagePath, pkg)
-    console.log('Patched CapApp-SPM/Package.swift (RepLockControls + CapgoNativePurchases, iOS 16+)')
+    console.log('Patched CapApp-SPM/Package.swift (RepLockControls + CapgoNativePurchases + RepLockRevenueCat, iOS 16+)')
     changed = true
   } else {
     console.log('CapApp-SPM/Package.swift already up to date')
@@ -148,5 +156,5 @@ if (changed) {
 }
 
 console.log(
-  '\nNote: Native Apple IAP (CapgoNativePurchases) and app blocking (RepLockControls) are linked via local SPM packages.'
+  '\nNote: Native Apple IAP (CapgoNativePurchases), RevenueCat SwiftUI (RepLockRevenueCat), and app blocking (RepLockControls) are linked via local SPM packages.'
 )

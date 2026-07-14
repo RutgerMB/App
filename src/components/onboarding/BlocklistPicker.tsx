@@ -83,8 +83,6 @@ export function BlocklistPicker({
     return apps.filter((a) => a.name.toLowerCase().includes(q))
   }, [apps, query])
 
-  const groups = useMemo(() => groupAppsByCategory(filtered), [filtered])
-
   const toggle = (id: string) => {
     const next = new Set(selected)
     if (next.has(id)) {

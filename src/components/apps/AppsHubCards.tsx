@@ -1,20 +1,11 @@
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Dumbbell, Calendar, Zap, Sunrise, Trophy } from 'lucide-react'
+import { Calendar, Zap } from 'lucide-react'
 import { MotionCard } from '@/components/ui/Card'
 import { Progress } from '@/components/ui/Progress'
 import { useStore } from '@/store'
 import { DEFAULT_DAILY_OPENINGS } from '@/types'
 import { localDateString } from '@/lib/dates'
 import { useTranslation } from '@/i18n/context'
-import { useToast } from '@/components/ui/Toast'
-import { cn } from '@/lib/utils'
-
-const TEMPLATES = [
-  { id: 'gym_focus', icon: Dumbbell, gradient: 'from-indigo-500/20 to-violet-500/10', iconColor: 'text-indigo-400' },
-  { id: 'morning_workout', icon: Sunrise, gradient: 'from-amber-500/20 to-orange-500/10', iconColor: 'text-amber-400' },
-  { id: 'earn_scroll', icon: Trophy, gradient: 'from-emerald-500/20 to-teal-500/10', iconColor: 'text-emerald-400' },
-] as const
 
 export function QuickBlockCard() {
   const navigate = useNavigate()
@@ -86,45 +77,5 @@ export function ActiveScheduleCard() {
         {apps.length} {t('apps.appsTrackedLabel')}
       </p>
     </MotionCard>
-  )
-}
-
-export function TemplatesSection() {
-  const { t } = useTranslation()
-  const { toast } = useToast()
-
-  return (
-    <div>
-      <h3 className="text-sm font-semibold text-white/70 mb-3">{t('apps.templatesTitle')}</h3>
-      <div className="grid gap-3">
-        {TEMPLATES.map((tmpl, i) => {
-          const Icon = tmpl.icon
-          return (
-            <motion.button
-              key={tmpl.id}
-              type="button"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              onClick={() => toast(t('apps.templateComingSoon'), 'info')}
-              className={cn(
-                'w-full text-left p-4 rounded-2xl border border-border bg-gradient-to-br transition-colors hover:border-border-hover',
-                tmpl.gradient
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-surface-3/80 flex items-center justify-center shrink-0">
-                  <Icon size={18} className={tmpl.iconColor} />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">{t(`apps.templates.${tmpl.id}.title`)}</p>
-                  <p className="text-xs text-white/45 mt-0.5">{t(`apps.templates.${tmpl.id}.desc`)}</p>
-                </div>
-              </div>
-            </motion.button>
-          )
-        })}
-      </div>
-    </div>
   )
 }

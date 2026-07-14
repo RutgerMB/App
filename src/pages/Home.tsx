@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Flame, Clock, ChevronRight, Sparkles, Dumbbell, Grid3X3 } from 'lucide-react'
+import { Flame, Clock, ChevronRight, Sparkles, Dumbbell, Grid3X3, Lock, Unlock } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { MotionCard } from '@/components/ui/Card'
 import { MotionButton } from '@/components/ui/Button'
 import { StatCard, StatGrid } from '@/components/ui/StatCard'
 import { CircularProgress } from '@/components/ui/Progress'
+import { ProPromo } from '@/components/ProPromo'
 import { TrialBanner } from '@/components/TrialBanner'
+import { AppBrandIcon } from '@/components/AppBrandIcon'
 import { DifficultyHomeModal } from '@/components/DifficultyHomeModal'
 import { DIFFICULTY_META } from '@/components/DifficultyPicker'
 import { useStore } from '@/store'
@@ -30,6 +32,9 @@ export function HomePage() {
   } = useStore()
 
   const recentSession = sessions[0]
+  const lockedApps = apps.filter((a) => a.isLocked)
+  const unlockedApps = apps.filter((a) => !a.isLocked)
+  const progressMax = Math.max(60, screenTimeBalance, 1)
   const difficulty = profile.difficulty ?? 'medium'
   const difficultyMeta = DIFFICULTY_META[difficulty as Difficulty]
   const [difficultyOpen, setDifficultyOpen] = useState(false)
@@ -113,7 +118,7 @@ export function HomePage() {
                 {formatMinutes(screenTimeBalance)}
               </p>
             </div>
-            <CircularProgress value={Math.min(screenTimeBalance, 60)} max={60} size={72} strokeWidth={5}>
+            <CircularProgress value={screenTimeBalance} max={progressMax} size={72} strokeWidth={5}>
               <Clock size={18} className="text-white/30" />
             </CircularProgress>
           </div>
@@ -124,10 +129,70 @@ export function HomePage() {
             onClick={() => navigate('/exercise')}
           >
             <Dumbbell size={18} />
-            {t('home.earnMore')}
+            {screenTimeBalance <= 0 ? t('home.earnFirst') : t('home.earnMore')}
             <ChevronRight size={18} />
           </MotionButton>
+          {screenTimeBalance <= 0 && (
+            <p className="mt-3 text-center text-xs text-white/40">{t('home.emptyBalanceHint')}</p>
+          )}
         </MotionCard>
+
+        {apps.length === 0 ? (
+          <MotionCard
+            className="p-5 cursor-pointer border-dashed border-white/15 hover:border-indigo-500/30 transition-colors"
+            onClick={() => navigate('/apps')}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0">
+                <Grid3X3 size={22} className="text-white/40" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm text-white/80">{t('home.noAppsYet')}</p>
+                <p className="text-xs text-indigo-400 mt-1 font-medium">{t('home.viewAllApps')} →</p>
+              </div>
+            </div>
+          </MotionCard>
+        ) : (
+          <div>
+            <div className="flex items-center justify-between mb-3 px-0.5">
+              <p className="text-sm font-semibold text-white/70">{t('home.yourApps')}</p>
+              <button
+                type="button"
+                onClick={() => navigate('/apps')}
+                className="text-xs text-indigo-400 font-medium"
+              >
+                {t('home.viewAllApps')}
+              </button>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+              {apps.slice(0, 6).map((app) => (
+                <button
+                  key={app.id}
+                  type="button"
+                  onClick={() => navigate('/apps')}
+                  className="shrink-0 w-[88px] p-3 rounded-2xl bg-surface-2 border border-border text-center hover:border-indigo-500/30 transition-colors"
+                >
+                  <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden">
+                    <AppBrandIcon brand={app.brand} name={app.name} color={app.color} size="sm" />
+                  </div>
+                  <p className="text-[10px] font-medium truncate text-white/70">{app.name}</p>
+                  <p className={cn(
+                    'text-[9px] mt-1 flex items-center justify-center gap-0.5',
+                    app.isLocked ? 'text-amber-400/90' : 'text-emerald-400/90'
+                  )}>
+                    {app.isLocked ? <Lock size={9} /> : <Unlock size={9} />}
+                    {app.isLocked ? t('home.locked') : t('home.unlocked')}
+                  </p>
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-white/35 mt-2 px-0.5">
+              {t('home.appsStatusSummary', { locked: lockedApps.length, unlocked: unlockedApps.length })}
+            </p>
+          </div>
+        )}
+
+        <ProPromo variant="home" compact />
 
         <StatGrid>
           <StatCard

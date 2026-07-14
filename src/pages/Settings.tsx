@@ -42,7 +42,7 @@ export function SettingsPage() {
   const handleResetDaily = () => {
     resetDailyUsage()
     setShowReset(false)
-    toast(t('settings.resetDailyDesc'), 'info')
+    toast(t('settings.resetDailySuccess'), 'success')
   }
 
   const handleDeleteAccount = async () => {
