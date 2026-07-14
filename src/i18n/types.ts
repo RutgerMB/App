@@ -45,6 +45,9 @@ export interface Translations {
     slide3Subtitle: string
     begin: string
     haveAccount: string
+    authChoiceTitle: string
+    authChoiceSubtitle: string
+    backToLogin: string
     legalPrefix: string
     legalAnd: string
     getStartedWith: string

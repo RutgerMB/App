@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/auth'
 import { OnboardingPage } from '@/pages/Onboarding'
 import { WelcomePage } from '@/pages/Welcome'
 import { hasCompletedWelcome } from '@/lib/welcome'
-import { LoginPage, RegisterPage } from '@/pages/Auth'
+import { AuthChoicePage, LoginPage, RegisterPage } from '@/pages/Auth'
 import { HomePage } from '@/pages/Home'
 import { ExercisePage, ExerciseCategoryPage } from '@/pages/Exercise'
 import { ExerciseSessionPage } from '@/pages/ExerciseSession'
@@ -68,7 +68,7 @@ function WelcomeRoute() {
     return <Navigate to={onboardingComplete ? '/' : '/onboarding'} replace />
   }
   if (hasCompletedWelcome()) {
-    return <Navigate to="/register" replace />
+    return <Navigate to="/get-started" replace />
   }
   return <WelcomePage />
 }
@@ -92,6 +92,7 @@ export default function App() {
       <BlockerPermissionPrompt />
       <Routes>
         <Route path="/welcome" element={<WelcomeRoute />} />
+        <Route path="/get-started" element={<GuestRoute><AuthChoicePage /></GuestRoute>} />
         <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
         <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
         <Route path="/onboarding" element={<OnboardingRoute />} />

@@ -40,7 +40,7 @@ export function WelcomePage() {
 
   const handleBegin = () => {
     markWelcomeComplete()
-    navigate('/register', { replace: true })
+    navigate('/get-started', { replace: true })
   }
 
   const handleNext = () => {

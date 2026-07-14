@@ -1,6 +1,7 @@
 import UIKit
 import Capacitor
 import FamilyControls
+import RepLockPluginBridge
 
 // MARK: - Xcode 15.4 + Capacitor 8 SPM helpers
 // Capacitor 8 binaries hide `reject` / typed `getArray` when not built with Xcode 26.

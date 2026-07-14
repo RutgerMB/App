@@ -3,7 +3,7 @@ import { Home, Dumbbell, Grid3X3, Activity, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTranslation } from '@/i18n/context'
 
-const hiddenNavRoutes = ['/welcome', '/onboarding', '/exercise/session', '/exercise/workout', '/exercise/category', '/pricing', '/success', '/cancel', '/login', '/register']
+const hiddenNavRoutes = ['/welcome', '/get-started', '/onboarding', '/exercise/session', '/exercise/workout', '/exercise/category', '/pricing', '/success', '/cancel', '/login', '/register']
 
 export function BottomNav() {
   const location = useLocation()

@@ -206,6 +206,7 @@ export function OnboardingPage() {
   const setBlockingGoal = useStore((s) => s.setBlockingGoal)
   const setNotificationsEnabled = useStore((s) => s.setNotificationsEnabled)
   const syncNow = useAuthStore((s) => s.syncNow)
+  const logout = useAuthStore((s) => s.logout)
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { toast } = useToast()
@@ -467,6 +468,13 @@ export function OnboardingPage() {
       case STEP.INTRO:
         return (
           <>
+            <button
+              type="button"
+              onClick={() => void logout()}
+              className="text-sm text-white/50 mb-4 self-start hover:text-white/80"
+            >
+              ← {t('intro.backToLogin')}
+            </button>
             <IntroProgressBar step={progressStep} total={totalSteps} />
             <IntroHeading className="mb-3">{t('intro.setupIntroTitle')}</IntroHeading>
             <IntroSubtext className="mb-6">{t('intro.setupIntroDesc')}</IntroSubtext>

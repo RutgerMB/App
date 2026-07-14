@@ -49,6 +49,27 @@ function AuthCard({ children }: { children: React.ReactNode }) {
   )
 }
 
+export function AuthChoicePage() {
+  const navigate = useNavigate()
+  const { t } = useTranslation()
+
+  return (
+    <IntroShell variant="auth">
+      <div className="flex-1 flex flex-col max-w-md mx-auto w-full justify-center">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
+          <h1 className="text-3xl sm:text-4xl font-bold leading-tight">{t('intro.authChoiceTitle')}</h1>
+          <p className="text-white/50 mt-3 text-base">{t('intro.authChoiceSubtitle')}</p>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+          <IntroPrimaryButton onClick={() => navigate('/register')}>{t('auth.createAccount')}</IntroPrimaryButton>
+          <IntroAuthButton onClick={() => navigate('/login')}>{t('auth.signIn')}</IntroAuthButton>
+        </motion.div>
+      </div>
+    </IntroShell>
+  )
+}
+
 export function LoginPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -218,10 +239,10 @@ export function RegisterPage() {
       <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
         <button
           type="button"
-          onClick={() => (showForm ? setShowForm(false) : navigate('/welcome'))}
+          onClick={() => (showForm ? setShowForm(false) : navigate('/login'))}
           className="text-sm text-white/50 mb-4 self-start hover:text-white/80"
         >
-          ← {t('common.back')}
+          ← {showForm ? t('common.back') : t('intro.backToLogin')}
         </button>
 
         <IntroProgressBar step={1} total={5} />
@@ -314,6 +335,12 @@ export function RegisterPage() {
               <IntroPrimaryButton type="submit" disabled={loading}>
                 {loading ? '…' : t('auth.createAccount')}
               </IntroPrimaryButton>
+              <p className="text-center text-sm text-white/50 pt-2">
+                {t('auth.haveAccount')}{' '}
+                <Link to="/login" className="text-indigo-400 font-semibold hover:underline">
+                  {t('auth.signIn')}
+                </Link>
+              </p>
             </form>
           </AuthCard>
         )}
