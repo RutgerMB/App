@@ -6,27 +6,24 @@ Follow **every step** below on your **Mac** (not Windows).
 
 ---
 
-## Xcode 15.4 limitation (important)
-
-**Capacitor 8’s iOS SPM binaries require Xcode 26** to compile third-party native plugins (`@capgo/native-purchases`, etc.). If your Mac only supports **Xcode 15.4**, this project is configured as follows:
-
-| Feature | Xcode 15.4 dev build |
-|--------|----------------------|
-| Login / API | Works (`npm run cap:ios:sync`) |
-| Screen Time / app blocking | Works (`RepLockControls` local plugin) |
-| Apple In-App Purchase | **Not in native build** — JS stub shows a clear message; add IAP when you can build with Xcode 26 |
-
-Do **not** add `CapgoNativePurchases` back to `CapApp-SPM/Package.swift` on Xcode 15.4 — it will produce dozens of Swift errors.
-
----
-
 ## Prerequisites
 
 - Mac with the project cloned (same repo as this guide)
 - iPhone on the **same Wi‑Fi** as the Mac
-- Xcode 15.4+ with signing set up (`app.replock.bleeker`, Family Controls, App Group `group.com.replock.fitness`)
-- **iOS 16+** on the test iPhone (Family Controls / app blocking requires it; app deployment target is 16.0)
+- **Xcode 16+** (recommended for iOS 18 / StoreKit 2; Xcode 15.4+ works for iOS 16–17 builds)
+- Signing set up (`app.replock.bleeker`, Family Controls, App Group `group.com.replock.fitness`)
+- **iOS 16–18** on the test iPhone (Family Controls / app blocking requires iOS 16+; deployment target is 16.0)
 - Node.js installed (`node -v`)
+
+### Native iOS features
+
+| Feature | Status |
+|--------|--------|
+| Login / API | Works (`npm run cap:ios:sync`) |
+| Screen Time / app blocking | Native (`RepLockControls` local SPM plugin) |
+| Apple In-App Purchase | Native (`CapgoNativePurchases` local SPM plugin) |
+
+`CapgoNativePurchases` enables StoreKit 2.6.5 APIs only when the active Xcode SDK supports them — older Xcode builds skip those symbols automatically.
 
 ---
 
@@ -176,7 +173,7 @@ That’s expected if you didn’t run `cap:ios:sync` — browser uses `localhost
 
 **"Blocking plugin not loaded" (Screen Time / app blocking)**
 
-`npx cap sync ios` resets `ios/App/CapApp-SPM/Package.swift` to Capacitor-only and drops local SPM plugins. The post-sync script (`scripts/ios-remove-stripe.mjs`, run automatically by `npm run cap:ios:sync`) re-adds **only** `RepLockControls` (not NativePurchases on Xcode 15.4).
+`npx cap sync ios` resets `ios/App/CapApp-SPM/Package.swift` to Capacitor-only and drops local SPM plugins. The post-sync script (`scripts/ios-remove-stripe.mjs`, run automatically by `npm run cap:ios:sync`) re-adds **RepLockControls** and **CapgoNativePurchases**.
 
 1. Run `npm run cap:ios:sync` (not just `npx cap sync ios` alone).
 2. Open `ios/App/App.xcodeproj` in Xcode.
@@ -185,9 +182,12 @@ That’s expected if you didn’t run `cap:ios:sync` — browser uses `localhost
 
 If it still fails, in Xcode: **File → Packages → Reset Package Caches**, then Clean Build Folder and Run again.
 
-**Swift compile errors (many `reject` / `NativePurchases` errors)**
+**Swift compile errors (`NativePurchases`, StoreKit, or plugin `reject` errors)**
 
-You are building **CapgoNativePurchases** on Xcode 15.4 — remove it. Run `npm run cap:ios:sync` (pull latest first), then in Xcode: **File → Packages → Reset Package Caches**, **Clean Build Folder**, **Run ▶**. Only `RepLockControls` should appear under SPM packages.
+1. Run `npm run cap:ios:sync` (pull latest first).
+2. In Xcode: **File → Packages → Reset Package Caches**, **Clean Build Folder**, **Run ▶**.
+3. Confirm **RepLockControls** and **CapgoNativePurchases** appear under SPM packages in the project navigator.
+4. Use **Xcode 16+** if you see StoreKit 2.6.5 symbol errors on an older toolchain.
 
 ---
 

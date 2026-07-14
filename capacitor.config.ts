@@ -7,10 +7,8 @@ const config: CapacitorConfig = {
   appId: 'com.replock.app',
   appName: 'RepLock',
   webDir: 'dist',
-  // iOS (Xcode 15.4): Capacitor 8 SPM plugin Swift APIs need Xcode 26+.
-  // Only RepLockControls (local) is linked; NativePurchases is JS-stubbed on iOS.
   ios: {
-    includePlugins: [],
+    includePlugins: ['@capgo/native-purchases'],
   },
   android: {
     includePlugins: [

@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 /**
  * Post-process iOS project after `npx cap sync ios`.
- * - Removes Stripe/StatusBar/SplashScreen SPM entries (Xcode 15.4)
- * - Removes CapgoNativePurchases from iOS SPM (Cap 8 plugin APIs need Xcode 26; use JS stub on iOS)
- * - Re-injects RepLockControls (cap sync wipes it from Package.swift)
- * - Ensures CapApp-SPM.swift imports RepLockControlsPlugin
+ * - Removes Stripe/StatusBar/SplashScreen SPM entries (web-only on iOS)
+ * - Re-injects RepLockControls + CapgoNativePurchases (cap sync wipes local SPM plugins)
+ * - Ensures CapApp-SPM.swift imports RepLockControlsPlugin + NativePurchasesPlugin
  * - Normalizes Windows backslashes in Package.swift paths
  *
  * Usage: node scripts/ios-remove-stripe.mjs
@@ -17,10 +16,17 @@ const spmPackagePath = join(root, 'ios', 'App', 'CapApp-SPM', 'Package.swift')
 const capAppSpmSwiftPath = join(root, 'ios', 'App', 'CapApp-SPM', 'Sources', 'CapApp-SPM', 'CapApp-SPM.swift')
 const podfilePath = join(root, 'ios', 'App', 'Podfile')
 const LOCAL_REPLOCK_CONTROLS_PATH = '../LocalPackages/RepLockControls'
+const LOCAL_CAPGO_NATIVE_PURCHASES_PATH = '../LocalPackages/CapgoNativePurchases'
 
-const REQUIRED_LOCAL_PACKAGES = [{ name: 'RepLockControls', path: LOCAL_REPLOCK_CONTROLS_PATH }]
+const REQUIRED_LOCAL_PACKAGES = [
+  { name: 'RepLockControls', path: LOCAL_REPLOCK_CONTROLS_PATH },
+  { name: 'CapgoNativePurchases', path: LOCAL_CAPGO_NATIVE_PURCHASES_PATH },
+]
 
-const REQUIRED_PRODUCTS = [{ product: 'RepLockControls', package: 'RepLockControls' }]
+const REQUIRED_PRODUCTS = [
+  { product: 'RepLockControls', package: 'RepLockControls' },
+  { product: 'CapgoNativePurchases', package: 'CapgoNativePurchases' },
+]
 
 const spmPackageRemovals = [
   /^\s*\.package\(name: "CapacitorCommunityStripe".*\n/gm,
@@ -29,8 +35,6 @@ const spmPackageRemovals = [
   /^\s*\.product\(name: "CapacitorStatusBar".*\n/gm,
   /^\s*\.package\(name: "CapacitorSplashScreen".*\n/gm,
   /^\s*\.product\(name: "CapacitorSplashScreen".*\n/gm,
-  /^\s*\.package\(name: "CapgoNativePurchases".*\n/gm,
-  /^\s*\.product\(name: "CapgoNativePurchases".*\n/gm,
 ]
 
 function ensureLocalPackage(pkg, { name, path }) {
@@ -72,17 +76,18 @@ function ensureCapAppSpmImports() {
     return false
   }
 
-  const requiredImport = 'import RepLockControlsPlugin'
+  const requiredImports = ['import RepLockControlsPlugin', 'import NativePurchasesPlugin']
   let content = readFileSync(capAppSpmSwiftPath, 'utf8')
   const before = content
 
   content = content
     .replace(/^import CapgoNativePurchases\r?\n/gm, '')
-    .replace(/^import NativePurchasesPlugin\r?\n/gm, '')
     .replace(/^import RepLockControls\r?\n/gm, '')
 
-  if (!content.includes(requiredImport)) {
-    content = `${requiredImport}\n${content}`
+  for (const requiredImport of requiredImports) {
+    if (!content.includes(requiredImport)) {
+      content = `${requiredImport}\n${content}`
+    }
   }
 
   if (!content.includes('public let isCapacitorApp = true')) {
@@ -91,7 +96,7 @@ function ensureCapAppSpmImports() {
 
   if (content !== before) {
     writeFileSync(capAppSpmSwiftPath, content)
-    console.log('Patched CapApp-SPM.swift (RepLockControls only)')
+    console.log('Patched CapApp-SPM.swift (RepLockControls + NativePurchases)')
     return true
   }
 
@@ -111,7 +116,7 @@ if (existsSync(spmPackagePath)) {
   pkg = ensureLocalPackagesAndProducts(pkg)
   if (pkg !== before) {
     writeFileSync(spmPackagePath, pkg)
-    console.log('Patched CapApp-SPM/Package.swift (RepLockControls only, iOS 16+)')
+    console.log('Patched CapApp-SPM/Package.swift (RepLockControls + CapgoNativePurchases, iOS 16+)')
     changed = true
   } else {
     console.log('CapApp-SPM/Package.swift already up to date')
@@ -143,5 +148,5 @@ if (changed) {
 }
 
 console.log(
-  '\nNote: NativePurchases is not compiled on iOS (Xcode 15.4). IAP uses a JS stub; app blocking uses RepLockControls.'
+  '\nNote: Native Apple IAP (CapgoNativePurchases) and app blocking (RepLockControls) are linked via local SPM packages.'
 )
