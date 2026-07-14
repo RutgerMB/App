@@ -46,6 +46,45 @@ const SLIDESHOWS = {
       { text: 'Search RepLock', cta: true },
     ],
   },
+  3: {
+    name: 'No Gains Arc',
+    folder: 'slideshow-3',
+    slides: [
+      { text: 'Training 6 months.\nStill look the same. Wonder why.', hook: true },
+      { text: 'Perfect split. Perfect protein.' },
+      { text: 'Terrible sleep. Worse focus.' },
+      { text: '3 hours/day on the phone' },
+      { text: 'Recovery? More like Reels.' },
+      { text: "You're not lazy. You're just unlocked 24/7.", pivot: true },
+      { text: 'Search RepLock', cta: true },
+    ],
+  },
+  4: {
+    name: 'Gym Crush Cardio Skip',
+    folder: 'slideshow-4',
+    slides: [
+      { text: "She's on the treadmill.\nYou're 'warming up' on Instagram.", hook: true },
+      { text: 'Walked past cardio 3 times' },
+      { text: 'Did one set of bicep curls instead' },
+      { text: 'She definitely saw you skip' },
+      { text: 'Phone in hand. Zero steps.' },
+      { text: 'Main character energy. Side quest results.', pivot: true },
+      { text: 'Search RepLock', cta: true },
+    ],
+  },
+  5: {
+    name: 'The Phone Spotter',
+    folder: 'slideshow-5',
+    slides: [
+      { text: "My spotter doesn't miss reps.\nMy phone does.", hook: true },
+      { text: "Spotter: 'One more!'" },
+      { text: "Phone: 'One more Reel'" },
+      { text: 'Guess which one I listen to' },
+      { text: 'RepLock said do 15 push-ups' },
+      { text: 'Or TikTok stays locked. I chose violence.', pivot: true },
+      { text: 'Search RepLock', cta: true },
+    ],
+  },
 }
 
 function escapeXml(str) {
@@ -194,7 +233,7 @@ async function main() {
   for (const id of ids) {
     const config = SLIDESHOWS[id]
     if (!config) {
-      console.error(`Unknown slideshow: ${id}. Use 1, 2, or all.`)
+      console.error(`Unknown slideshow: ${id}. Use 1-5 or all.`)
       process.exit(1)
     }
     await generateSlideshow(id, config)

@@ -1,105 +1,101 @@
 # RepLock Gymbro TikTok — Post-Ready Pack
 
-Ready-to-post slideshows for Slideshow 1 (Leg Day) and Slideshow 2 (Rest Timer).  
-**Export slides from:** `docs/marketing/slides/`
+**Press post:** upload PNGs from `docs/marketing/slides/slideshow-N/` in order.  
+**Figma storyboards:** [RepLock TikTok Gymbro Storyboards](https://www.figma.com/slides/XyrQQqqQWJxi4h6ODvDl7a)
 
 ---
 
-## Posting order
+## Posting order (5-day pre-launch)
 
 | Day | Slideshow | Folder | Sound |
 |-----|-----------|--------|-------|
-| Day 1 | Leg Day Excuses | `slideshow-1/` | Trending phonk edit or METAMORPHOSIS-style gym montage |
-| Day 2 | Rest Timer Scrolling | `slideshow-2/` | Slowed + reverb motivational speech or trending gym edit |
+| Day 1 | Leg Day Excuses | `slideshow-1/` | Phonk / METAMORPHOSIS gym edit |
+| Day 2 | Rest Timer Scrolling | `slideshow-2/` | Slowed gym edit |
+| Day 3 | No Gains Arc | `slideshow-3/` | Dark phonk / sigma parody |
+| Day 4 | Gym Crush Cardio | `slideshow-4/` | Comedic phonk drop |
+| Day 5 | Phone Spotter | `slideshow-5/` | Heavy bass phonk |
 
-Upload slides **in numeric order** (`slide-01.png` → `slide-07.png`).  
-Post **1 slideshow/day** for 2 days pre-launch; repost top performer as Story.
+Upload `slide-01.png` → `slide-07.png` per day. Use **Photo carousel** on TikTok.
 
 ---
 
 ## Slideshow 1: Leg Day Excuses
 
-**Folder:** `docs/marketing/slides/slideshow-1/`  
-**Files:** `slide-01.png` … `slide-07.png` (7 frames, 1080×1920)
+**Folder:** `docs/marketing/slides/slideshow-1/`
 
-### Caption (copy-paste)
-
+**Caption:**
 ```
 bro my phone had to bully me into squats 💀 RepLock locks your apps until you actually move. 20 push-ups = scroll time. no cap this fixed my rest-day doomscroll. who else skips legs then wonders why they look like a traffic cone 🦵
 ```
 
-### Hashtags
-
-```
-#legday #skiplegs #gymbro #pushupchallenge #screentime #appblocker #fitnessmotivation #gymmotivation
-```
-
-### Slide order
-
-1. POV: it's leg day and your brain is negotiating
-2. I'll hit legs tomorrow
-3. My knees feel weird tho
-4. Upper body is looking insane anyway
-5. Opens TikTok for 'motivation'
-6. 45 min later. Zero squats. Full scroll.
-7. Search RepLock *(CTA)*
-
-### Sound
-
-Trending phonk edit or "METAMORPHOSIS" style gym montage audio.
+**Hashtags:** `#legday #skiplegs #gymbro #pushupchallenge #screentime #appblocker #fitnessmotivation #gymmotivation`
 
 ---
 
 ## Slideshow 2: Rest Timer Scrolling
 
-**Folder:** `docs/marketing/slides/slideshow-2/`  
-**Files:** `slide-01.png` … `slide-07.png` (7 frames, 1080×1920)
+**Folder:** `docs/marketing/slides/slideshow-2/`
 
-### Caption (copy-paste)
-
+**Caption:**
 ```
 the rest between sets used to be my most productive scroll time 😭 RepLock = apps locked until you earn minutes with real reps. push-ups, squats, planks. finally training AND not losing the whole workout to the algorithm.
 ```
 
-### Hashtags
+**Hashtags:** `#gymtok #restday #screentime #digitaldetox #gymbro #fitness #productivity #pushups`
 
+---
+
+## Slideshow 3: No Gains Arc
+
+**Folder:** `docs/marketing/slides/slideshow-3/`
+
+**Caption:**
 ```
-#gymtok #restday #screentime #digitaldetox #gymbro #fitness #productivity #pushups
+wasn't a program problem. was a phone problem. RepLock makes you EARN scroll time with actual exercise — apps stay locked until you move. wild how fast rest days stopped being scroll days 📱➡️💪
 ```
 
-### Slide order
+**Hashtags:** `#nogains #gymbro #screentime #selfimprovement #fitnessmotivation #appblocker #gymmotivation #grind`
 
-1. 90 second rest timer. 90 minute scroll session.
-2. Set timer. Put phone down.
-3. Check one notification
-4. Now you're on Reels
-5. Timer went off 20 min ago
-6. Bro next to you hit 4 sets. You hit 1.
-7. Search RepLock *(CTA)*
+---
 
-### Sound
+## Slideshow 4: Gym Crush Cardio Skip
 
-Slowed + reverb motivational speech clip or trending "gym edit" audio.
+**Folder:** `docs/marketing/slides/slideshow-4/`
+
+**Caption:**
+```
+got humbled by an app before I got humbled by cardio 💀 RepLock locks distracting apps until you do push-ups/squats to earn minutes. embarrassing? yes. worked? also yes.
+```
+
+**Hashtags:** `#gymcrush #cardio #gymhumor #gymbro #screentime #fitness #appblocker #pushupchallenge`
+
+---
+
+## Slideshow 5: The Phone Spotter
+
+**Folder:** `docs/marketing/slides/slideshow-5/`
+
+**Caption:**
+```
+needed a spotter for my screen time fr. RepLock blocks apps until you knock out real reps — push-ups, squats, planks. earn your scroll like you earn your plates 🏋️
+```
+
+**Hashtags:** `#gymbro #spotter #screentime #pushups #appblocker #gymtok #fitnessmotivation #digitaldetox`
 
 ---
 
 ## TikTok upload checklist
 
-- [ ] Select **Photo carousel** (not video)
-- [ ] Upload all 7 slides in order from the correct `slideshow-N/` folder
-- [ ] Paste caption + hashtags from above
-- [ ] Add suggested sound before posting
-- [ ] Pin comment: "Search RepLock on the App Store" (swap to link in bio after launch)
+1. TikTok → **+** → **Photo** → select all 7 PNGs in order
+2. Paste caption + hashtags from the day above
+3. Add sound (trending gym phonk)
+4. Post
+5. Pin comment: **Search RepLock** (switch to link in bio after App Store live)
 
-## Regenerate slides
+## Regenerate all slides
 
 ```bash
 npm run marketing:slides
 ```
 
-Generates both slideshows to `docs/marketing/slides/`. To rebuild one slideshow only:
-
-```bash
-node scripts/generate-tiktok-slides.mjs 1
-node scripts/generate-tiktok-slides.mjs 2
-```
+Single slideshow: `node scripts/generate-tiktok-slides.mjs 3`
