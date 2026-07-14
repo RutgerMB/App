@@ -1,55 +1,34 @@
-# Host RepLocks legal pages on GitHub Pages
+# RepLocks public URLs (GitHub Pages)
 
-Static HTML in this folder — **public to read, editable only by repo collaborators** (not by random visitors).
+Repo: **RutgerMB/App**
 
-## Enable GitHub Pages
+## Enable Pages (required once)
 
-1. Push this repo to GitHub.
-2. Repo → **Settings** → **Pages**
-3. **Build and deployment** → Source: **Deploy from a branch**
-4. Branch: **main** → Folder: **/docs**
-5. **Save** — wait 1–3 minutes for the site to build.
+1. Open https://github.com/RutgerMB/App/settings/pages
+2. **Build and deployment** → Source: **Deploy from a branch**
+3. Branch: **main** → Folder: **/docs**
+4. Click **Save**
+5. Wait 1–3 minutes. Green checkmark = live.
 
-## Your URLs
+If the repo is **private**, you need GitHub Pro/Team for Pages, **or** make the repo public (only the published site is visible; source stays in repo).
 
-Replace `YOUR_USERNAME` and `YOUR_REPO` with your GitHub values.
+## Your live URLs (after Pages is enabled)
 
 | Page | URL |
 |------|-----|
-| **Privacy Policy** (use in App Store Connect) | `https://YOUR_USERNAME.github.io/YOUR_REPO/legal/privacy.html` |
-| Terms of Service | `https://YOUR_USERNAME.github.io/YOUR_REPO/legal/terms.html` |
+| **Privacy Policy** | https://rutgermb.github.io/App/legal/privacy.html |
+| **Support** | https://rutgermb.github.io/App/legal/support.html |
+| **Terms** | https://rutgermb.github.io/App/legal/terms.html |
 
-Example if repo is `App` under user `johndoe`:
-
-```
-https://johndoe.github.io/App/legal/privacy.html
-```
-
-## Keep it read-only for the public
-
-- **Visitors** only see the published HTML — they cannot edit it.
-- **Only people with write access** to the GitHub repo can change the files.
-- Optional hardening:
-  - **Settings → Branches** → protect `main` (require your approval for changes)
-  - Do not add outside collaborators with write access
-  - Use a **private repo** if you want the source hidden (Pages can still be public — check Pages settings)
+Use the **Privacy Policy** URL in App Store Connect.  
+Use the **Support** URL for Support URL field.
 
 ## App Store Connect
 
-Paste the **Privacy Policy URL** exactly:
+- **Privacy Policy URL:** `https://rutgermb.github.io/App/legal/privacy.html`
+- **Support URL:** `https://rutgermb.github.io/App/legal/support.html`
 
-```
-https://YOUR_USERNAME.github.io/YOUR_REPO/legal/privacy.html
-```
+## Support email
 
-Must be `https://` and publicly reachable without login.
-
-## Update app env (optional)
-
-When the URL is live, set in production builds:
-
-```env
-VITE_PRIVACY_URL=https://YOUR_USERNAME.github.io/YOUR_REPO/legal/privacy.html
-VITE_TERMS_URL=https://YOUR_USERNAME.github.io/YOUR_REPO/legal/terms.html
-VITE_SUPPORT_EMAIL=support@replock.app
-```
+**Address:** `support@replock.app`  
+**Setup:** see `docs/legal/EMAIL_SETUP.md` (forward to your personal inbox).
