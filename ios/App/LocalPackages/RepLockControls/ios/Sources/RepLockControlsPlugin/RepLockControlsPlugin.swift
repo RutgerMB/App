@@ -1,14 +1,13 @@
 import UIKit
 import Capacitor
 import FamilyControls
-import RepLockPluginBridge
 
 // MARK: - Xcode 15.4 + Capacitor 8 SPM helpers
-// Capacitor 8 binaries hide `reject` / typed `getArray` when not built with Xcode 26.
-// Use Obj-C properties (`errorHandler`, `options`) which stay visible.
+// Capacitor 8 SPM binaries hide `reject` / typed getters when built with Xcode 26.
+// `errorHandler` and @objc CAPPluginCallError stay visible on older toolchains.
 
 private func repLockReject(_ call: CAPPluginCall, _ message: String, code: String? = nil) {
-    RepLockRejectPluginCall(call, message as NSString, (code ?? "ERROR") as NSString)
+    call.errorHandler(CAPPluginCallError(message: message, code: code, error: nil, data: [:]))
 }
 
 private func repLockPresenter(for plugin: CAPPlugin) -> UIViewController? {

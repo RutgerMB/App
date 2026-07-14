@@ -2,8 +2,9 @@ import UIKit
 import Capacitor
 import RevenueCat
 
-private func repLockReject(_ call: CAPPluginCall, _ message: String) {
-    call.reject(message)
+// Capacitor 8 SPM hides `reject` on Xcode 15.x; use errorHandler + @objc CAPPluginCallError.
+private func repLockReject(_ call: CAPPluginCall, _ message: String, code: String? = nil) {
+    call.errorHandler(CAPPluginCallError(message: message, code: code, error: nil, data: [:]))
 }
 
 private func repLockPresenter(for plugin: CAPPlugin) -> UIViewController? {

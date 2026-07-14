@@ -10,7 +10,7 @@ Follow **every step** below on your **Mac** (not Windows).
 
 - Mac with the project cloned (same repo as this guide)
 - iPhone on the **same Wi‑Fi** as the Mac
-- **Xcode 16+** (recommended for iOS 18 / StoreKit 2; Xcode 15.4+ works for iOS 16–17 builds)
+- **Xcode 15.4+** (RepLock local SPM plugins use `errorHandler` + `CAPPluginCallError` for Xcode 15.4 compatibility with Capacitor 8 SPM)
 - Signing set up (`app.replock.bleeker`, Family Controls, App Group `group.com.replock.fitness`)
 - **iOS 16–18** on the test iPhone (Family Controls / app blocking requires iOS 16+; deployment target is 16.0)
 - Node.js installed (`node -v`)
@@ -182,12 +182,13 @@ That’s expected if you didn’t run `cap:ios:sync` — browser uses `localhost
 
 If it still fails, in Xcode: **File → Packages → Reset Package Caches**, then Clean Build Folder and Run again.
 
-**Swift compile errors (`NativePurchases`, StoreKit, or plugin `reject` errors)**
+**Swift compile errors (`NativePurchases`, StoreKit, or Capacitor plugin errors)**
 
 1. Run `npm run cap:ios:sync` (pull latest first).
 2. In Xcode: **File → Packages → Reset Package Caches**, **Clean Build Folder**, **Run ▶**.
-3. Confirm **RepLockControls** and **CapgoNativePurchases** appear under SPM packages in the project navigator.
-4. Use **Xcode 16+** if you see StoreKit 2.6.5 symbol errors on an older toolchain.
+3. Confirm **RepLockControls**, **RepLockRevenueCat**, and **CapgoNativePurchases** appear under SPM packages in the project navigator.
+4. **`RepLockPluginBridge` / `initWithMessage:code:error:data:`** — removed. RepLock plugins are Swift-only; errors use `call.errorHandler(CAPPluginCallError(...))` instead of `call.reject` or an Obj-C bridge.
+5. **StoreKit 2.6.5 symbol errors** — `CapgoNativePurchases` skips those APIs automatically on Xcode 15.x; use **Xcode 16+** only if you need StoreKit 2.6.5 features.
 
 ---
 
