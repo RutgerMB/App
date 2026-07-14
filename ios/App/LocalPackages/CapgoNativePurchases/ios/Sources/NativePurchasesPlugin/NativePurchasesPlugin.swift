@@ -97,9 +97,11 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
         print("purchaseProduct")
         let productIdentifier = call.getString("productIdentifier", "")
         let quantity = call.getInt("quantity", 1)
-        let appAccountToken = call.getString("appAccountToken")
-        let billingPlanType = call.getString("billingPlanType")
-        let autoAcknowledge = call.getBool("autoAcknowledgePurchases") ?? true
+        let appAccountTokenRaw = call.getString("appAccountToken", "")
+        let appAccountToken = appAccountTokenRaw.isEmpty ? nil : appAccountTokenRaw
+        let billingPlanTypeRaw = call.getString("billingPlanType", "")
+        let billingPlanType = billingPlanTypeRaw.isEmpty ? nil : billingPlanTypeRaw
+        let autoAcknowledge = call.getBool("autoAcknowledgePurchases", true)
 
         if productIdentifier.isEmpty {
             capgoReject(call,"productIdentifier is Empty, give an id")
@@ -108,7 +110,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
 
         print("Auto-acknowledge enabled: \(autoAcknowledge)")
 
-        Task { @MainActor in
+        Task { @MainActor [self] in
             do {
                 let products = try await Product.products(for: [productIdentifier])
                 guard let product = products.first else {
@@ -121,7 +123,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
                 if let token = appAccountToken, !token.isEmpty, let uuid = UUID(uuidString: token) {
                     purchaseOptions.insert(.appAccountToken(uuid))
                 }
-                switch self.billingPlanPurchaseOption(from: billingPlanType) {
+                switch billingPlanPurchaseOption(from: billingPlanType) {
                 case .none:
                     break
                 case .option(let option):
@@ -133,7 +135,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
 
                 let result = try await product.purchase(options: purchaseOptions)
                 print("purchaseProduct result \(result)")
-                await self.handlePurchaseResult(result, call: call, autoFinish: autoAcknowledge)
+                await handlePurchaseResult(result, call: call, autoFinish: autoAcknowledge)
             } catch {
                 print(error)
                 capgoReject(call,error.localizedDescription)
@@ -157,7 +159,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getProducts(_ call: CAPPluginCall) {
-        let productIdentifiers = call.getArray("productIdentifiers", String.self) ?? []
+        let productIdentifiers = call.getArray("productIdentifiers", []).compactMap { $0 as? String }
         let productType = call.getString("productType", "inapp")
         print("productIdentifiers \(productIdentifiers)")
         print("productType \(productType)")
@@ -175,7 +177,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getProduct(_ call: CAPPluginCall) {
-        let productIdentifier = call.getString("productIdentifier") ?? ""
+        let productIdentifier = call.getString("productIdentifier", "")
         let productType = call.getString("productType", "inapp")
         print("productIdentifier \(productIdentifier)")
         print("productType \(productType)")
@@ -202,8 +204,9 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func getPurchases(_ call: CAPPluginCall) {
         print("getPurchases")
-        let appAccountTokenFilter = call.getString("appAccountToken")
-        let onlyCurrentEntitlements = call.getBool("onlyCurrentEntitlements") ?? false
+        let appAccountTokenRaw = call.getString("appAccountToken", "")
+        let appAccountTokenFilter = appAccountTokenRaw.isEmpty ? nil : appAccountTokenRaw
+        let onlyCurrentEntitlements = call.getBool("onlyCurrentEntitlements", false)
         Task {
             do {
                 let allPurchases = try await TransactionHelpers.collectAllPurchases(
@@ -237,8 +240,8 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func presentOfferCodeRedeemSheet(_ call: CAPPluginCall) {
         print("presentOfferCodeRedeemSheet")
         if #available(iOS 16.0, *) {
-            Task { @MainActor in
-                await self.handlePresentOfferCodeRedeemSheet(call)
+            Task { @MainActor [self] in
+                await handlePresentOfferCodeRedeemSheet(call)
             }
         } else {
             capgoReject(call,"Offer code redemption requires iOS 16.0 or later")
@@ -248,7 +251,8 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func acknowledgePurchase(_ call: CAPPluginCall) {
         print("acknowledgePurchase called on iOS")
 
-        guard let purchaseToken = call.getString("purchaseToken") else {
+        let purchaseToken = call.getString("purchaseToken", "")
+        guard !purchaseToken.isEmpty else {
             capgoReject(call,"purchaseToken is required")
             return
         }
@@ -339,8 +343,8 @@ extension NativePurchasesPlugin {
 
     @objc func getAppTransaction(_ call: CAPPluginCall) {
         if #available(iOS 16.0, *) {
-            Task { @MainActor in
-                await self.handleGetAppTransaction(call)
+            Task { @MainActor [self] in
+                await handleGetAppTransaction(call)
             }
         } else {
             capgoReject(call,"App Transaction requires iOS 16.0 or later")
@@ -348,14 +352,15 @@ extension NativePurchasesPlugin {
     }
 
     @objc func isEntitledToOldBusinessModel(_ call: CAPPluginCall) {
-        guard let targetBuildNumber = call.getString("targetBuildNumber"), !targetBuildNumber.isEmpty else {
+        let targetBuildNumber = call.getString("targetBuildNumber", "")
+        guard !targetBuildNumber.isEmpty else {
             capgoReject(call,"targetBuildNumber is required on iOS")
             return
         }
 
         if #available(iOS 16.0, *) {
-            Task { @MainActor in
-                await self.handleIsEntitledToOldBusinessModel(call, targetBuildNumber: targetBuildNumber)
+            Task { @MainActor [self] in
+                await handleIsEntitledToOldBusinessModel(call, targetBuildNumber: targetBuildNumber)
             }
         } else {
             capgoReject(call,"App Transaction requires iOS 16.0 or later")

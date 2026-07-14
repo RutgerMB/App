@@ -38,7 +38,8 @@ public class RepLockRevenueCatPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func configure(_ call: CAPPluginCall) {
-        let appUserID = call.getString("appUserID")
+        let appUserIDRaw = call.getString("appUserID", "")
+        let appUserID = appUserIDRaw.isEmpty ? nil : appUserIDRaw
         Task { @MainActor in
             RevenueCatManager.shared.configure(appUserID: appUserID)
             call.resolve(["configured": true])
@@ -46,7 +47,8 @@ public class RepLockRevenueCatPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func logIn(_ call: CAPPluginCall) {
-        guard let appUserID = call.getString("appUserID"), !appUserID.isEmpty else {
+        let appUserID = call.getString("appUserID", "")
+        guard !appUserID.isEmpty else {
             repLockReject(call, "appUserID is required")
             return
         }
@@ -82,7 +84,7 @@ public class RepLockRevenueCatPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func purchase(_ call: CAPPluginCall) {
-        let period = call.getString("period") ?? "monthly"
+        let period = call.getString("period", "monthly")
         Task { @MainActor in
             do {
                 let info = try await RevenueCatManager.shared.purchase(period: period)
@@ -113,14 +115,14 @@ public class RepLockRevenueCatPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func presentPaywall(_ call: CAPPluginCall) {
-        Task { @MainActor in
+        Task { @MainActor [self] in
             PaywallPresenter.presentPaywall(from: repLockPresenter(for: self))
             call.resolve(["presented": true])
         }
     }
 
     @objc func presentCustomerCenter(_ call: CAPPluginCall) {
-        Task { @MainActor in
+        Task { @MainActor [self] in
             PaywallPresenter.presentCustomerCenter(from: repLockPresenter(for: self))
             call.resolve(["presented": true])
         }
