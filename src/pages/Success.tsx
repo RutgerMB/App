@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { Check, Loader2 } from 'lucide-react'
 import { MotionButton } from '@/components/ui/Button'
 import { verifySession } from '@/lib/utils'
-import { useStore } from '@/store'
+import { refreshEntitlementFromServer } from '@/lib/entitlement'
 import { useTranslation } from '@/i18n/context'
 
 export function SuccessPage() {
@@ -13,12 +13,13 @@ export function SuccessPage() {
   const location = useLocation()
   const onboardingReturn = location.state as { from?: string; step?: number } | null
   const { t } = useTranslation()
-  const setProStatus = useStore((s) => s.setProStatus)
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
 
   useEffect(() => {
     if (searchParams.get('native') === '1') {
-      setStatus('success')
+      refreshEntitlementFromServer(true)
+        .then(() => setStatus('success'))
+        .catch(() => setStatus('success'))
       return
     }
 
@@ -29,16 +30,16 @@ export function SuccessPage() {
     }
 
     verifySession(sessionId)
-      .then((data) => {
+      .then(async (data) => {
         if (data.isPro) {
-          setProStatus(true, data.customerId, data.subscriptionId, 'active')
+          await refreshEntitlementFromServer(true)
           setStatus('success')
         } else {
           setStatus('error')
         }
       })
       .catch(() => setStatus('error'))
-  }, [searchParams, setProStatus])
+  }, [searchParams])
 
   const handleContinue = () => {
     if (onboardingReturn?.from === 'onboarding' && typeof onboardingReturn.step === 'number') {

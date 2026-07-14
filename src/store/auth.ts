@@ -16,6 +16,7 @@ import {
   restoreFirebaseSession,
 } from '@/lib/firebase-auth'
 import { stripProFieldsFromSnapshot } from '@/lib/entitlement-sanitize'
+import { refreshEntitlementFromServer } from '@/lib/entitlement'
 import { mapAuthError } from '@/lib/auth-errors'
 import { useStore } from '@/store'
 
@@ -98,6 +99,7 @@ export const useAuthStore = create<AuthState>()(
               usesFirebase: true,
             })
             applyAppState(session.appState)
+            await refreshEntitlementFromServer().catch(() => {})
           })
         }
 
@@ -109,6 +111,7 @@ export const useAuthStore = create<AuthState>()(
             usesFirebase: true,
           })
           applyAppState(session.appState)
+          await refreshEntitlementFromServer().catch(() => {})
         } else {
           set({ token: null, user: null, usesFirebase: true })
         }
@@ -145,12 +148,14 @@ export const useAuthStore = create<AuthState>()(
             const res = await firebaseLogin(email, password)
             set({ token: res.idToken, user: res.user, usesFirebase: true })
             applyAppState(res.appState)
+            await refreshEntitlementFromServer().catch(() => {})
             return
           }
 
           const res = await loginAccount(email, password)
           set({ token: res.token, user: res.user, usesFirebase: false })
           applyAppState(res.appState)
+          await refreshEntitlementFromServer().catch(() => {})
         } catch (err) {
           throw mapAuthError(err)
         }

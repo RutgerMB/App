@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Clients may sync workout data but cannot self-grant Pro or billing fields.
+      allow write: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.appState.profile.isPro == resource.data.appState.profile.isPro
+        && request.resource.data.appState.profile.stripeCustomerId == resource.data.appState.profile.stripeCustomerId
+        && request.resource.data.appState.profile.subscriptionId == resource.data.appState.profile.subscriptionId
+        && request.resource.data.appState.profile.subscriptionStatus == resource.data.appState.profile.subscriptionStatus;
+
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.appState.profile.isPro == false
+        && request.resource.data.appState.profile.stripeCustomerId == null
+        && request.resource.data.appState.profile.subscriptionId == null
+        && request.resource.data.appState.profile.subscriptionStatus == null;
+    }
+  }
+}

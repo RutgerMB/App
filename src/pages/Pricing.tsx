@@ -11,6 +11,7 @@ import { createCheckoutSession, formatPrice } from '@/lib/utils'
 import { shouldUseNativeStripeCheckout, presentNativeProCheckout } from '@/lib/stripe'
 import { requiresAppleIAP } from '@/lib/payment-platform'
 import { purchaseAppleProSubscription, restoreApplePurchases } from '@/lib/apple-iap'
+import { refreshEntitlementFromServer } from '@/lib/entitlement'
 import { openPrivacy, openTerms } from '@/lib/legal'
 import { useAuthStore } from '@/store/auth'
 import { useToast } from '@/components/ui/Toast'
@@ -29,7 +30,7 @@ export function PricingPage() {
   const onboardingReturn = location.state as { from?: string; step?: number } | null
   const { toast } = useToast()
   const { t } = useTranslation()
-  const { profile, setProStatus } = useStore()
+  const { profile } = useStore()
   const authUser = useAuthStore((s) => s.user)
   const [loading, setLoading] = useState(false)
   const useAppleIAP = requiresAppleIAP()
@@ -79,19 +80,19 @@ export function PricingPage() {
     setLoading(true)
     try {
       if (useAppleIAP) {
-        const result = await purchaseAppleProSubscription()
-        setProStatus(true, result.customerId, result.subscriptionId, 'active')
+        await purchaseAppleProSubscription()
+        await refreshEntitlementFromServer(true)
         toast(t('pricing.onPro'), 'success')
         navigate('/success?native=1', { replace: true, state: successNavigateState })
         return
       }
 
       if (shouldUseNativeStripeCheckout()) {
-        const result = await presentNativeProCheckout(
+        await presentNativeProCheckout(
           authUser?.email ?? profile.email,
           profile.stripeCustomerId
         )
-        setProStatus(true, result.customerId, result.subscriptionId, 'active')
+        await refreshEntitlementFromServer(true)
         toast(t('pricing.onPro'), 'success')
         navigate('/success?native=1', { replace: true, state: successNavigateState })
         return
@@ -111,7 +112,7 @@ export function PricingPage() {
     try {
       const restored = await restoreApplePurchases()
       if (restored) {
-        setProStatus(true, restored.customerId, restored.subscriptionId, 'active')
+        await refreshEntitlementFromServer(true)
         toast(t('pricing.restored'), 'success')
       } else {
         toast(t('pricing.noRestore'), 'info')
