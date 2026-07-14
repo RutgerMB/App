@@ -16,6 +16,7 @@
     "cap:ios:live": "node scripts/ios-dev-sync.mjs --live",
     "icons:generate": "node scripts/generate-app-icons.mjs assets/logo-source.png",
     "preview": "vite preview",
+    "test": "vitest run",
     "start": "tsx server/index.ts"
   },
   "dependencies": {
@@ -61,7 +62,8 @@
     "concurrently": "^9.1.2",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vitest": "^4.1.10"
   },
   "allowScripts": {
     "esbuild@0.28.1": true,
