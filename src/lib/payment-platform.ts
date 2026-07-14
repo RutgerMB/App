@@ -12,7 +12,7 @@ export function getPaymentProvider(): PaymentProvider {
     return 'revenuecat'
   }
   if (Capacitor.getPlatform() === 'ios') return 'apple-iap'
-  return 'stripe-native'
+  return 'mobile-only'
 }
 
 export function requiresAppleIAP(): boolean {
