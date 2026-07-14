@@ -44,7 +44,7 @@ let storeKitSwiftSettings: [SwiftSetting] = hasStoreKit265SDK() ? [.define("STOR
 
 let package = Package(
     name: "CapgoNativePurchases",
-    platforms: [.iOS(.v15)],
+    platforms: [.iOS(.v16)],
     products: [
         .library(
             name: "CapgoNativePurchases",
