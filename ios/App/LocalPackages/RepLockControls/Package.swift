@@ -21,7 +21,8 @@ let package = Package(
             dependencies: [
                 .product(name: "Capacitor", package: "capacitor-swift-pm")
             ],
-            path: "ios/Sources/RepLockPluginBridge"),
+            path: "ios/Sources/RepLockPluginBridge",
+            publicHeadersPath: "."),
         .target(
             name: "RepLockControlsPlugin",
             dependencies: [
