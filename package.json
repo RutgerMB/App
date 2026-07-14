@@ -74,6 +74,7 @@
     "esbuild@0.25.12": true,
     "@firebase/util@1.15.1": true,
     "fsevents@2.3.3": true,
-    "protobufjs@7.6.5": true
+    "protobufjs@7.6.5": true,
+    "sharp@0.34.5": true
   }
 }
