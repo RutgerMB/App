@@ -1,5 +1,10 @@
-import { Capacitor } from '@capacitor/core'
-import { LOG_LEVEL, Purchases, type PurchasesPackage } from '@revenuecat/purchases-capacitor'
+import { Capacitor, registerPlugin } from '@capacitor/core'
+import {
+  LOG_LEVEL,
+  type BillingPeriod,
+  type PurchasesPackage,
+  type PurchasesPlugin,
+} from '@/lib/revenuecat-types'
 import {
   PRODUCT_ID_MONTHLY,
   PRODUCT_ID_YEARLY,
@@ -7,7 +12,11 @@ import {
 } from '@/types'
 import { identifyNativeRevenueCatUser } from '@/lib/replock-revenuecat-native'
 
-export type BillingPeriod = 'monthly' | 'yearly'
+export type { BillingPeriod, PurchasesPackage } from '@/lib/revenuecat-types'
+
+const Purchases = registerPlugin<PurchasesPlugin>('Purchases', {
+  web: () => import('./revenuecat-web-stub').then((m) => m.default),
+})
 
 let configured = false
 

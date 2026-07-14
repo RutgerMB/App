@@ -13,7 +13,6 @@ const config: CapacitorConfig = {
   android: {
     includePlugins: [
       '@revenuecat/purchases-capacitor',
-      '@capacitor-community/stripe',
       '@capacitor/splash-screen',
       '@capacitor/status-bar',
     ],
