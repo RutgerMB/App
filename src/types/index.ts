@@ -239,6 +239,8 @@ export const DEFAULT_APPS: Omit<LockedApp, 'id'>[] = [
 
 export const QUICK_START_EXERCISES: ExerciseType[] = ['pushups', 'squats', 'burpees', 'plank', 'jumping_jacks']
 
+export const DEFAULT_DAILY_OPENINGS = 3
+
 export const FREE_APP_LIMIT = 1
 export const TRIAL_APP_LIMIT = 3
 export const TRIAL_DAYS = 7

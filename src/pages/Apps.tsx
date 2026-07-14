@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/Input'
 import { Progress } from '@/components/ui/Progress'
 import { DeviceAppPicker } from '@/components/DeviceAppPicker'
 import { useStore } from '@/store'
-import { FREE_APP_LIMIT } from '@/types'
+import { FREE_APP_LIMIT, DEFAULT_DAILY_OPENINGS } from '@/types'
+import { localDateString } from '@/lib/dates'
 import { getAppLimitLabel, getTrialStatus } from '@/lib/trial'
 import { formatMinutes, formatTimeRemaining } from '@/lib/utils'
 import { useToast } from '@/components/ui/Toast'
@@ -55,9 +56,9 @@ export function AppsPage() {
       toast(t('apps.unlockedFor', { amount: formatMinutes(unlockMinutes) }), 'success')
       setShowUnlock(null)
     } else {
-      const today = new Date().toISOString().split('T')[0]
+      const today = localDateString()
       const used = profile.openingsDate === today ? (profile.openingsUsedToday ?? 0) : 0
-      const max = profile.dailyOpenings ?? 0
+      const max = profile.dailyOpenings ?? DEFAULT_DAILY_OPENINGS
       if (max > 0 && used >= max) {
         toast(t('apps.openingsLimitReached'), 'error')
       } else {

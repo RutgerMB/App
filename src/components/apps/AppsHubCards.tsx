@@ -4,6 +4,8 @@ import { Dumbbell, Calendar, Zap, Sunrise, Trophy } from 'lucide-react'
 import { MotionCard } from '@/components/ui/Card'
 import { Progress } from '@/components/ui/Progress'
 import { useStore } from '@/store'
+import { DEFAULT_DAILY_OPENINGS } from '@/types'
+import { localDateString } from '@/lib/dates'
 import { useTranslation } from '@/i18n/context'
 import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
@@ -42,7 +44,7 @@ export function ActiveScheduleCard() {
   const profile = useStore((s) => s.profile)
   const apps = useStore((s) => s.apps)
 
-  const openings = profile.dailyOpenings ?? 0
+  const openings = profile.dailyOpenings ?? DEFAULT_DAILY_OPENINGS
   const minutesPerOpening = profile.minutesPerOpening ?? 5
 
   if (openings < 1 || apps.length === 0) return null
@@ -54,7 +56,7 @@ export function ActiveScheduleCard() {
   })()
 
   const usedOpenings = (() => {
-    const today = new Date().toISOString().split('T')[0]
+    const today = localDateString()
     if (profile.openingsDate !== today) return 0
     return profile.openingsUsedToday ?? 0
   })()

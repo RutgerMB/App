@@ -2,6 +2,12 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import type { AppState } from '../src/types/index.js'
+import {
+  entitlementFromAppState,
+  mergeEntitlementIntoAppState,
+  type ProEntitlement,
+} from './entitlement.js'
+import { DEFAULT_DAILY_OPENINGS } from '../src/types/index.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DATA_DIR = path.join(__dirname, 'data')
@@ -14,10 +20,12 @@ export interface StoredUser {
   name: string
   createdAt: number
   appState: AppState
+  entitlement?: ProEntitlement
 }
 
 interface UserDatabase {
   users: StoredUser[]
+  usedAppleTransactionIds?: string[]
 }
 
 function ensureDataFile() {
@@ -77,6 +85,38 @@ export function updateUserAppState(userId: string, appState: AppState): StoredUs
   return db.users[idx]
 }
 
+export function getEntitlement(userId: string): ProEntitlement | undefined {
+  const user = findUserById(userId)
+  if (!user) return undefined
+  if (user.entitlement) return user.entitlement
+  return entitlementFromAppState(user.appState)
+}
+
+export function setEntitlement(userId: string, entitlement: ProEntitlement): StoredUser | undefined {
+  const db = readDb()
+  const idx = db.users.findIndex((u) => u.id === userId)
+  if (idx === -1) return undefined
+
+  db.users[idx].entitlement = entitlement
+  db.users[idx].appState = mergeEntitlementIntoAppState(db.users[idx].appState, entitlement)
+  writeDb(db)
+  return db.users[idx]
+}
+
+export function isAppleTransactionUsed(transactionId: string): boolean {
+  const db = readDb()
+  return (db.usedAppleTransactionIds ?? []).includes(transactionId)
+}
+
+export function markAppleTransactionUsed(transactionId: string): void {
+  const db = readDb()
+  if (!db.usedAppleTransactionIds) db.usedAppleTransactionIds = []
+  if (!db.usedAppleTransactionIds.includes(transactionId)) {
+    db.usedAppleTransactionIds.push(transactionId)
+    writeDb(db)
+  }
+}
+
 function createEmptyAppState(name: string, email: string): AppState {
   return {
     profile: {
@@ -90,6 +130,7 @@ function createEmptyAppState(name: string, email: string): AppState {
       subscriptionId: null,
       subscriptionStatus: null,
       notificationsEnabled: true,
+      dailyOpenings: DEFAULT_DAILY_OPENINGS,
       createdAt: Date.now(),
     },
     screenTimeBalance: 0,

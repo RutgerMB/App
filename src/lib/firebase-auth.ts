@@ -12,8 +12,9 @@ import {
 import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
 import { getFirebaseAuth, getFirebaseDb } from '@/lib/firebase'
 import { withTimeout } from '@/lib/with-timeout'
+import { stripProFieldsFromSnapshot } from '@/lib/entitlement-sanitize'
 import type { AppState } from '@/types'
-import { DEFAULT_APPS } from '@/types'
+import { DEFAULT_APPS, DEFAULT_DAILY_OPENINGS } from '@/types'
 
 export interface FirebaseAuthUser {
   id: string
@@ -42,6 +43,7 @@ export function createEmptyAppState(name: string, email: string): AppState {
       subscriptionId: null,
       subscriptionStatus: null,
       notificationsEnabled: true,
+      dailyOpenings: DEFAULT_DAILY_OPENINGS,
       createdAt: Date.now(),
     },
     screenTimeBalance: 0,
@@ -163,12 +165,13 @@ export async function firebaseLoadAppState(uid: string): Promise<AppState | null
 }
 
 export async function firebaseSaveAppState(uid: string, appState: AppState): Promise<void> {
+  const sanitized = stripProFieldsFromSnapshot(appState)
   await setDoc(
     userDocRef(uid),
     {
-      appState,
-      name: appState.profile.name,
-      email: appState.profile.email,
+      appState: sanitized,
+      name: sanitized.profile.name,
+      email: sanitized.profile.email,
       updatedAt: serverTimestamp(),
     },
     { merge: true }

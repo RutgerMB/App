@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { AppState } from '@/types'
-import { DEFAULT_APPS } from '@/types'
+import { normalizeAppState } from '@/lib/app-state'
 import { loginAccount, registerAccount, syncAppState, deleteAccount, type AuthUser } from '@/lib/auth-api'
 import { isDevToken, DEV_TOKEN } from '@/lib/dev-auth'
 import { isFirebaseConfigured } from '@/lib/firebase'
@@ -15,30 +15,9 @@ import {
   subscribeToAuthState,
   restoreFirebaseSession,
 } from '@/lib/firebase-auth'
+import { stripProFieldsFromSnapshot } from '@/lib/entitlement-sanitize'
 import { mapAuthError } from '@/lib/auth-errors'
 import { useStore } from '@/store'
-
-function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
-}
-
-function normalizeAppState(state: AppState): AppState {
-  const apps =
-    state.apps?.length > 0
-      ? state.apps
-      : DEFAULT_APPS.map((app) => ({ ...app, id: generateId() }))
-
-  return {
-    ...state,
-    apps,
-    sessions: state.sessions ?? [],
-    workoutPlanSessions: state.workoutPlanSessions ?? [],
-    profile: {
-      ...state.profile,
-      difficulty: state.profile.difficulty ?? 'medium',
-    },
-  }
-}
 
 export function getAppStateSnapshot(): AppState {
   const s = useStore.getState()
@@ -240,7 +219,7 @@ export const useAuthStore = create<AuthState>()(
         const { token, user, usesFirebase } = get()
         if (!token || isDevToken(token)) return
 
-        const snapshot = getAppStateSnapshot()
+        const snapshot = stripProFieldsFromSnapshot(getAppStateSnapshot())
 
         if (usesFirebase && isFirebaseConfigured() && user) {
           await firebaseSaveAppState(user.id, snapshot)

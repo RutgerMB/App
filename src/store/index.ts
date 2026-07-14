@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { AppState, ExerciseSession, ExerciseType, LockedApp, WorkoutPlanSession } from '@/types'
-import { DEFAULT_APPS, WORKOUT_PLANS } from '@/types'
+import { DEFAULT_APPS, DEFAULT_DAILY_OPENINGS, WORKOUT_PLANS } from '@/types'
+import { localDateString } from '@/lib/dates'
+import { updateStreak } from '@/lib/streaks'
 import { canAddMoreApps, getAppLimit } from '@/lib/trial'
 import { detectLocale } from '@/i18n'
 import { computeEarnedMinutes, FREE_DIFFICULTY } from '@/lib/earning'
@@ -12,24 +14,6 @@ import type { Locale, Difficulty } from '@/types'
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
-}
-
-function todayString(): string {
-  return new Date().toISOString().split('T')[0]
-}
-
-function updateStreak(lastDate: string | null, currentStreak: number): { streak: number; longest: number } {
-  const today = todayString()
-  if (lastDate === today) return { streak: currentStreak, longest: currentStreak }
-
-  const yesterday = new Date()
-  yesterday.setDate(yesterday.getDate() - 1)
-  const yesterdayStr = yesterday.toISOString().split('T')[0]
-
-  if (lastDate === yesterdayStr) {
-    return { streak: currentStreak + 1, longest: Math.max(currentStreak + 1, currentStreak) }
-  }
-  return { streak: 1, longest: Math.max(1, currentStreak) }
 }
 
 function enforceAppLimit(state: AppState): LockedApp[] {
@@ -49,6 +33,7 @@ const initialState: AppState = {
     subscriptionId: null,
     subscriptionStatus: null,
     notificationsEnabled: true,
+    dailyOpenings: DEFAULT_DAILY_OPENINGS,
     createdAt: Date.now(),
   },
   screenTimeBalance: 0,
@@ -148,9 +133,9 @@ export const useStore = create<AppState & StoreActions>()(
 
       completeExercise: (type, amount, durationSeconds) => {
         const earned = get().getEarnedMinutes(type, amount)
-        const today = todayString()
+        const today = localDateString()
         const { lastExerciseDate, currentStreak, longestStreak } = get()
-        const { streak, longest } = updateStreak(lastExerciseDate, currentStreak)
+        const { streak, longest } = updateStreak(lastExerciseDate, currentStreak, longestStreak, today)
 
         const session: ExerciseSession = {
           id: generateId(),
@@ -178,9 +163,9 @@ export const useStore = create<AppState & StoreActions>()(
         const plan = WORKOUT_PLANS.find((p) => p.id === planId)
         if (!plan) return { total: 0, bonus: 0 }
 
-        const today = todayString()
+        const today = localDateString()
         const { lastExerciseDate, currentStreak, longestStreak } = get()
-        const { streak, longest } = updateStreak(lastExerciseDate, currentStreak)
+        const { streak, longest } = updateStreak(lastExerciseDate, currentStreak, longestStreak, today)
 
         let base = 0
         const newSessions: ExerciseSession[] = results.map((r) => {
@@ -231,10 +216,10 @@ export const useStore = create<AppState & StoreActions>()(
         const app = apps.find((a) => a.id === appId)
         if (!app) return false
 
-        const today = todayString()
+        const today = localDateString()
         let openingsUsed = profile.openingsUsedToday ?? 0
         if (profile.openingsDate !== today) openingsUsed = 0
-        const maxOpenings = profile.dailyOpenings ?? Infinity
+        const maxOpenings = profile.dailyOpenings ?? DEFAULT_DAILY_OPENINGS
         if (Number.isFinite(maxOpenings) && openingsUsed >= maxOpenings) return false
 
         const unlockUntil = Date.now() + minutes * 60 * 1000
@@ -313,7 +298,7 @@ export const useStore = create<AppState & StoreActions>()(
           profile: {
             ...s.profile,
             openingsUsedToday: 0,
-            openingsDate: todayString(),
+            openingsDate: localDateString(),
           },
           apps: s.apps.map((a) => ({
             ...a,
@@ -375,7 +360,7 @@ export const useStore = create<AppState & StoreActions>()(
         if (version < 9) {
           state.profile = {
             ...state.profile,
-            dailyOpenings: state.profile.dailyOpenings ?? 3,
+            dailyOpenings: state.profile.dailyOpenings ?? DEFAULT_DAILY_OPENINGS,
             minutesPerOpening: state.profile.minutesPerOpening ?? 5,
           }
         }
