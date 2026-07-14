@@ -20,6 +20,6 @@ export interface NativePurchasesPlugin {
   getPurchases(options?: {
     productType?: PURCHASE_TYPE
   }): Promise<{
-    purchases: Array<{ productIdentifier: string; isActive?: boolean }>
+    purchases: Array<{ productIdentifier: string; isActive?: boolean; transactionId?: string }>
   }>
 }

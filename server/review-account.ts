@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { createUser, findUserByEmail, updateUserAppState } from './db.js'
+import { createUser, findUserByEmail, updateUserAppState, setEntitlement } from './db.js'
 
 /** Ensures an App Store review account exists when env vars are set. */
 export async function ensureAppReviewAccount(): Promise<void> {
@@ -18,13 +18,19 @@ export async function ensureAppReviewAccount(): Promise<void> {
     createdAt: Date.now(),
   })
 
+  setEntitlement(user.id, {
+    isPro: true,
+    stripeCustomerId: null,
+    subscriptionId: null,
+    subscriptionStatus: 'active',
+    source: 'review',
+  })
+
   updateUserAppState(user.id, {
     ...user.appState,
     profile: {
       ...user.appState.profile,
       onboardingComplete: true,
-      isPro: true,
-      subscriptionStatus: 'active',
     },
     screenTimeBalance: 30,
   })

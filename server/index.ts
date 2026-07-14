@@ -10,6 +10,7 @@ dotenv.config()
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
 const PORT = process.env.PORT || 3001
+const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
 
 import {
   handleRegister,
@@ -18,6 +19,7 @@ import {
   handlePutSync,
   handleDeleteAccount,
   authMiddleware,
+  type AuthPayload,
 } from './auth.js'
 import { ensureAppReviewAccount } from './review-account.js'
 import { isFirebaseAdminConfigured } from './firebase-admin.js'
@@ -25,18 +27,26 @@ import {
   createEphemeralKey,
   resolveSubscriptionPaymentClientSecret,
 } from './stripe-subscription.js'
+import {
+  getEntitlement,
+  setEntitlement,
+  isAppleTransactionUsed,
+  markAppleTransactionUsed,
+} from './db.js'
+import type { ProEntitlement } from './entitlement.js'
 
 const stripeKey = process.env.STRIPE_SECRET_KEY
+
+function isDemoMode(): boolean {
+  return process.env.NODE_ENV !== 'production' && !stripeKey
+}
 
 if (!stripeKey) {
   console.warn('⚠️  STRIPE_SECRET_KEY not set. Payment features will use demo mode.')
 }
 
-const stripe = stripeKey
-  ? new Stripe(stripeKey)
-  : null
+const stripe = stripeKey ? new Stripe(stripeKey) : null
 
-// In-memory price mapping (created on first checkout if no price ID env var)
 let proPriceId = process.env.STRIPE_PRICE_ID || ''
 
 async function ensureProPrice(): Promise<string> {
@@ -60,7 +70,63 @@ async function ensureProPrice(): Promise<string> {
   return proPriceId
 }
 
-app.use(cors())
+function getAuth(req: express.Request): AuthPayload {
+  return (req as express.Request & { auth: AuthPayload }).auth
+}
+
+function customerBelongsToUser(userId: string, customerId: string): boolean {
+  const entitlement = getEntitlement(userId)
+  return entitlement?.stripeCustomerId === customerId
+}
+
+function verifyAppleTransaction(transactionId: string, productId: string): boolean {
+  if (!transactionId.trim() || !productId.trim()) return false
+  if (isDemoMode()) return true
+  if (process.env.APPLE_IAP_VERIFY_SKIP === 'true') return true
+  // Production: integrate App Store Server API. Fail closed until configured.
+  return false
+}
+
+async function refreshEntitlementFromStripe(
+  userId: string,
+  entitlement: ProEntitlement
+): Promise<ProEntitlement> {
+  if (!stripe || !entitlement.stripeCustomerId) return entitlement
+
+  const subscriptions = await stripe.subscriptions.list({
+    customer: entitlement.stripeCustomerId,
+    status: 'active',
+    limit: 1,
+  })
+
+  if (subscriptions.data.length === 0) {
+    const updated: ProEntitlement = {
+      isPro: false,
+      stripeCustomerId: entitlement.stripeCustomerId,
+      subscriptionId: null,
+      subscriptionStatus: null,
+      source: entitlement.source,
+    }
+    setEntitlement(userId, updated)
+    return updated
+  }
+
+  const sub = subscriptions.data[0]
+  const updated: ProEntitlement = {
+    isPro: true,
+    stripeCustomerId: entitlement.stripeCustomerId,
+    subscriptionId: sub.id,
+    subscriptionStatus: 'active',
+    source: 'stripe',
+  }
+  setEntitlement(userId, updated)
+  return updated
+}
+
+const corsOptions =
+  process.env.NODE_ENV === 'production' ? { origin: clientUrl } : {}
+
+app.use(cors(corsOptions))
 app.use(express.json())
 
 app.post('/api/auth/register', handleRegister)
@@ -71,6 +137,7 @@ app.delete('/api/auth/account', authMiddleware, handleDeleteAccount)
 
 app.post('/api/subscription/apple/verify', authMiddleware, async (req, res) => {
   try {
+    const auth = getAuth(req)
     const { transactionId, productId } = req.body as {
       transactionId?: string
       productId?: string
@@ -80,10 +147,28 @@ app.post('/api/subscription/apple/verify', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Missing transaction data' })
     }
 
-    // Production: verify receipt with Apple App Store Server API using transactionId.
-    // For App Review, grant Pro when a valid-looking transaction is submitted from the native IAP flow.
+    if (isAppleTransactionUsed(transactionId)) {
+      return res.status(409).json({ error: 'Transaction already redeemed' })
+    }
+
+    if (!verifyAppleTransaction(transactionId, productId)) {
+      return res.status(403).json({ error: 'Purchase could not be verified' })
+    }
+
+    markAppleTransactionUsed(transactionId)
+
+    const customerId = `apple_${transactionId.slice(0, 12)}`
+    const entitlement: ProEntitlement = {
+      isPro: true,
+      stripeCustomerId: customerId,
+      subscriptionId: transactionId,
+      subscriptionStatus: 'active',
+      source: 'apple',
+    }
+    setEntitlement(auth.userId, entitlement)
+
     res.json({
-      customerId: `apple_${transactionId.slice(0, 12)}`,
+      customerId,
       subscriptionId: transactionId,
       productId,
       verified: true,
@@ -94,21 +179,29 @@ app.post('/api/subscription/apple/verify', authMiddleware, async (req, res) => {
   }
 })
 
-app.post('/api/subscription/payment-sheet', async (req, res) => {
+app.post('/api/subscription/payment-sheet', authMiddleware, async (req, res) => {
   try {
+    const auth = getAuth(req)
     if (!stripe) {
       return res.status(503).json({ error: 'Stripe is not configured. Add STRIPE_SECRET_KEY to .env' })
     }
 
-    const { email, customerId } = req.body as { email?: string; customerId?: string }
+    const { customerId } = req.body as { customerId?: string }
     const priceId = await ensureProPrice()
 
+    if (customerId && !customerBelongsToUser(auth.userId, customerId)) {
+      return res.status(403).json({ error: 'Customer does not belong to this account' })
+    }
+
+    const existingEntitlement = getEntitlement(auth.userId)
+    const resolvedCustomerId = customerId ?? existingEntitlement?.stripeCustomerId ?? undefined
+
     let customer: Stripe.Customer
-    if (customerId) {
-      customer = (await stripe.customers.retrieve(customerId)) as Stripe.Customer
-    } else if (email) {
-      const existing = await stripe.customers.list({ email, limit: 1 })
-      customer = existing.data[0] ?? (await stripe.customers.create({ email }))
+    if (resolvedCustomerId) {
+      customer = (await stripe.customers.retrieve(resolvedCustomerId)) as Stripe.Customer
+    } else if (auth.email) {
+      const existing = await stripe.customers.list({ email: auth.email, limit: 1 })
+      customer = existing.data[0] ?? (await stripe.customers.create({ email: auth.email }))
     } else {
       customer = await stripe.customers.create()
     }
@@ -119,6 +212,7 @@ app.post('/api/subscription/payment-sheet', async (req, res) => {
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['latest_invoice.confirmation_secret', 'latest_invoice.payment_intent'],
+      metadata: { userId: auth.userId },
     })
 
     const clientSecret = await resolveSubscriptionPaymentClientSecret(stripe, subscription)
@@ -136,17 +230,21 @@ app.post('/api/subscription/payment-sheet', async (req, res) => {
   }
 })
 
-app.post('/api/checkout', async (req, res) => {
+app.post('/api/checkout', authMiddleware, async (req, res) => {
   try {
-    if (!stripe) {
-      // Demo mode: redirect to success
+    if (isDemoMode()) {
       return res.json({
-        url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/success?session_id=demo_session`,
+        url: `${clientUrl}/success?session_id=demo_session`,
       })
     }
 
+    if (!stripe) {
+      return res.status(503).json({ error: 'Stripe is not configured' })
+    }
+
+    const auth = getAuth(req)
     const priceId = await ensureProPrice()
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
+    const entitlement = getEntitlement(auth.userId)
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -155,6 +253,9 @@ app.post('/api/checkout', async (req, res) => {
       success_url: `${clientUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${clientUrl}/cancel`,
       allow_promotion_codes: true,
+      customer: entitlement?.stripeCustomerId ?? undefined,
+      customer_email: entitlement?.stripeCustomerId ? undefined : auth.email,
+      metadata: { userId: auth.userId },
     })
 
     res.json({ url: session.url })
@@ -164,25 +265,48 @@ app.post('/api/checkout', async (req, res) => {
   }
 })
 
-app.get('/api/verify-session', async (req, res) => {
+app.get('/api/verify-session', authMiddleware, async (req, res) => {
   try {
+    const auth = getAuth(req)
     const sessionId = req.query.session_id as string
 
-    if (sessionId === 'demo_session' || !stripe) {
+    if (sessionId === 'demo_session' && isDemoMode()) {
+      const entitlement: ProEntitlement = {
+        isPro: true,
+        stripeCustomerId: 'demo_customer',
+        subscriptionId: 'demo_subscription',
+        subscriptionStatus: 'active',
+        source: 'demo',
+      }
+      setEntitlement(auth.userId, entitlement)
       return res.json({
         isPro: true,
-        customerId: 'demo_customer',
-        subscriptionId: 'demo_subscription',
+        customerId: entitlement.stripeCustomerId,
+        subscriptionId: entitlement.subscriptionId,
       })
+    }
+
+    if (!stripe) {
+      return res.status(503).json({ error: 'Stripe is not configured' })
     }
 
     const session = await stripe.checkout.sessions.retrieve(sessionId)
 
     if (session.payment_status === 'paid' || session.status === 'complete') {
+      const customerId = session.customer as string
+      const subscriptionId = session.subscription as string
+      const entitlement: ProEntitlement = {
+        isPro: true,
+        stripeCustomerId: customerId,
+        subscriptionId,
+        subscriptionStatus: 'active',
+        source: 'stripe',
+      }
+      setEntitlement(auth.userId, entitlement)
       res.json({
         isPro: true,
-        customerId: session.customer as string,
-        subscriptionId: session.subscription as string,
+        customerId,
+        subscriptionId,
       })
     } else {
       res.json({ isPro: false })
@@ -193,12 +317,25 @@ app.get('/api/verify-session', async (req, res) => {
   }
 })
 
-app.get('/api/subscription', async (req, res) => {
+app.get('/api/subscription', authMiddleware, async (req, res) => {
   try {
+    const auth = getAuth(req)
     const customerId = req.query.customer_id as string
 
-    if (!stripe || customerId === 'demo_customer') {
+    if (!customerId) {
+      return res.status(400).json({ error: 'customer_id is required' })
+    }
+
+    if (!customerBelongsToUser(auth.userId, customerId)) {
+      return res.status(403).json({ error: 'Customer does not belong to this account' })
+    }
+
+    if (customerId === 'demo_customer' && isDemoMode()) {
       return res.json({ isPro: true, status: 'active' })
+    }
+
+    if (!stripe) {
+      return res.status(503).json({ error: 'Stripe is not configured' })
     }
 
     const subscriptions = await stripe.subscriptions.list({
@@ -219,24 +356,52 @@ app.get('/api/subscription', async (req, res) => {
   }
 })
 
+app.get('/api/subscription/status', authMiddleware, async (req, res) => {
+  try {
+    const auth = getAuth(req)
+    const refresh = req.query.refresh === '1' || req.query.refresh === 'true'
+
+    let entitlement =
+      getEntitlement(auth.userId) ??
+      ({
+        isPro: false,
+        stripeCustomerId: null,
+        subscriptionId: null,
+        subscriptionStatus: null,
+      } satisfies ProEntitlement)
+
+    if (refresh && entitlement.stripeCustomerId && entitlement.source !== 'apple') {
+      entitlement = await refreshEntitlementFromStripe(auth.userId, entitlement)
+    }
+
+    res.json({
+      isPro: entitlement.isPro,
+      stripeCustomerId: entitlement.stripeCustomerId,
+      subscriptionId: entitlement.subscriptionId,
+      subscriptionStatus: entitlement.subscriptionStatus,
+      source: entitlement.source ?? null,
+    })
+  } catch (err) {
+    console.error('Subscription status error:', err)
+    res.status(500).json({ error: 'Failed to get subscription status' })
+  }
+})
+
 app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
     stripe: !!stripe,
     mode: stripeKey?.startsWith('sk_test') ? 'test' : stripe ? 'live' : 'demo',
+    demo: isDemoMode(),
   })
 })
 
-const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
-
-// In dev, port 3001 is API-only — send browsers to the Vite app
 if (process.env.NODE_ENV !== 'production') {
   app.get('/', (_req, res) => {
     res.redirect(clientUrl)
   })
 }
 
-// Serve static files in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../dist')))
   app.get('*', (_req, res) => {
@@ -249,6 +414,7 @@ app.listen(Number(PORT), '0.0.0.0', async () => {
   console.log(`🚀 RepLock server running on http://localhost:${PORT}`)
   console.log(`   App (dev): ${clientUrl}`)
   console.log(`   Stripe: ${stripe ? 'configured' : 'demo mode'}`)
+  console.log(`   Demo mode: ${isDemoMode()}`)
   console.log(`   Firebase Admin: ${isFirebaseAdminConfigured() ? 'configured' : 'not set (JWT auth only on API)'}`)
   if (process.env.APP_REVIEW_EMAIL) {
     console.log(`   App Review login: ${process.env.APP_REVIEW_EMAIL}`)

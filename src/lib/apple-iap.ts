@@ -58,14 +58,44 @@ export async function purchaseAppleProSubscription(): Promise<{
   }
 }
 
-export async function restoreApplePurchases(): Promise<boolean> {
-  if (Capacitor.getPlatform() !== 'ios') return false
+export async function restoreApplePurchases(): Promise<{
+  customerId: string
+  subscriptionId: string
+} | null> {
+  if (Capacitor.getPlatform() !== 'ios') return null
 
   try {
     await NativePurchases.restorePurchases()
     const { purchases } = await NativePurchases.getPurchases()
-    return purchases.some((p) => p.productIdentifier === PRODUCT_ID && p.isActive !== false)
+    const activePurchase = purchases.find(
+      (p) => p.productIdentifier === PRODUCT_ID && p.isActive !== false
+    )
+    if (!activePurchase) return null
+
+    const transactionId =
+      'transactionId' in activePurchase && typeof activePurchase.transactionId === 'string'
+        ? activePurchase.transactionId
+        : `restore_${activePurchase.productIdentifier}_${Date.now()}`
+
+    const verifyRes = await apiFetch('/api/subscription/apple/verify', {
+      method: 'POST',
+      headers: await getBearerHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        transactionId,
+        productId: PRODUCT_ID,
+      }),
+    })
+
+    const data = await verifyRes.json()
+    if (!verifyRes.ok) {
+      throw new Error(data.error ?? 'Could not verify restored purchase')
+    }
+
+    return {
+      customerId: data.customerId ?? 'apple',
+      subscriptionId: data.subscriptionId ?? transactionId,
+    }
   } catch {
-    return false
+    return null
   }
 }

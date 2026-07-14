@@ -111,7 +111,7 @@ export function PricingPage() {
     try {
       const restored = await restoreApplePurchases()
       if (restored) {
-        setProStatus(true, 'apple', 'restored', 'active')
+        setProStatus(true, restored.customerId, restored.subscriptionId, 'active')
         toast(t('pricing.restored'), 'success')
       } else {
         toast(t('pricing.noRestore'), 'info')

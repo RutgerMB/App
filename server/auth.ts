@@ -1,12 +1,31 @@
 import type { Request, Response, NextFunction } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { createUser, findUserByEmail, findUserById, updateUserAppState, deleteUser } from './db.js'
+import {
+  createUser,
+  findUserByEmail,
+  findUserById,
+  updateUserAppState,
+  deleteUser,
+  getEntitlement,
+} from './db.js'
 import { verifyFirebaseIdToken } from './firebase-admin.js'
+import {
+  entitlementFromAppState,
+  mergeEntitlementIntoAppState,
+  sanitizeAppStateForSync,
+} from './entitlement.js'
 import type { AppState } from '../src/types/index.js'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'replock-dev-secret-change-in-production'
+const DEFAULT_JWT_SECRET = 'replock-dev-secret-change-in-production'
+const JWT_SECRET = process.env.JWT_SECRET || DEFAULT_JWT_SECRET
 const TOKEN_EXPIRY = '30d'
+
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === DEFAULT_JWT_SECRET) {
+    throw new Error('JWT_SECRET must be set to a secure value in production')
+  }
+}
 
 export interface AuthPayload {
   userId: string
@@ -72,10 +91,11 @@ export async function handleRegister(req: Request, res: Response) {
     })
 
     const token = signToken({ userId: user.id, email: user.email })
+    const entitlement = getEntitlement(user.id) ?? entitlementFromAppState(user.appState)
     res.json({
       token,
       user: { id: user.id, email: user.email, name: user.name },
-      appState: user.appState,
+      appState: mergeEntitlementIntoAppState(user.appState, entitlement),
     })
   } catch (err) {
     console.error('Register error:', err)
@@ -98,10 +118,11 @@ export async function handleLogin(req: Request, res: Response) {
     if (!valid) return res.status(401).json({ error: 'Invalid email or password' })
 
     const token = signToken({ userId: user.id, email: user.email })
+    const entitlement = getEntitlement(user.id) ?? entitlementFromAppState(user.appState)
     res.json({
       token,
       user: { id: user.id, email: user.email, name: user.name },
-      appState: user.appState,
+      appState: mergeEntitlementIntoAppState(user.appState, entitlement),
     })
   } catch (err) {
     console.error('Login error:', err)
@@ -113,7 +134,8 @@ export function handleGetSync(req: Request, res: Response) {
   const { auth } = req as Request & { auth: AuthPayload }
   const user = findUserById(auth.userId)
   if (!user) return res.status(404).json({ error: 'User not found' })
-  res.json({ appState: user.appState })
+  const entitlement = getEntitlement(auth.userId) ?? entitlementFromAppState(user.appState)
+  res.json({ appState: mergeEntitlementIntoAppState(user.appState, entitlement) })
 }
 
 export function handlePutSync(req: Request, res: Response) {
@@ -122,9 +144,15 @@ export function handlePutSync(req: Request, res: Response) {
   if (!appState?.profile) {
     return res.status(400).json({ error: 'Invalid app state' })
   }
+
+  const user = findUserById(auth.userId)
+  if (!user) return res.status(404).json({ error: 'User not found' })
+
+  const entitlement = getEntitlement(auth.userId) ?? entitlementFromAppState(user.appState)
+  const sanitized = sanitizeAppStateForSync(user.appState, appState, entitlement)
   const updated = updateUserAppState(auth.userId, {
-    ...appState,
-    profile: { ...appState.profile, email: auth.email },
+    ...sanitized,
+    profile: { ...sanitized.profile, email: auth.email },
   })
   if (!updated) return res.status(404).json({ error: 'User not found' })
   res.json({ ok: true })

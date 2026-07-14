@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core'
 import { Stripe, PaymentSheetEventsEnum } from '@capacitor-community/stripe'
 import { apiFetch } from '@/lib/api'
+import { getBearerHeaders } from '@/lib/auth-headers'
 import { canUseStripe } from '@/lib/payment-platform'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
@@ -34,7 +35,7 @@ export async function presentNativeProCheckout(
 
   const res = await apiFetch('/api/subscription/payment-sheet', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await getBearerHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({
       email,
       customerId: customerId ?? undefined,
