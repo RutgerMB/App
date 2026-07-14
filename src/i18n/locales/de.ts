@@ -136,7 +136,8 @@ export const de: Translations = {
     chooseDifficultyDesc: 'Höherer Schwierigkeitsgrad = weniger Bildschirmzeit pro Workout.',
     selectAppsTitle: 'Welche Apps rauben dir deinen Gym-Fokus?',
     selectAppsDesc: 'Wähle Ablenkungen, die du durch Workouts zurückverdienen willst.',
-    selectAppsHint: 'Tippen zum Auswählen. Mindestens eine App wählen.',
+    selectAppsHint: 'Tippen zum Auswählen. Du kannst auch mit beliebten Apps weitermachen.',
+    selectAppsSkipHint: 'Beliebte Standard-Apps — wähle später in Apps deine eigenen.',
     screenTimePermissionTitle: 'Sieh deine echte Bildschirmzeit',
     screenTimePermissionDesc: 'RepLock braucht Nutzungszugriff, um deine tatsächliche tägliche Bildschirmzeit anzuzeigen.',
     screenTimePermissionAndroid:

@@ -135,7 +135,8 @@ export const fr: Translations = {
     chooseDifficultyDesc: 'Plus la difficulté est élevée, moins tu gagnes de temps d\'écran par workout.',
     selectAppsTitle: 'Quelles apps volent ta concentration à la salle ?',
     selectAppsDesc: 'Choisis les distractions que tu veux regagner grâce aux workouts.',
-    selectAppsHint: 'Appuie pour sélectionner. Choisis au moins une app.',
+    selectAppsHint: 'Appuie pour sélectionner. Tu peux aussi continuer avec des apps populaires.',
+    selectAppsSkipHint: 'Apps populaires pour l\'instant — choisis les tiennes dans Apps.',
     screenTimePermissionTitle: 'Voir ton vrai temps d\'écran',
     screenTimePermissionDesc: 'RepLock a besoin de l\'accès aux données d\'utilisation pour afficher ton temps d\'écran réel.',
     screenTimePermissionAndroid:

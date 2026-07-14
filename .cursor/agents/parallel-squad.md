@@ -15,6 +15,7 @@ In a **single message**, delegate to all four subagents concurrently. Do not wai
 | `security` | `.cursor/agents/security.md` | Auth, payments, secrets, permissions |
 | `data` | `.cursor/agents/data.md` | State shape, sync, earning/streak logic |
 | `testing` | `.cursor/agents/testing.md` | Test coverage, run suite, add missing tests |
+| `marketing` | `.cursor/agents/marketing.md` | Store assets, TikTok, Figma screenshots, ASO, launch hype |
 
 ## Invocation template
 

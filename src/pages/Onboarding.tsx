@@ -25,6 +25,8 @@ import {
   TrialTimeline,
 } from '@/components/onboarding/SetupSteps'
 import { BlocklistPicker, resolveSelectedApps } from '@/components/onboarding/BlocklistPicker'
+import { Slider } from '@/components/ui/Slider'
+import { DEVICE_APPS } from '@/data/device-apps'
 import { SetupIntroIllustration, ScreenTimePermissionStep } from '@/components/onboarding/OnboardingVisuals'
 import type { DeviceAppDefinition } from '@/data/device-apps'
 import { getDeviceApps, isNativeIos, usesIosActivityPicker } from '@/lib/device-apps'
@@ -46,6 +48,7 @@ import type { Locale, Difficulty } from '@/types'
 import { isNativeBlockingAvailable } from '@/lib/app-blocker'
 import { openPrivacy, openTerms } from '@/lib/legal'
 import { requestPushPermission } from '@/lib/push-notifications'
+import { cn } from '@/lib/utils'
 
 const SCREEN_TIME_KEY = 'replock-onboarding-screen-hours'
 const DEFAULT_SELECTED_APPS = ['instagram', 'tiktok', 'youtube']
@@ -129,30 +132,43 @@ function PrivacySheet({ open, onClose }: { open: boolean; onClose: () => void })
   )
 }
 
+const SCREEN_TIME_PRESETS = [2, 4, 6, 8] as const
+
 function ScreenTimeSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const { t } = useTranslation()
-  const fillPct = ((value - 1) / 11) * 100
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center w-full max-w-sm mx-auto">
       <p className="text-5xl font-bold gradient-text mb-8 tabular-nums">{value}h</p>
-      <div className="relative w-24 h-56 rounded-[2.5rem] bg-indigo-500/10 border-2 border-indigo-500/25 overflow-hidden">
-        <motion.div
-          className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-indigo-600 to-violet-500 rounded-b-[2.25rem]"
-          animate={{ height: `${fillPct}%` }}
-          transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-        />
-        <input
-          type="range"
-          min={1}
-          max={12}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          aria-label={t('intro.screenTimeQuestion')}
-        />
+      <Slider
+        min={1}
+        max={12}
+        value={value}
+        onChange={onChange}
+        className="max-w-xs"
+        aria-label={t('intro.screenTimeQuestion')}
+      />
+      <div className="flex justify-between w-full max-w-xs mt-2 text-xs text-white/30 tabular-nums">
+        <span>1h</span>
+        <span>12h</span>
       </div>
-      <p className="text-sm text-white/45 mt-6 font-medium">{t('intro.screenTimeHint')}</p>
+      <div className="flex flex-wrap justify-center gap-2 mt-6">
+        {SCREEN_TIME_PRESETS.map((h) => (
+          <button
+            key={h}
+            type="button"
+            onClick={() => onChange(h)}
+            className={cn(
+              'px-4 py-2 rounded-xl text-sm font-semibold border transition-colors',
+              value === h
+                ? 'bg-indigo-500/25 border-indigo-400/50 text-indigo-200'
+                : 'bg-surface-2 border-border text-white/55 hover:border-border-hover'
+            )}
+          >
+            {h}h
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
@@ -311,9 +327,33 @@ export function OnboardingPage() {
       advance()
       return
     }
+    if (step === STEP.SELECT_APPS) {
+      if (selectedApps.size === 0) {
+        const catalog = appCatalog.length > 0 ? appCatalog : await getDeviceApps()
+        const fallbackCatalog = catalog.length > 0 ? catalog : DEVICE_APPS
+        const defaults = DEFAULT_SELECTED_APPS.map((id) => fallbackCatalog.find((a) => a.id === id)).filter(
+          (a): a is DeviceAppDefinition => Boolean(a)
+        )
+        if (defaults.length > 0) {
+          setSelectedApps(new Set(defaults.map((a) => a.id)))
+          setAppCatalog(fallbackCatalog)
+          if (usesIosActivityPicker()) {
+            toast(t('onboarding.selectAppsSkipHint'), 'info')
+          }
+        }
+      }
+      advance()
+      return
+    }
     if (step === STEP.CREATE_GOAL) {
       const catalog = appCatalog.length > 0 ? appCatalog : await getDeviceApps()
-      const resolved = resolveSelectedApps(selectedApps, catalog)
+      const fallbackCatalog = catalog.length > 0 ? catalog : DEVICE_APPS
+      let resolved = resolveSelectedApps(selectedApps, fallbackCatalog)
+      if (resolved.length === 0) {
+        resolved = DEFAULT_SELECTED_APPS.map((id) => fallbackCatalog.find((a) => a.id === id)).filter(
+          (a): a is DeviceAppDefinition => Boolean(a)
+        )
+      }
       if (resolved.length === 0) return
       setBlockingGoal(openingsPerDay, MINUTES_PER_OPENING)
       setOnboardingApps(resolved, openingsPerDay * MINUTES_PER_OPENING)
@@ -354,8 +394,7 @@ export function OnboardingPage() {
           ? t('intro.yearsCta')
           : undefined
 
-  const continueDisabled =
-    (step === STEP.NAME && !name.trim()) || (step === STEP.SELECT_APPS && selectedApps.size === 0)
+  const continueDisabled = step === STEP.NAME && !name.trim()
   const hideFooter = step === STEP.BENEFITS || step === STEP.NOTIFICATIONS
 
   const footer = hideFooter ? undefined : (

@@ -135,7 +135,8 @@ export const es: Translations = {
     chooseDifficultyDesc: 'Mayor dificultad = menos tiempo de pantalla por entrenamiento.',
     selectAppsTitle: '¿Qué apps roban tu enfoque en el gym?',
     selectAppsDesc: 'Elige las distracciones que quieres recuperar con entrenamientos.',
-    selectAppsHint: 'Toca para seleccionar. Elige al menos una.',
+    selectAppsHint: 'Toca para seleccionar. También puedes continuar con apps populares.',
+    selectAppsSkipHint: 'Usando apps populares por ahora — elige las tuyas en Apps cuando quieras.',
     screenTimePermissionTitle: 'Mira tu tiempo de pantalla real',
     screenTimePermissionDesc: 'RepLock necesita acceso de uso para mostrar tu tiempo de pantalla diario real.',
     screenTimePermissionAndroid:

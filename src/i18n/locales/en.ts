@@ -138,7 +138,8 @@ export const en: Translations = {
     chooseDifficultyDesc: 'Higher difficulty means less screen time per workout — more discipline required.',
     selectAppsTitle: 'Which apps steal your gym focus?',
     selectAppsDesc: 'Pick the distractions you want to earn back through workouts.',
-    selectAppsHint: 'Tap to select or deselect. Choose at least one.',
+    selectAppsHint: 'Tap to select or deselect. You can also continue with popular defaults.',
+    selectAppsSkipHint: 'Using popular defaults for now — pick real apps anytime in Apps.',
     screenTimePermissionTitle: 'See your real screen time',
     screenTimePermissionDesc: 'RepLock needs usage access to show your actual daily screen time — not a guess.',
     screenTimePermissionAndroid:

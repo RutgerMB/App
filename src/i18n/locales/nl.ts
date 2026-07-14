@@ -138,7 +138,8 @@ export const nl: Translations = {
     chooseDifficultyDesc: 'Hogere moeilijkheid = minder schermtijd per workout — meer discipline nodig.',
     selectAppsTitle: 'Welke apps stelen je gym-focus?',
     selectAppsDesc: 'Kies de afleidingen die je terug wilt verdienen met workouts.',
-    selectAppsHint: 'Tik om te selecteren. Kies minimaal één.',
+    selectAppsHint: 'Tik om te selecteren. Je kunt ook doorgaan met populaire defaults.',
+    selectAppsSkipHint: 'Populaire defaults voor nu — kies later je apps via Apps.',
     screenTimePermissionTitle: 'Bekijk je echte schermtijd',
     screenTimePermissionDesc: 'RepLock heeft gebruikstoegang nodig om je werkelijke schermtijd te tonen.',
     screenTimePermissionAndroid:

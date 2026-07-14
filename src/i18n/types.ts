@@ -167,6 +167,7 @@ export interface Translations {
     selectAppsTitle: string
     selectAppsDesc: string
     selectAppsHint: string
+    selectAppsSkipHint: string
     screenTimePermissionTitle: string
     screenTimePermissionDesc: string
     screenTimePermissionAndroid: string

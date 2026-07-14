@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { useTranslation } from '@/i18n/context'
 import { AppIcon } from '@/components/AppBrandIcon'
 import { Progress } from '@/components/ui/Progress'
+import { Slider } from '@/components/ui/Slider'
 import { DEVICE_APPS } from '@/data/device-apps'
 import type { DeviceAppDefinition } from '@/data/device-apps'
 
@@ -78,13 +79,12 @@ export function OpeningsSlider({ value, onChange }: { value: number; onChange: (
           {t('onboarding.openingsLabel')}
         </p>
       </div>
-      <input
-        type="range"
+      <Slider
         min={1}
         max={10}
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full max-w-xs h-2 rounded-full appearance-none bg-white/10 accent-indigo-500 cursor-pointer"
+        onChange={onChange}
+        className="max-w-xs"
         aria-label={t('onboarding.openingsLabel')}
       />
       <div className="flex justify-between w-full max-w-xs mt-2 text-xs text-white/30 tabular-nums">

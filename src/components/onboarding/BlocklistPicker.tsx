@@ -24,9 +24,11 @@ const CATEGORY_EMOJI: Record<string, string> = {
 export function BlocklistPicker({
   selected,
   onChange,
+  onIosPickedCountChange,
 }: {
   selected: Set<string>
   onChange: (next: Set<string>) => void
+  onIosPickedCountChange?: (count: number) => void
 }) {
   const { t } = useTranslation()
   const { toast } = useToast()
@@ -40,11 +42,12 @@ export function BlocklistPicker({
     setLoading(true)
     const list = await getDeviceApps()
     setApps(list)
+    onIosPickedCountChange?.(list.length)
     setLoading(false)
     if (onIos && list.length > 0) {
       onChange(new Set(list.map((a) => a.id)))
     }
-  }, [onChange, onIos])
+  }, [onChange, onIos, onIosPickedCountChange])
 
   useEffect(() => {
     void refreshApps()
@@ -61,6 +64,7 @@ export function BlocklistPicker({
         return
       }
       setApps(result.apps)
+      onIosPickedCountChange?.(result.apps.length)
       if (result.apps.length > 0) {
         onChange(new Set(result.apps.map((a) => a.id)))
       } else {
@@ -104,6 +108,7 @@ export function BlocklistPicker({
     return (
       <div className="flex flex-col -mx-1">
         <p className="text-xs text-white/50 mb-4 leading-relaxed">{t('apps.iosPickAppsHint')}</p>
+        <p className="text-xs text-white/35 mb-4 leading-relaxed">{t('onboarding.selectAppsHint')}</p>
 
         <button
           type="button"
