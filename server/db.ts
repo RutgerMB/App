@@ -55,6 +55,15 @@ export function findUserById(id: string): StoredUser | undefined {
   return db.users.find((u) => u.id === id)
 }
 
+export function findUserIdByStripeCustomerId(customerId: string): string | undefined {
+  const db = readDb()
+  for (const user of db.users) {
+    const entitlement = user.entitlement ?? entitlementFromAppState(user.appState)
+    if (entitlement.stripeCustomerId === customerId) return user.id
+  }
+  return undefined
+}
+
 export function createUser(data: Omit<StoredUser, 'appState'> & { appState?: AppState }): StoredUser {
   const db = readDb()
   const user: StoredUser = {

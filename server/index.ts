@@ -34,6 +34,8 @@ import {
   markAppleTransactionUsed,
 } from './db.js'
 import type { ProEntitlement } from './entitlement.js'
+import { verifyAppleTransaction, isValidAppleProductId } from './apple-iap-verify.js'
+import { handleStripeWebhookEvent } from './stripe-webhook.js'
 
 const stripeKey = process.env.STRIPE_SECRET_KEY
 
@@ -79,14 +81,6 @@ function customerBelongsToUser(userId: string, customerId: string): boolean {
   return entitlement?.stripeCustomerId === customerId
 }
 
-function verifyAppleTransaction(transactionId: string, productId: string): boolean {
-  if (!transactionId.trim() || !productId.trim()) return false
-  if (isDemoMode()) return true
-  if (process.env.APPLE_IAP_VERIFY_SKIP === 'true') return true
-  // Production: integrate App Store Server API. Fail closed until configured.
-  return false
-}
-
 async function refreshEntitlementFromStripe(
   userId: string,
   entitlement: ProEntitlement
@@ -127,6 +121,43 @@ const corsOptions =
   process.env.NODE_ENV === 'production' ? { origin: clientUrl } : {}
 
 app.use(cors(corsOptions))
+
+app.post(
+  '/api/webhooks/stripe',
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    if (!stripe) {
+      return res.status(503).json({ error: 'Stripe is not configured' })
+    }
+
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+    if (!webhookSecret) {
+      return res.status(503).json({ error: 'Stripe webhook secret is not configured' })
+    }
+
+    const signature = req.headers['stripe-signature']
+    if (!signature || typeof signature !== 'string') {
+      return res.status(400).json({ error: 'Missing Stripe signature' })
+    }
+
+    let event: Stripe.Event
+    try {
+      event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret)
+    } catch (err) {
+      console.error('Stripe webhook signature verification failed:', err)
+      return res.status(400).json({ error: 'Invalid webhook signature' })
+    }
+
+    try {
+      const result = handleStripeWebhookEvent(event)
+      res.json({ received: true, handled: result.handled, userId: result.userId ?? null })
+    } catch (err) {
+      console.error('Stripe webhook handler error:', err)
+      res.status(500).json({ error: 'Webhook handler failed' })
+    }
+  }
+)
+
 app.use(express.json())
 
 app.post('/api/auth/register', handleRegister)
@@ -147,11 +178,15 @@ app.post('/api/subscription/apple/verify', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Missing transaction data' })
     }
 
+    if (!isValidAppleProductId(productId)) {
+      return res.status(400).json({ error: 'Invalid product ID' })
+    }
+
     if (isAppleTransactionUsed(transactionId)) {
       return res.status(409).json({ error: 'Transaction already redeemed' })
     }
 
-    if (!verifyAppleTransaction(transactionId, productId)) {
+    if (!verifyAppleTransaction(transactionId, productId, !!stripeKey)) {
       return res.status(403).json({ error: 'Purchase could not be verified' })
     }
 
