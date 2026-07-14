@@ -7,13 +7,15 @@ const NativePurchases = registerPlugin<NativePurchasesPlugin>('NativePurchases',
   web: () => import('./apple-iap-web-stub').then((m) => m.default),
 })
 
-const PRODUCT_ID = import.meta.env.VITE_APPLE_PRODUCT_ID || 'replock_pro_monthly'
+const PRODUCT_ID_MONTHLY = import.meta.env.VITE_APPLE_PRODUCT_ID || 'replock_pro_monthly'
+const PRODUCT_ID_YEARLY =
+  import.meta.env.VITE_APPLE_PRODUCT_ID_YEARLY || 'replock_pro_yearly'
 
 export function isAppleIAPConfigured(): boolean {
-  return Capacitor.getPlatform() === 'ios' && Boolean(PRODUCT_ID)
+  return Capacitor.getPlatform() === 'ios' && Boolean(PRODUCT_ID_MONTHLY)
 }
 
-export async function purchaseAppleProSubscription(): Promise<{
+async function purchaseProduct(productId: string): Promise<{
   customerId: string
   subscriptionId: string
 }> {
@@ -22,17 +24,17 @@ export async function purchaseAppleProSubscription(): Promise<{
   }
 
   const { product } = await NativePurchases.getProduct({
-    productIdentifier: PRODUCT_ID,
+    productIdentifier: productId,
     productType: PURCHASE_TYPE.SUBS,
   })
   if (!product?.identifier) {
     throw new Error(
-      `Product "${PRODUCT_ID}" not found. Create it in App Store Connect and use a StoreKit config file while testing.`
+      `Product "${productId}" not found. Create it in App Store Connect and use a StoreKit config file while testing.`
     )
   }
 
   const result = await NativePurchases.purchaseProduct({
-    productIdentifier: PRODUCT_ID,
+    productIdentifier: productId,
     productType: PURCHASE_TYPE.SUBS,
     quantity: 1,
   })
@@ -42,7 +44,7 @@ export async function purchaseAppleProSubscription(): Promise<{
     headers: await getBearerHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({
       transactionId: result.transactionId,
-      productId: PRODUCT_ID,
+      productId,
     }),
   })
 
@@ -57,6 +59,20 @@ export async function purchaseAppleProSubscription(): Promise<{
   }
 }
 
+export async function purchaseAppleProSubscription(): Promise<{
+  customerId: string
+  subscriptionId: string
+}> {
+  return purchaseProduct(PRODUCT_ID_MONTHLY)
+}
+
+export async function purchaseAppleProSubscriptionYearly(): Promise<{
+  customerId: string
+  subscriptionId: string
+}> {
+  return purchaseProduct(PRODUCT_ID_YEARLY)
+}
+
 export async function restoreApplePurchases(): Promise<{
   customerId: string
   subscriptionId: string
@@ -67,7 +83,10 @@ export async function restoreApplePurchases(): Promise<{
     await NativePurchases.restorePurchases()
     const { purchases } = await NativePurchases.getPurchases()
     const activePurchase = purchases.find(
-      (p) => p.productIdentifier === PRODUCT_ID && p.isActive !== false
+      (p) =>
+        (p.productIdentifier === PRODUCT_ID_MONTHLY ||
+          p.productIdentifier === PRODUCT_ID_YEARLY) &&
+        p.isActive !== false
     )
     if (!activePurchase) return null
 
@@ -81,7 +100,7 @@ export async function restoreApplePurchases(): Promise<{
       headers: await getBearerHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         transactionId,
-        productId: PRODUCT_ID,
+        productId: activePurchase.productIdentifier,
       }),
     })
 

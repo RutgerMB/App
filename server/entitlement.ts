@@ -5,7 +5,7 @@ export interface ProEntitlement {
   stripeCustomerId: string | null
   subscriptionId: string | null
   subscriptionStatus: 'active' | 'canceled' | 'past_due' | null
-  source?: 'stripe' | 'apple' | 'demo' | 'review'
+  source?: 'stripe' | 'apple' | 'revenuecat' | 'demo' | 'review'
 }
 
 export function entitlementFromAppState(appState: AppState): ProEntitlement {

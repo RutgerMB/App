@@ -493,7 +493,13 @@ export interface Translations {
     trialFullAccess: string
     socialProof: string
     mostPopular: string
+    monthly: string
+    yearly: string
     perMonth: string
+    perYear: string
+    savePercent: string
+    yearlyEquivalent: string
+    yearlySavings: string
     lessThanCoffee: string
     feature1Title: string
     feature1Desc: string
@@ -524,7 +530,12 @@ export interface Translations {
     upgrade: string
     keepAccess: string
     subscribe: string
+    subscribeYearly: string
     trialNote: string
+    mobileOnly: string
+    mobileOnlyTitle: string
+    mobileOnlyDesc: string
+    storeTerms: string
     testMode: string
     alreadyPro: string
     subscribeApple: string

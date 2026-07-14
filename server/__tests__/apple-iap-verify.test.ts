@@ -15,18 +15,23 @@ describe('allowedAppleProductIds', () => {
 
   it('includes configured product id and default', () => {
     process.env.VITE_APPLE_PRODUCT_ID = 'custom_monthly'
-    expect(allowedAppleProductIds()).toEqual(['custom_monthly', 'replock_pro_monthly'])
+    expect(allowedAppleProductIds()).toEqual([
+      'custom_monthly',
+      'replock_pro_yearly',
+      'replock_pro_monthly',
+    ])
   })
 
   it('defaults to replock_pro_monthly when unset', () => {
     delete process.env.VITE_APPLE_PRODUCT_ID
-    expect(allowedAppleProductIds()).toEqual(['replock_pro_monthly'])
+    expect(allowedAppleProductIds()).toEqual(['replock_pro_monthly', 'replock_pro_yearly'])
   })
 })
 
 describe('isValidAppleProductId', () => {
   it('accepts default and configured ids', () => {
     expect(isValidAppleProductId('replock_pro_monthly')).toBe(true)
+    expect(isValidAppleProductId('replock_pro_yearly')).toBe(true)
   })
 
   it('rejects unknown product ids', () => {

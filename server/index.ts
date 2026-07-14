@@ -36,6 +36,11 @@ import {
 import type { ProEntitlement } from './entitlement.js'
 import { verifyAppleTransaction, isValidAppleProductId } from './apple-iap-verify.js'
 import { handleStripeWebhookEvent } from './stripe-webhook.js'
+import {
+  handleRevenueCatWebhookEvent,
+  verifyRevenueCatAuthorization,
+  type RevenueCatWebhookPayload,
+} from './revenuecat-webhook.js'
 
 const stripeKey = process.env.STRIPE_SECRET_KEY
 
@@ -159,6 +164,27 @@ app.post(
 )
 
 app.use(express.json())
+
+app.post('/api/webhooks/revenuecat', async (req, res) => {
+  const webhookSecret = process.env.REVENUECAT_WEBHOOK_SECRET
+  const authHeader = req.headers.authorization
+
+  if (!verifyRevenueCatAuthorization(
+    typeof authHeader === 'string' ? authHeader : undefined,
+    webhookSecret
+  )) {
+    return res.status(401).json({ error: 'Unauthorized webhook' })
+  }
+
+  try {
+    const payload = req.body as RevenueCatWebhookPayload
+    const result = handleRevenueCatWebhookEvent(payload)
+    res.json({ received: true, handled: result.handled, userId: result.userId ?? null })
+  } catch (err) {
+    console.error('RevenueCat webhook handler error:', err)
+    res.status(500).json({ error: 'Webhook handler failed' })
+  }
+})
 
 app.post('/api/auth/register', handleRegister)
 app.post('/api/auth/login', handleLogin)
@@ -405,7 +431,7 @@ app.get('/api/subscription/status', authMiddleware, async (req, res) => {
         subscriptionStatus: null,
       } satisfies ProEntitlement)
 
-    if (refresh && entitlement.stripeCustomerId && entitlement.source !== 'apple') {
+    if (refresh && entitlement.stripeCustomerId && entitlement.source === 'stripe') {
       entitlement = await refreshEntitlementFromStripe(auth.userId, entitlement)
     }
 

@@ -2,21 +2,21 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
-  Check, Sparkles, Grid3X3, BarChart3, Shield, Sliders, Dumbbell,
+  Check, Sparkles, Grid3X3, BarChart3, Shield, Sliders, Dumbbell, Smartphone,
 } from 'lucide-react'
 import { MotionButton } from '@/components/ui/Button'
 import { BackButton } from '@/components/ui/BackButton'
 import { Badge } from '@/components/ui/Badge'
-import { createCheckoutSession, formatPrice } from '@/lib/utils'
-import { shouldUseNativeStripeCheckout, presentNativeProCheckout } from '@/lib/stripe'
-import { requiresAppleIAP } from '@/lib/payment-platform'
-import { purchaseAppleProSubscription, restoreApplePurchases } from '@/lib/apple-iap'
+import { formatPrice } from '@/lib/utils'
+import { usesStoreSubscriptions } from '@/lib/mobile-purchases'
+import { purchaseProSubscription, restoreMobilePurchases } from '@/lib/mobile-purchases'
+import { usesRevenueCat } from '@/lib/payment-platform'
 import { refreshEntitlementFromServer } from '@/lib/entitlement'
 import { openPrivacy, openTerms } from '@/lib/legal'
-import { useAuthStore } from '@/store/auth'
 import { useToast } from '@/components/ui/Toast'
 import { useStore } from '@/store'
-import { PRO_PRICE_MONTHLY, TRIAL_APP_LIMIT } from '@/types'
+import { PRO_PRICE_MONTHLY, PRO_PRICE_YEARLY, TRIAL_APP_LIMIT } from '@/types'
+import type { BillingPeriod } from '@/lib/revenuecat'
 import {
   getTrialDaysRemaining,
   getTrialHoursRemaining,
@@ -31,15 +31,19 @@ export function PricingPage() {
   const { toast } = useToast()
   const { t } = useTranslation()
   const { profile } = useStore()
-  const authUser = useAuthStore((s) => s.user)
   const [loading, setLoading] = useState(false)
-  const useAppleIAP = requiresAppleIAP()
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('yearly')
+  const storeCheckout = usesStoreSubscriptions()
+  const revenueCat = usesRevenueCat()
 
   const trialStatus = getTrialStatus(profile)
   const daysLeft = getTrialDaysRemaining(profile.createdAt)
   const hoursLeft = getTrialHoursRemaining(profile.createdAt)
   const isUrgent = trialStatus === 'trial' && daysLeft <= 2
   const isExpired = trialStatus === 'expired'
+  const yearlyMonthlyEquivalent = PRO_PRICE_YEARLY / 12
+  const yearlySavings = PRO_PRICE_MONTHLY * 12 - PRO_PRICE_YEARLY
+  const yearlyDiscountPct = Math.round((1 - PRO_PRICE_YEARLY / (PRO_PRICE_MONTHLY * 12)) * 100)
 
   const features = [
     { icon: Grid3X3, titleKey: 'pricing.feature1Title', descKey: 'pricing.feature1Desc' },
@@ -77,29 +81,17 @@ export function PricingPage() {
       return
     }
 
+    if (!storeCheckout) {
+      toast(t('pricing.mobileOnly'), 'info')
+      return
+    }
+
     setLoading(true)
     try {
-      if (useAppleIAP) {
-        await purchaseAppleProSubscription()
-        await refreshEntitlementFromServer(true)
-        toast(t('pricing.onPro'), 'success')
-        navigate('/success?native=1', { replace: true, state: successNavigateState })
-        return
-      }
-
-      if (shouldUseNativeStripeCheckout()) {
-        await presentNativeProCheckout(
-          authUser?.email ?? profile.email,
-          profile.stripeCustomerId
-        )
-        await refreshEntitlementFromServer(true)
-        toast(t('pricing.onPro'), 'success')
-        navigate('/success?native=1', { replace: true, state: successNavigateState })
-        return
-      }
-
-      const url = await createCheckoutSession('pro_monthly')
-      window.location.href = url
+      await purchaseProSubscription(billingPeriod)
+      await refreshEntitlementFromServer(true)
+      toast(t('pricing.onPro'), 'success')
+      navigate('/success?native=1', { replace: true, state: successNavigateState })
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Checkout failed', 'error')
     } finally {
@@ -108,9 +100,14 @@ export function PricingPage() {
   }
 
   const handleRestore = async () => {
+    if (!storeCheckout) {
+      toast(t('pricing.mobileOnly'), 'info')
+      return
+    }
+
     setLoading(true)
     try {
-      const restored = await restoreApplePurchases()
+      const restored = await restoreMobilePurchases()
       if (restored) {
         await refreshEntitlementFromServer(true)
         toast(t('pricing.restored'), 'success')
@@ -123,6 +120,11 @@ export function PricingPage() {
       setLoading(false)
     }
   }
+
+  const displayPrice =
+    billingPeriod === 'yearly' ? PRO_PRICE_YEARLY : PRO_PRICE_MONTHLY
+  const priceSuffix =
+    billingPeriod === 'yearly' ? t('pricing.perYear') : t('pricing.perMonth')
 
   return (
     <div className="min-h-dvh bg-surface-0 noise flex flex-col safe-top safe-bottom overflow-y-auto">
@@ -186,21 +188,69 @@ export function PricingPage() {
           </p>
         </motion.div>
 
+        {!profile.isPro && storeCheckout && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-2 gap-2 mb-4 p-1 rounded-2xl bg-surface-2 border border-border"
+          >
+            <button
+              type="button"
+              onClick={() => setBillingPeriod('yearly')}
+              className={`relative py-3 px-3 rounded-xl text-sm font-semibold transition-colors ${
+                billingPeriod === 'yearly'
+                  ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-500/40'
+                  : 'text-white/45'
+              }`}
+            >
+              {t('pricing.yearly')}
+              {billingPeriod === 'yearly' && (
+                <span className="absolute -top-2 right-2 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  {t('pricing.savePercent', { percent: yearlyDiscountPct })}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingPeriod('monthly')}
+              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-colors ${
+                billingPeriod === 'monthly'
+                  ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-500/40'
+                  : 'text-white/45'
+              }`}
+            >
+              {t('pricing.monthly')}
+            </button>
+          </motion.div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
           className="p-6 rounded-3xl bg-surface-2 border border-indigo-500/30 gradient-border mb-6 relative overflow-hidden"
         >
-          <div className="absolute top-0 right-0 px-3 py-1 bg-indigo-500/20 rounded-bl-xl">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-300">{t('pricing.mostPopular')}</span>
-          </div>
+          {billingPeriod === 'yearly' && (
+            <div className="absolute top-0 right-0 px-3 py-1 bg-indigo-500/20 rounded-bl-xl">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-300">
+                {t('pricing.mostPopular')}
+              </span>
+            </div>
+          )}
 
           <div className="flex items-baseline gap-1 mb-1">
-            <span className="text-4xl font-bold">{formatPrice(PRO_PRICE_MONTHLY)}</span>
-            <span className="text-white/40 text-sm">{t('pricing.perMonth')}</span>
+            <span className="text-4xl font-bold">{formatPrice(displayPrice)}</span>
+            <span className="text-white/40 text-sm">{priceSuffix}</span>
           </div>
-          <p className="text-xs text-white/35 mb-6">{t('pricing.lessThanCoffee')}</p>
+          {billingPeriod === 'yearly' ? (
+            <p className="text-xs text-emerald-400/80 mb-6">
+              {t('pricing.yearlyEquivalent', { price: formatPrice(yearlyMonthlyEquivalent) })}
+              {' · '}
+              {t('pricing.yearlySavings', { amount: formatPrice(yearlySavings) })}
+            </p>
+          ) : (
+            <p className="text-xs text-white/35 mb-6">{t('pricing.lessThanCoffee')}</p>
+          )}
 
           <div className="space-y-4">
             {features.map((f, i) => (
@@ -270,32 +320,36 @@ export function PricingPage() {
               <p className="font-semibold text-emerald-300">{t('pricing.onPro')}</p>
               <p className="text-xs text-white/40 mt-1">{t('pricing.onProDesc')}</p>
             </div>
+          ) : !storeCheckout ? (
+            <div className="text-center p-5 rounded-2xl bg-surface-2 border border-border">
+              <Smartphone size={28} className="mx-auto text-indigo-400 mb-3" />
+              <p className="font-semibold text-white/80 mb-1">{t('pricing.mobileOnlyTitle')}</p>
+              <p className="text-xs text-white/40 leading-relaxed">{t('pricing.mobileOnlyDesc')}</p>
+            </div>
           ) : (
             <>
               <MotionButton fullWidth size="xl" onClick={handleSubscribe} loading={loading}>
-                {useAppleIAP
-                  ? t('pricing.subscribeApple')
-                  : isExpired
-                    ? t('pricing.upgrade')
-                    : isUrgent
-                      ? t('pricing.keepAccess')
+                {isExpired
+                  ? t('pricing.upgrade')
+                  : isUrgent
+                    ? t('pricing.keepAccess')
+                    : billingPeriod === 'yearly'
+                      ? t('pricing.subscribeYearly')
                       : t('pricing.subscribe')}
               </MotionButton>
-              {useAppleIAP && (
-                <button
-                  type="button"
-                  onClick={handleRestore}
-                  disabled={loading}
-                  className="w-full text-center text-sm text-indigo-400/80 hover:text-indigo-300 py-2"
-                >
-                  {t('pricing.restorePurchases')}
-                </button>
-              )}
-              {!isExpired && !useAppleIAP && (
+              <button
+                type="button"
+                onClick={handleRestore}
+                disabled={loading}
+                className="w-full text-center text-sm text-indigo-400/80 hover:text-indigo-300 py-2"
+              >
+                {t('pricing.restorePurchases')}
+              </button>
+              {!isExpired && (
                 <p className="text-center text-xs text-white/30">{t('pricing.trialNote')}</p>
               )}
               <p className="text-center text-[11px] text-white/30 leading-relaxed px-2">
-                {useAppleIAP ? t('pricing.appleTerms') : t('pricing.stripeTerms')}
+                {revenueCat ? t('pricing.storeTerms') : t('pricing.appleTerms')}
               </p>
               <p className="text-center text-[11px] text-white/25">
                 <button type="button" onClick={openTerms} className="underline hover:text-white/40">{t('legal.termsTitle')}</button>

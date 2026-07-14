@@ -17,6 +17,7 @@ import {
 } from '@/lib/firebase-auth'
 import { stripProFieldsFromSnapshot } from '@/lib/entitlement-sanitize'
 import { refreshEntitlementFromServer } from '@/lib/entitlement'
+import { initMobilePurchases } from '@/lib/mobile-purchases'
 import { mapAuthError } from '@/lib/auth-errors'
 import { useStore } from '@/store'
 
@@ -59,6 +60,10 @@ interface AuthState {
 let syncTimer: ReturnType<typeof setTimeout> | null = null
 let unsubscribeAuth: (() => void) | null = null
 
+async function linkMobilePurchases(userId: string) {
+  await initMobilePurchases(userId).catch(() => {})
+}
+
 export function scheduleCloudSync() {
   const { token, usesFirebase } = useAuthStore.getState()
   if (!token) return
@@ -100,6 +105,7 @@ export const useAuthStore = create<AuthState>()(
             })
             applyAppState(session.appState)
             await refreshEntitlementFromServer().catch(() => {})
+            await linkMobilePurchases(session.user.id)
           })
         }
 
@@ -112,6 +118,7 @@ export const useAuthStore = create<AuthState>()(
           })
           applyAppState(session.appState)
           await refreshEntitlementFromServer().catch(() => {})
+          await linkMobilePurchases(session.user.id)
         } else {
           set({ token: null, user: null, usesFirebase: true })
         }
@@ -128,12 +135,14 @@ export const useAuthStore = create<AuthState>()(
             useStore.setState((s) => ({
               profile: { ...s.profile, name: name.trim(), email: email.trim().toLowerCase() },
             }))
+            await linkMobilePurchases(res.user.id)
             return
           }
 
           const res = await registerAccount(email, password, name)
           set({ token: res.token, user: res.user, usesFirebase: false })
           applyAppState(res.appState)
+          await linkMobilePurchases(res.user.id)
           useStore.setState((s) => ({
             profile: { ...s.profile, name: name.trim(), email: email.trim().toLowerCase() },
           }))
@@ -149,6 +158,7 @@ export const useAuthStore = create<AuthState>()(
             set({ token: res.idToken, user: res.user, usesFirebase: true })
             applyAppState(res.appState)
             await refreshEntitlementFromServer().catch(() => {})
+            await linkMobilePurchases(res.user.id)
             return
           }
 
@@ -156,6 +166,7 @@ export const useAuthStore = create<AuthState>()(
           set({ token: res.token, user: res.user, usesFirebase: false })
           applyAppState(res.appState)
           await refreshEntitlementFromServer().catch(() => {})
+          await linkMobilePurchases(res.user.id)
         } catch (err) {
           throw mapAuthError(err)
         }

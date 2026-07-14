@@ -5,7 +5,9 @@
 
 ---
 
-## Posting order (5-day pre-launch)
+## Posting order (5-day quick start)
+
+For a **30-day launch campaign**, see `docs/marketing/CONTENT-CALENDAR.md` (10 slideshow packs, 1–2 posts/day).
 
 | Day | Slideshow | Folder | Sound |
 |-----|-----------|--------|-------|

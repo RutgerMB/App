@@ -16,6 +16,7 @@ In a **single message**, delegate to all four subagents concurrently. Do not wai
 | `data` | `.cursor/agents/data.md` | State shape, sync, earning/streak logic |
 | `testing` | `.cursor/agents/testing.md` | Test coverage, run suite, add missing tests |
 | `marketing` | `.cursor/agents/marketing.md` | Store assets, TikTok, Figma screenshots, ASO, launch hype |
+| `economy` | `.cursor/agents/economy.md` | Pricing, annual vs monthly, trial/free tuning, RevenueCat products |
 
 ## Invocation template
 

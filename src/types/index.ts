@@ -245,7 +245,15 @@ export const FREE_APP_LIMIT = 1
 export const TRIAL_APP_LIMIT = 3
 export const TRIAL_DAYS = 7
 export const PRO_PRICE_MONTHLY = 7.99
+export const PRO_PRICE_YEARLY = 59.99
 export const PRO_CURRENCY = 'EUR'
+
+export const PRODUCT_ID_MONTHLY = 'replock_pro_monthly'
+export const PRODUCT_ID_YEARLY = 'replock_pro_yearly'
+export const GOOGLE_SUBSCRIPTION_ID = 'replock_pro'
+export const GOOGLE_PLAN_MONTHLY = 'monthly-plan'
+export const GOOGLE_PLAN_YEARLY = 'yearly-plan'
+export const REVENUECAT_ENTITLEMENT = 'pro'
 
 export function getExercisesByCategory(category: ExerciseCategory): ExerciseType[] {
   return (Object.keys(EXERCISES) as ExerciseType[]).filter((id) => EXERCISES[id].category === category)

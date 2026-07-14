@@ -85,6 +85,71 @@ const SLIDESHOWS = {
       { text: 'Search RepLock', cta: true },
     ],
   },
+  6: {
+    name: 'Morning Scroll Trap',
+    folder: 'slideshow-6',
+    slides: [
+      { text: 'POV: 6am alarm.\nAlready lost to the feed.', hook: true },
+      { text: 'Open eyes. Open Instagram.' },
+      { text: '45 min in bed. Zero steps.' },
+      { text: 'Gym bag still packed from yesterday' },
+      { text: 'Morning routine = scroll routine' },
+      { text: 'RepLock made me earn breakfast scroll time', pivot: true },
+      { text: 'Search RepLock', cta: true },
+    ],
+  },
+  7: {
+    name: 'Plateau Phone Theory',
+    folder: 'slideshow-7',
+    slides: [
+      { text: 'Stuck at the same weight for 3 months.\nPhone usage up 40%.', hook: true },
+      { text: 'Track every macro' },
+      { text: 'Skip every rest-day walk' },
+      { text: 'Scroll between every set' },
+      { text: 'Sleep trash. Recovery trash.' },
+      { text: 'Maybe the problem was never the program.', pivot: true },
+      { text: 'Search RepLock', cta: true },
+    ],
+  },
+  8: {
+    name: 'Sunday Reset',
+    folder: 'slideshow-8',
+    slides: [
+      { text: 'Sunday: meal prep ✓\nSunday: 4 hours on the phone ✓', hook: true },
+      { text: 'New week. Same habits.' },
+      { text: 'Deleted TikTok. Reinstalled TikTok.' },
+      { text: 'Bought pre-workout instead' },
+      { text: 'Still no discipline' },
+      { text: 'Needed an app that blocks until I move', pivot: true },
+      { text: 'Search RepLock', cta: true },
+    ],
+  },
+  9: {
+    name: 'Push-Up Tax',
+    folder: 'slideshow-9',
+    slides: [
+      { text: 'Every minute of scroll costs reps now.', hook: true },
+      { text: 'Want Instagram? 10 push-ups.' },
+      { text: 'Want YouTube? Squats.' },
+      { text: 'Want one more episode? Plank.' },
+      { text: 'Suddenly the feed isn\'t worth it' },
+      { text: 'That\'s RepLock. Earn it or lock it.', pivot: true },
+      { text: 'Search RepLock', cta: true },
+    ],
+  },
+  10: {
+    name: 'Gym Mirror vs Phone',
+    folder: 'slideshow-10',
+    slides: [
+      { text: 'Checks form in mirror: 2 times\nChecks phone: 47 times', hook: true },
+      { text: 'Filming sets for the gram' },
+      { text: 'Never posting. Always scrolling.' },
+      { text: 'Rest timer = entertainment timer' },
+      { text: 'Left the gym tired. Of scrolling.' },
+      { text: 'RepLock turned my rest into reps', pivot: true },
+      { text: 'Search RepLock', cta: true },
+    ],
+  },
 }
 
 function escapeXml(str) {
@@ -233,7 +298,7 @@ async function main() {
   for (const id of ids) {
     const config = SLIDESHOWS[id]
     if (!config) {
-      console.error(`Unknown slideshow: ${id}. Use 1-5 or all.`)
+      console.error(`Unknown slideshow: ${id}. Use 1-10 or all.`)
       process.exit(1)
     }
     await generateSlideshow(id, config)

@@ -1,8 +1,10 @@
 const DEFAULT_APPLE_PRODUCT_ID = 'replock_pro_monthly'
+const DEFAULT_YEARLY_PRODUCT_ID = 'replock_pro_yearly'
 
 export function allowedAppleProductIds(): string[] {
   const configured = process.env.VITE_APPLE_PRODUCT_ID || DEFAULT_APPLE_PRODUCT_ID
-  return [...new Set([configured, DEFAULT_APPLE_PRODUCT_ID])]
+  const yearly = process.env.VITE_APPLE_PRODUCT_ID_YEARLY || DEFAULT_YEARLY_PRODUCT_ID
+  return [...new Set([configured, yearly, DEFAULT_APPLE_PRODUCT_ID, DEFAULT_YEARLY_PRODUCT_ID])]
 }
 
 export function isValidAppleProductId(productId: string): boolean {
