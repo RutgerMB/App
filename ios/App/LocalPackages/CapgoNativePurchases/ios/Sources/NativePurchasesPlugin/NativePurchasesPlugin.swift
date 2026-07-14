@@ -102,7 +102,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
         let autoAcknowledge = call.getBool("autoAcknowledgePurchases") ?? true
 
         if productIdentifier.isEmpty {
-            call.reject("productIdentifier is Empty, give an id")
+            capgoReject(call,"productIdentifier is Empty, give an id")
             return
         }
 
@@ -112,7 +112,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
             do {
                 let products = try await Product.products(for: [productIdentifier])
                 guard let product = products.first else {
-                    call.reject("Cannot find product for id \(productIdentifier)")
+                    capgoReject(call,"Cannot find product for id \(productIdentifier)")
                     return
                 }
 
@@ -127,7 +127,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
                 case .option(let option):
                     purchaseOptions.insert(option)
                 case .failure(let message):
-                    call.reject(message)
+                    capgoReject(call,message)
                     return
                 }
 
@@ -136,7 +136,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
                 await self.handlePurchaseResult(result, call: call, autoFinish: autoAcknowledge)
             } catch {
                 print(error)
-                call.reject(error.localizedDescription)
+                capgoReject(call,error.localizedDescription)
             }
         }
     }
@@ -151,7 +151,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
                 }
                 await MainActor.run { call.resolve() }
             } catch {
-                await MainActor.run { call.reject(error.localizedDescription) }
+                await MainActor.run { capgoReject(call,error.localizedDescription) }
             }
         }
     }
@@ -169,7 +169,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
                 await MainActor.run { call.resolve(["products": productsJson]) }
             } catch {
                 print("error \(error)")
-                await MainActor.run { call.reject(error.localizedDescription) }
+                await MainActor.run { capgoReject(call,error.localizedDescription) }
             }
         }
     }
@@ -180,7 +180,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
         print("productIdentifier \(productIdentifier)")
         print("productType \(productType)")
         if productIdentifier.isEmpty {
-            call.reject("productIdentifier is empty")
+            capgoReject(call,"productIdentifier is empty")
             return
         }
 
@@ -191,11 +191,11 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
                 if let product = products.first {
                     await MainActor.run { call.resolve(["product": product.dictionary]) }
                 } else {
-                    await MainActor.run { call.reject("Product not found") }
+                    await MainActor.run { capgoReject(call,"Product not found") }
                 }
             } catch {
                 print(error)
-                await MainActor.run { call.reject(error.localizedDescription) }
+                await MainActor.run { capgoReject(call,error.localizedDescription) }
             }
         }
     }
@@ -212,7 +212,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
                 )
                 await MainActor.run { call.resolve(["purchases": allPurchases]) }
             } catch {
-                await MainActor.run { call.reject(error.localizedDescription) }
+                await MainActor.run { capgoReject(call,error.localizedDescription) }
             }
         }
     }
@@ -222,14 +222,14 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
         Task { @MainActor in
             do {
                 guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
-                    call.reject("Unable to get window scene")
+                    capgoReject(call,"Unable to get window scene")
                     return
                 }
                 try await AppStore.showManageSubscriptions(in: windowScene)
                 call.resolve()
             } catch {
                 print("manageSubscriptions error: \(error)")
-                call.reject(error.localizedDescription)
+                capgoReject(call,error.localizedDescription)
             }
         }
     }
@@ -241,7 +241,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
                 await self.handlePresentOfferCodeRedeemSheet(call)
             }
         } else {
-            call.reject("Offer code redemption requires iOS 16.0 or later")
+            capgoReject(call,"Offer code redemption requires iOS 16.0 or later")
         }
     }
 
@@ -249,12 +249,12 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
         print("acknowledgePurchase called on iOS")
 
         guard let purchaseToken = call.getString("purchaseToken") else {
-            call.reject("purchaseToken is required")
+            capgoReject(call,"purchaseToken is required")
             return
         }
 
         guard let transactionId = UInt64(purchaseToken) else {
-            call.reject("Invalid purchaseToken format")
+            capgoReject(call,"Invalid purchaseToken format")
             return
         }
 
@@ -269,7 +269,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
 
             guard let transaction = foundTransaction else {
                 await MainActor.run {
-                    call.reject("Transaction not found or already finished. Transaction ID: \(transactionId)")
+                    capgoReject(call,"Transaction not found or already finished. Transaction ID: \(transactionId)")
                 }
                 return
             }
@@ -284,7 +284,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func consumePurchase(_ call: CAPPluginCall) {
-        call.reject("consumePurchase is only available on Android")
+        capgoReject(call,"consumePurchase is only available on Android")
     }
 
 }
@@ -325,14 +325,14 @@ extension NativePurchasesPlugin {
     private func handlePresentOfferCodeRedeemSheet(_ call: CAPPluginCall) async {
         do {
             guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
-                call.reject("Unable to get window scene")
+                capgoReject(call,"Unable to get window scene")
                 return
             }
             try await AppStore.presentOfferCodeRedeemSheet(in: windowScene)
             call.resolve()
         } catch {
             print("presentOfferCodeRedeemSheet error: \(error)")
-            call.reject(error.localizedDescription)
+            capgoReject(call,error.localizedDescription)
         }
     }
 
@@ -343,13 +343,13 @@ extension NativePurchasesPlugin {
                 await self.handleGetAppTransaction(call)
             }
         } else {
-            call.reject("App Transaction requires iOS 16.0 or later")
+            capgoReject(call,"App Transaction requires iOS 16.0 or later")
         }
     }
 
     @objc func isEntitledToOldBusinessModel(_ call: CAPPluginCall) {
         guard let targetBuildNumber = call.getString("targetBuildNumber"), !targetBuildNumber.isEmpty else {
-            call.reject("targetBuildNumber is required on iOS")
+            capgoReject(call,"targetBuildNumber is required on iOS")
             return
         }
 
@@ -358,7 +358,7 @@ extension NativePurchasesPlugin {
                 await self.handleIsEntitledToOldBusinessModel(call, targetBuildNumber: targetBuildNumber)
             }
         } else {
-            call.reject("App Transaction requires iOS 16.0 or later")
+            capgoReject(call,"App Transaction requires iOS 16.0 or later")
         }
     }
 
@@ -382,11 +382,11 @@ extension NativePurchasesPlugin {
                 ]
                 call.resolve(["appTransaction": response])
             case .unverified(_, let error):
-                call.reject("App transaction verification failed: \(error.localizedDescription)")
+                capgoReject(call,"App transaction verification failed: \(error.localizedDescription)")
             }
         } catch {
             print("getAppTransaction error: \(error)")
-            call.reject("Failed to get app transaction: \(error.localizedDescription)")
+            capgoReject(call,"Failed to get app transaction: \(error.localizedDescription)")
         }
     }
 
@@ -409,11 +409,11 @@ extension NativePurchasesPlugin {
                     "originalAppVersion": originalBuildNumber
                 ])
             case .unverified(_, let error):
-                call.reject("App transaction verification failed: \(error.localizedDescription)")
+                capgoReject(call,"App transaction verification failed: \(error.localizedDescription)")
             }
         } catch {
             print("isEntitledToOldBusinessModel error: \(error)")
-            call.reject("Failed to get app transaction: \(error.localizedDescription)")
+            capgoReject(call,"Failed to get app transaction: \(error.localizedDescription)")
         }
     }
 }

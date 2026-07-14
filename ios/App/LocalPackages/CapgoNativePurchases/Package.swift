@@ -51,12 +51,14 @@ let package = Package(
             targets: ["NativePurchasesPlugin"])
     ],
     dependencies: [
-        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "8.0.0")
+        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "8.0.0"),
+        .package(name: "RepLockControls", path: "../RepLockControls")
     ],
     targets: [
         .target(
             name: "NativePurchasesPlugin",
             dependencies: [
+                .product(name: "RepLockPluginBridge", package: "RepLockControls"),
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
                 .product(name: "Cordova", package: "capacitor-swift-pm")
             ],

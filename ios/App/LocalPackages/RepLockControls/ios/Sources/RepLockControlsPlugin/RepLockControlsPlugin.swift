@@ -1,13 +1,14 @@
 import UIKit
 import Capacitor
 import FamilyControls
+import RepLockPluginBridge
 
 // MARK: - Xcode 15.4 + Capacitor 8 SPM helpers
-// Capacitor 8 SPM binaries hide `reject` / typed getters when built with Xcode 26.
-// `errorHandler` and @objc CAPPluginCallError stay visible on older toolchains.
+// Capacitor 8 SPM hides `reject` and CAPPluginCallError Swift inits on Xcode 15.x.
+// RepLockPluginBridge constructs CAPPluginCallError via Obj-C init:message:code:error:data:.
 
 private func repLockReject(_ call: CAPPluginCall, _ message: String, code: String? = nil) {
-    call.errorHandler(CAPPluginCallError(message: message, code: code, error: nil, data: [:]))
+    RepLockRejectPluginCall(call, message, code)
 }
 
 private func repLockPresenter(for plugin: CAPPlugin) -> UIViewController? {

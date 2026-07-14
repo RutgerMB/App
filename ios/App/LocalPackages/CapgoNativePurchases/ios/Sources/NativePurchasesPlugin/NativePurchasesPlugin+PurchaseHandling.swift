@@ -24,14 +24,14 @@ extension NativePurchasesPlugin {
                 }
                 call.resolve(response)
             case .unverified(_, let error):
-                call.reject(error.localizedDescription)
+                capgoReject(call,error.localizedDescription)
             }
         case .pending:
-            call.reject("Transaction pending")
+            capgoReject(call,"Transaction pending")
         case .userCancelled:
-            call.reject("User cancelled")
+            capgoReject(call,"User cancelled")
         @unknown default:
-            call.reject("Unknown error")
+            capgoReject(call,"Unknown error")
         }
     }
 }

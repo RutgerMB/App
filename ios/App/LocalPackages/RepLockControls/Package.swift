@@ -7,15 +7,25 @@ let package = Package(
     products: [
         .library(
             name: "RepLockControls",
-            targets: ["RepLockControlsPlugin"])
+            targets: ["RepLockControlsPlugin"]),
+        .library(
+            name: "RepLockPluginBridge",
+            targets: ["RepLockPluginBridge"])
     ],
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.1")
     ],
     targets: [
         .target(
+            name: "RepLockPluginBridge",
+            dependencies: [
+                .product(name: "Capacitor", package: "capacitor-swift-pm")
+            ],
+            path: "ios/Sources/RepLockPluginBridge"),
+        .target(
             name: "RepLockControlsPlugin",
             dependencies: [
+                "RepLockPluginBridge",
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
                 .product(name: "Cordova", package: "capacitor-swift-pm")
             ],
