@@ -41,7 +41,17 @@ interface RepLockControlsPlugin {
   setDisplayNames(options: { names: Record<string, string> }): Promise<{ ok: boolean }>
   applyRules(options: { rules: IosBlockerRule[] }): Promise<{ ok: boolean }>
   clearShields(): Promise<{ ok: boolean }>
-  getDailyScreenTimeHours(): Promise<{ hours: number; minutes: number }>
+  getDailyScreenTimeHours(options?: {
+    force?: boolean
+  }): Promise<{
+    hours: number
+    minutes: number
+    totalMinutes?: number
+    hoursWhole?: number
+    day?: string
+    updatedAt?: number
+    source?: string
+  }>
 }
 
 const RepLockControlsNative = registerPlugin<RepLockControlsPlugin>('RepLockControls')
@@ -263,4 +273,32 @@ export async function syncIosBlockingRules(rules: IosBlockerRule[]): Promise<voi
 export async function clearIosShields(): Promise<void> {
   if (!isIosControlsAvailable()) return
   await RepLockControlsNative.clearShields()
+}
+
+/**
+ * Today's OS Screen Time from the DeviceActivityReport extension via App Group.
+ * Returns null if unauthorized, extension missing, or no report written yet.
+ */
+export async function fetchIosDailyScreenTimeHours(options?: {
+  force?: boolean
+}): Promise<{ hours: number; minutes: number; totalMinutes?: number } | null> {
+  if (!isIosControlsAvailable()) return null
+  try {
+    const ready = await isRepLockControlsPluginReady()
+    if (!ready) return null
+    const status = await getIosControlsStatus()
+    if (!status.authorized) return null
+    const result = await RepLockControlsNative.getDailyScreenTimeHours(
+      options?.force ? { force: true } : undefined
+    )
+    if (typeof result?.hours !== 'number') return null
+    return {
+      hours: result.hours,
+      minutes: result.minutes ?? 0,
+      totalMinutes: result.totalMinutes,
+    }
+  } catch (err) {
+    console.warn('[RepLockControls] getDailyScreenTimeHours failed', pluginErrorMeta(err))
+    return null
+  }
 }

@@ -41,6 +41,17 @@ open ios/App/App.xcodeproj
 
 Without Apple’s Family Controls approval on the App ID, Authorize and the app picker will appear to do nothing or fail immediately.
 
+### 4b. DeviceActivityReport extension (daily Screen Time totals)
+
+Sources live under `ios/App/RepLockDeviceActivityReport/`. You must **once** add the Xcode target (Windows cannot reliably create `.appex` targets).
+
+1. Apple Developer → new App ID **`app.replock.bleeker.DeviceActivityReport`** with **Family Controls** + App Group **`group.com.replock.fitness`**.
+2. Xcode → **File → New → Target → Device Activity Report Extension** → bundle ID above → embed in **App**.
+3. Replace/add the Swift sources from the repo folder; use the folder’s entitlements.
+4. Full click-path: **`IOS_SETUP.md` → DeviceActivityReport extension**.
+
+Until the `.appex` is embedded and you rebuild on a physical iPhone, onboarding “actual” hours stay on the estimate path (`getDailyScreenTimeHours` → no data).
+
 ### 5. Set production API URL (release build)
 
 **Do you need a local server on the PC/Mac?**

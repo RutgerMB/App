@@ -1,5 +1,6 @@
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import {
+  fetchIosDailyScreenTimeHours,
   getIosControlsStatus,
   isIosControlsAvailable,
   isRepLockControlsPluginReady,
@@ -78,7 +79,7 @@ export async function requestScreenTimePermission(): Promise<void> {
   await ScreenTimeNative.requestPermission()
 }
 
-/** iOS Family Controls authorization (blocking + picker — not daily usage totals yet). */
+/** iOS Family Controls authorization (blocking + picker; totals need DeviceActivityReport). */
 export async function requestIosScreenTimeAccess(): Promise<IosScreenTimeAuthResult> {
   if (!isIosControlsAvailable()) return { ok: false, reason: 'unsupported' }
 
@@ -126,12 +127,11 @@ export async function refreshIosScreenTimeAccess(): Promise<IosScreenTimeAuthRes
 }
 
 export async function fetchDailyScreenTimeHours(): Promise<ScreenTimeResult | null> {
-    // OS-wide daily Screen Time totals are sandboxed on iOS. Apple only surfaces
-    // usage via a DeviceActivityReport extension (not implemented yet), so we
-    // cannot return hours into JS. Android uses UsageStatsManager instead.
-    if (getScreenTimePlatform() === 'ios') {
-      return null
-    }
+  // iOS: DeviceActivityReport extension writes today's minutes to the App Group;
+  // RepLockControls hosts a probe and returns hours/minutes into JS.
+  if (getScreenTimePlatform() === 'ios') {
+    return fetchIosDailyScreenTimeHours({ force: true })
+  }
 
   if (getScreenTimePlatform() !== 'android') return null
   try {
@@ -143,7 +143,7 @@ export async function fetchDailyScreenTimeHours(): Promise<ScreenTimeResult | nu
   }
 }
 
-/** Android UsageStats per-app minutes for today. iOS returns null until DeviceActivityReport. */
+/** Android UsageStats per-app minutes for today. iOS returns null (opaque tokens). */
 export async function fetchDailyAppUsage(
   packageNames?: string[]
 ): Promise<AppUsageRow[] | null> {

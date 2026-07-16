@@ -21,6 +21,7 @@ Follow **every step** below on your **Mac** (not Windows).
 |--------|--------|
 | Login / API | Works (`npm run cap:ios:sync`) |
 | Screen Time / app blocking | Native (`RepLockControls` local SPM plugin) |
+| Daily Screen Time totals (iOS) | Needs **DeviceActivityReport** extension target in Xcode (sources in repo; see below) |
 | Apple In-App Purchase | Native (`CapgoNativePurchases` local SPM plugin) |
 
 `CapgoNativePurchases` enables StoreKit 2.6.5 APIs only when the active Xcode SDK supports them — older Xcode builds skip those symbols automatically.
@@ -210,7 +211,85 @@ RepLock therefore:
 2. Lets you type a **nickname** (and optional emoji) that is stored and shown in the WebView Apps tab
 3. Offers **View real names & icons (system)** on the Apps page for the same native labels anytime
 
-Daily OS Screen Time totals also cannot be read into JS until a **DeviceActivityReport** extension is added (not implemented yet).
+**Daily Screen Time totals (DeviceActivityReport)** — scaffold is in the repo; you must add the Xcode extension target once (next section). After that, onboarding “actual hours” reads from the App Group via `RepLockControls.getDailyScreenTimeHours`.
+
+---
+
+## DeviceActivityReport extension (one-time Mac / Apple Developer setup)
+
+Apple does **not** let the main app process read OS Screen Time totals. A **Device Activity Report** extension receives usage data, writes today’s total minutes into App Group `group.com.replock.fitness`, and the main app reads them.
+
+### What is already in the repo
+
+| Path | Role |
+|------|------|
+| `ios/App/RepLockDeviceActivityReport/*.swift` | Extension sources (sum today’s activity → App Group) |
+| `ios/App/RepLockDeviceActivityReport/*.entitlements` | Family Controls + App Group |
+| `ios/App/LocalPackages/RepLockControls/.../ScreenTimeReportHost.swift` | Hosts a tiny `DeviceActivityReport` probe |
+| `RepLockControls.getDailyScreenTimeHours` | Triggers probe + returns hours/minutes to JS |
+
+**Not automated from Windows:** creating the `.appex` target and embedding it in `App.xcodeproj` (fragile to hand-edit). Do that once in Xcode on a Mac.
+
+### A. Apple Developer portal
+
+1. Open [developer.apple.com/account](https://developer.apple.com/account) → **Identifiers**.
+2. Confirm App ID **`app.replock.bleeker`** has:
+   - **Family Controls** (request approval if not yet granted; wellbeing / Screen Time justification)
+   - **App Groups** → `group.com.replock.fitness`
+3. **+** → Register a new **App ID** (type: App):
+   - Description: `RepLock Device Activity Report`
+   - Bundle ID (Explicit): **`app.replock.bleeker.DeviceActivityReport`**
+   - Capabilities: **Family Controls**, **App Groups** → same group `group.com.replock.fitness`
+4. If you use manual provisioning profiles, create a Development (and later Distribution) profile for the new App ID. With **Automatic Signing** in Xcode this is usually unnecessary.
+5. **Family Controls Development** (Xcode 15.4): for local device builds, Development Family Controls is enough once the capability is on both App IDs. Production/TestFlight still needs Apple’s Family Controls entitlement approval for the main app (and typically the extension).
+
+Optional later (schedules / thresholds only — **not** needed for daily totals):
+
+- App ID `app.replock.bleeker.DeviceActivityMonitor` + Device Activity Monitor extension.
+
+### B. Add the target in Xcode (required)
+
+```bash
+cd ~/Documents/GitHub/App
+git pull
+npm run cap:ios:sync
+open ios/App/App.xcodeproj
+```
+
+1. **File → New → Target…**
+2. Choose **Device Activity Report Extension** (iOS) → Next.
+3. Set:
+   - **Product Name:** `RepLockDeviceActivityReport`
+   - **Team:** same as App
+   - **Bundle Identifier:** `app.replock.bleeker.DeviceActivityReport`
+   - Language: Swift
+   - Embed in Application: **App**
+4. Activate the scheme if prompted.
+5. **Delete** the template Swift files Xcode generated (keep the target).
+6. In the Project Navigator, right-click the `RepLockDeviceActivityReport` group → **Add Files to "App"…** → select everything under `ios/App/RepLockDeviceActivityReport/` **except** `README.md` (`.swift`, `Info.plist`, `.entitlements`). Check **Add to targets: RepLockDeviceActivityReport** only.
+7. Target **RepLockDeviceActivityReport** → **Signing & Capabilities**:
+   - Team = same as App
+   - **Automatically manage signing**
+   - CODE_SIGN_ENTITLEMENTS = `RepLockDeviceActivityReport/RepLockDeviceActivityReport.entitlements`
+   - Add capability **Family Controls** (if not pulled from entitlements file)
+   - Add capability **App Groups** → `group.com.replock.fitness`
+8. Target **App** → **General** → **Frameworks, Libraries, and Embedded Content** (or Build Phases → **Embed Foundation Extensions**): confirm `RepLockDeviceActivityReport.appex` is listed and **Embed & Sign**.
+9. Deployment target **iOS 16.0** for the extension (same as App).
+10. **Product → Clean Build Folder**, then **Run ▶** on a **physical iPhone**.
+
+### C. Verify end-to-end
+
+1. Authorize Screen Time in RepLock (Family Controls approved).
+2. Open onboarding Screen Time permission / reveal step (or call `getDailyScreenTimeHours` from the Apps flow).
+3. Native host embeds a 2×2pt `DeviceActivityReport`; the extension writes `replock.dailyScreenTime.*` into the App Group.
+4. JS receives `{ hours, minutes, totalMinutes, source: "deviceActivityReport" }`.
+
+If JS still gets no hours:
+
+- Extension not embedded / wrong bundle ID
+- Family Controls not approved on device
+- App Group mismatch between App and extension
+- Report context string mismatch (`RepLock.TotalActivity` must match host + extension)
 
 **Mac rebuild after this fix**
 

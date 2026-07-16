@@ -75,9 +75,9 @@ Apple provides the **Family Controls** / **Screen Time API** (not third-party li
 
 1. Request `com.apple.developer.family-controls` from Apple (wellbeing justification).
 2. App Group: `group.com.replock.fitness` on main app + extensions.
-3. Extension targets: **Device Activity Monitor** (enforce schedules), **Shield Configuration** (branded block screen), optional **Device Activity Report** (real usage totals).
+3. Extension targets: **Device Activity Report** (real usage totals — scaffold in `ios/App/RepLockDeviceActivityReport/`), **Device Activity Monitor** (enforce schedules, later), **Shield Configuration** (branded block screen, later).
 
-**Repo status:** Android has `ScreenTimePlugin`, `InstalledAppsPlugin`, `AppBlockerPlugin` (see `android/.../MainActivity.java`). iOS only has `CapgoNativePurchases` in `ios/App/LocalPackages/` — blocking is greenfield.
+**Repo status:** Android has `ScreenTimePlugin`, `InstalledAppsPlugin`, `AppBlockerPlugin`. iOS has `RepLockControls` (authorize, picker, shields, screen-time probe) + DeviceActivityReport **sources**; Xcode target must be added on Mac (see `IOS_SETUP.md`).
 
 **Implementation phases (Capacitor 8 + LocalPackages SPM, mirror `CapgoNativePurchases`):**
 
@@ -86,7 +86,7 @@ Apple provides the **Family Controls** / **Screen Time API** (not third-party li
 | 0 | Entitlement + App Group + `App.entitlements` | `ios/App/App/` |
 | 1 | `RepLockControls` plugin: authorize + present `FamilyActivityPicker` | `ios/App/LocalPackages/RepLockControls/`, `src/lib/device-apps.ts`, `BlocklistPicker.tsx` |
 | 2 | `ManagedSettings` shields + unlock flow | `src/lib/app-blocker.ts`, `BlockerSetupCard.tsx`, Shield Configuration extension |
-| 3 | `DeviceActivity` monitor + optional report for real screen time | `src/lib/screen-time.ts`, `OnboardingVisuals.tsx` |
+| 3 | `DeviceActivityReport` for real screen time (+ Monitor later for schedules) | `ios/App/RepLockDeviceActivityReport/`, `src/lib/screen-time.ts`, onboarding reveal |
 
 New iOS plugins go in **LocalPackages SPM** (same pattern as purchases); `capacitor.config.ts` `ios.includePlugins` currently lists only `@capgo/native-purchases`. Test on a **physical iPhone** — Simulator has limited Family Controls support.
 

@@ -297,15 +297,43 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
         call.resolve(["ok": true])
     }
 
-    /// OS-wide daily Screen Time totals are sandboxed. Apple only exposes usage
-    /// charts via a DeviceActivityReport extension (separate app extension target
-    /// that renders in a privacy-preserving report view). That extension is not
-    /// in this project yet — so hours cannot be read into JS.
+    /// Reads today's Screen Time total from the App Group after hosting a
+    /// `DeviceActivityReport` probe (extension writes minutes to shared defaults).
+    /// Requires the `RepLockDeviceActivityReport` target embedded in the app.
     @objc func getDailyScreenTimeHours(_ call: CAPPluginCall) {
-        repLockReject(
-            call,
-            "Screen time totals require a Device Activity Report extension (not yet configured)",
-            code: "UNIMPLEMENTED"
-        )
+        guard #available(iOS 16.0, *) else {
+            repLockReject(call, "iOS 16+ required for screen time totals", code: "UNSUPPORTED")
+            return
+        }
+
+        let force = call.getBool("force") ?? false
+        Task { @MainActor in
+            let auth = AuthorizationManager.refreshStatus()
+            guard auth.authorized else {
+                repLockReject(call, "Screen Time authorization required", code: "AUTH_REQUIRED")
+                return
+            }
+
+            let presenter = repLockPresenter(for: self)
+            let snap = await ScreenTimeReportHost.refresh(from: presenter, force: force)
+            guard let snap else {
+                repLockReject(
+                    call,
+                    "No screen time report yet. Embed RepLockDeviceActivityReport and approve Family Controls (see IOS_SETUP.md).",
+                    code: "NO_DATA"
+                )
+                return
+            }
+
+            call.resolve([
+                "hours": snap.hours,
+                "minutes": snap.minutesComponent,
+                "totalMinutes": snap.totalMinutes,
+                "hoursWhole": snap.hoursComponent,
+                "day": snap.day,
+                "updatedAt": snap.updatedAt.timeIntervalSince1970,
+                "source": "deviceActivityReport",
+            ])
+        }
     }
 }
