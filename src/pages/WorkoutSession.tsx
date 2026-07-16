@@ -1,21 +1,27 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Pause, Play, Check, Droplets } from 'lucide-react'
 import { MotionButton } from '@/components/ui/Button'
 import { BackButton } from '@/components/ui/BackButton'
 import { Input } from '@/components/ui/Input'
-import { Progress } from '@/components/ui/Progress'
+import { Progress, CircularProgress } from '@/components/ui/Progress'
+import { Modal } from '@/components/ui/Modal'
 import { ExerciseDemoVideo } from '@/components/ExerciseDemoVideo'
 import { useStore } from '@/store'
 import { EXERCISES, WORKOUT_PLANS, isTimerExercise, type ExerciseType } from '@/types'
 import { formatMinutes } from '@/lib/utils'
 import { distributeAcrossSets } from '@/lib/exercise-sets'
+import {
+  estimateRepDwellSeconds,
+  formatSessionTimer,
+  SET_REST_SECONDS,
+} from '@/lib/exercise-accountability'
 import { getEncouragingMessage } from '@/lib/encouragement'
 import { useToast } from '@/components/ui/Toast'
 import { useTranslation } from '@/i18n/context'
 
-type Phase = 'intro' | 'plan' | 'setActive' | 'setRest' | 'paused' | 'finished'
+type Phase = 'intro' | 'plan' | 'setReady' | 'setActive' | 'setRest' | 'paused' | 'finished'
 
 interface ExerciseResult {
   type: ExerciseType
@@ -24,6 +30,7 @@ interface ExerciseResult {
 }
 
 const DEFAULT_SET_COUNT = 0
+const ACTIVE_PHASES: Phase[] = ['setReady', 'setActive', 'setRest', 'paused']
 
 export function WorkoutSessionPage() {
   const [searchParams] = useSearchParams()
@@ -42,15 +49,24 @@ export function WorkoutSessionPage() {
   const [currentSet, setCurrentSet] = useState(1)
   const [setPlan, setSetPlan] = useState<number[]>([])
   const [elapsed, setElapsed] = useState(0)
+  const [restElapsed, setRestElapsed] = useState(0)
   const [results, setResults] = useState<ExerciseResult[]>([])
+  const [abandonOpen, setAbandonOpen] = useState(false)
   const startTimeRef = useRef(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const restTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const current = plan?.exercises[step]
   const exercise = current ? EXERCISES[current.type] : null
   const isTimer = current ? isTimerExercise(current.type) : false
   const currentSetTarget = setPlan[currentSet - 1] ?? 0
   const unitLabel = isTimer ? t('exercise.seconds') : t('exercise.reps')
+  const dwellTarget = isTimer ? currentSetTarget : estimateRepDwellSeconds(currentSetTarget)
+  const remaining = Math.max(0, dwellTarget - elapsed)
+  const canCompleteSet = phase === 'setActive' && remaining <= 0
+  const restRemaining = Math.max(0, SET_REST_SECONDS - restElapsed)
+  const canStartNextSet = restRemaining <= 0
+  const midSession = ACTIVE_PHASES.includes(phase)
 
   const exName = current ? t(`exercises.${current.type}.name`) : ''
   const howTo = current ? t(`exercises.${current.type}.howTo`) : ''
@@ -63,10 +79,25 @@ export function WorkoutSessionPage() {
     }
   }
 
+  const clearRestTimer = () => {
+    if (restTimerRef.current) {
+      clearInterval(restTimerRef.current)
+      restTimerRef.current = null
+    }
+  }
+
   const startTimer = () => {
     clearTimer()
     timerRef.current = setInterval(() => {
       setElapsed((e) => e + 1)
+    }, 1000)
+  }
+
+  const startRestTimer = () => {
+    clearRestTimer()
+    setRestElapsed(0)
+    restTimerRef.current = setInterval(() => {
+      setRestElapsed((e) => e + 1)
     }, 1000)
   }
 
@@ -75,6 +106,7 @@ export function WorkoutSessionPage() {
 
   const resetForStep = (nextStep: number, target: number) => {
     clearTimer()
+    clearRestTimer()
     setStep(nextStep)
     setTotalAmount(target)
     setSetCount(DEFAULT_SET_COUNT)
@@ -82,6 +114,7 @@ export function WorkoutSessionPage() {
     setCurrentSet(1)
     setSetPlan([])
     setElapsed(0)
+    setRestElapsed(0)
     setPhase('intro')
   }
 
@@ -93,39 +126,19 @@ export function WorkoutSessionPage() {
     setCurrentSet(1)
     setElapsed(0)
     startTimeRef.current = Date.now()
-    setPhase('setActive')
-    if (isTimer) startTimer()
+    setPhase('setReady')
   }
 
-  const finishCurrentSet = () => {
-    clearTimer()
-    if (currentSet >= setCount) {
-      finishCurrentExercise()
-      return
-    }
-    setPhase('setRest')
-  }
-
-  const startNextSet = () => {
-    setCurrentSet((s) => s + 1)
+  const startCurrentSet = () => {
     setElapsed(0)
-    setPhase('setActive')
-    if (isTimer) startTimer()
-  }
-
-  const pauseTimer = () => {
-    clearTimer()
-    setPhase('paused')
-  }
-
-  const resumeTimer = () => {
     setPhase('setActive')
     startTimer()
   }
 
-  const finishCurrentExercise = () => {
+  const finishCurrentExercise = useCallback(() => {
     if (!current || !plan) return
     clearTimer()
+    clearRestTimer()
     const duration = Math.round((Date.now() - startTimeRef.current) / 1000)
     const result: ExerciseResult = {
       type: current.type,
@@ -142,12 +155,55 @@ export function WorkoutSessionPage() {
       const next = plan.exercises[step + 1]
       resetForStep(step + 1, next.target)
     }
+  }, [current, plan, totalAmount, step])
+
+  const finishCurrentSet = useCallback(() => {
+    clearTimer()
+    if (currentSet >= setCount) {
+      finishCurrentExercise()
+      return
+    }
+    setPhase('setRest')
+    startRestTimer()
+  }, [currentSet, setCount, finishCurrentExercise])
+
+  const startNextSet = () => {
+    if (!canStartNextSet) return
+    clearRestTimer()
+    setCurrentSet((s) => s + 1)
+    setElapsed(0)
+    setPhase('setReady')
+  }
+
+  const pauseTimer = () => {
+    clearTimer()
+    setPhase('paused')
+  }
+
+  const resumeTimer = () => {
+    setPhase('setActive')
+    startTimer()
   }
 
   const handleClaim = () => {
     const { total } = completeWorkoutPlan(planId, results)
     toast(getEncouragingMessage(total), 'success')
     navigate('/')
+  }
+
+  const requestLeave = () => {
+    if (midSession || results.length > 0) {
+      setAbandonOpen(true)
+      return
+    }
+    navigate(-1)
+  }
+
+  const confirmAbandon = () => {
+    clearTimer()
+    clearRestTimer()
+    setAbandonOpen(false)
+    navigate(-1)
   }
 
   useEffect(() => {
@@ -160,9 +216,12 @@ export function WorkoutSessionPage() {
     if (phase === 'setActive' && isTimer && currentSetTarget > 0 && elapsed >= currentSetTarget) {
       finishCurrentSet()
     }
-  }, [elapsed, phase, isTimer, currentSetTarget])
+  }, [elapsed, phase, isTimer, currentSetTarget, finishCurrentSet])
 
-  useEffect(() => () => clearTimer(), [])
+  useEffect(() => () => {
+    clearTimer()
+    clearRestTimer()
+  }, [])
 
   if (!plan || !current || !exercise) {
     return (
@@ -173,13 +232,7 @@ export function WorkoutSessionPage() {
     )
   }
 
-  const formatTimer = (seconds: number) => {
-    const m = Math.floor(seconds / 60)
-    const s = seconds % 60
-    return `${m}:${s.toString().padStart(2, '0')}`
-  }
-
-  const progressPct = ((step + (phase === 'setActive' || phase === 'setRest' || phase === 'paused' ? 0.5 : 0)) / plan.exercises.length) * 100
+  const progressPct = ((step + (phase === 'setActive' || phase === 'setRest' || phase === 'paused' || phase === 'setReady' ? 0.5 : 0)) / plan.exercises.length) * 100
 
   let baseTotal = 0
   results.forEach((r) => {
@@ -197,7 +250,7 @@ export function WorkoutSessionPage() {
         <div className="flex items-center justify-between mb-4">
           <BackButton
             variant="close"
-            onClick={() => navigate(-1)}
+            onClick={requestLeave}
             aria-label={t('common.close')}
           />
           <span className="text-sm font-medium text-white/50">{t(`workoutPlans.${planId}.name`)}</span>
@@ -282,23 +335,50 @@ export function WorkoutSessionPage() {
             </motion.div>
           )}
 
+          {phase === 'setReady' && (
+            <motion.div key={`ready-${step}-${currentSet}`} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center text-center">
+              <p className="text-sm font-medium text-white/40 uppercase tracking-wider mb-2">
+                {t('exercise.setOf', { current: currentSet, total: setCount })}
+              </p>
+              <p className="text-6xl font-bold tracking-tighter tabular-nums gradient-text mb-2">{currentSetTarget}</p>
+              <p className="text-white/40 text-sm mb-6">{unitLabel}</p>
+              <h2 className="text-2xl font-bold mb-2">{t('exercise.readyTitle')}</h2>
+              <p className="text-white/45 text-sm max-w-xs leading-relaxed">{t('exercise.readyDesc')}</p>
+            </motion.div>
+          )}
+
           {(phase === 'setActive' || phase === 'paused') && (
             <motion.div key={`active-${step}-${currentSet}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center text-center">
-              <p className="text-sm font-medium text-white/40 uppercase tracking-wider mb-2">
+              <p className="text-sm font-medium text-white/40 uppercase tracking-wider mb-4">
                 {t('exercise.setOf', { current: currentSet, total: setCount })}
               </p>
               {isTimer ? (
                 <>
-                  <p className="text-7xl font-bold tracking-tighter tabular-nums mb-2">{formatTimer(elapsed)}</p>
-                  <p className="text-white/40 text-sm mb-2">{t('exercise.holdFor', { seconds: currentSetTarget })}</p>
+                  <CircularProgress value={elapsed} max={Math.max(1, currentSetTarget)} size={200} strokeWidth={8}>
+                    <div className="text-center">
+                      <p className="text-5xl font-bold tracking-tighter tabular-nums">
+                        {formatSessionTimer(remaining)}
+                      </p>
+                    </div>
+                  </CircularProgress>
+                  <p className="text-white/40 text-sm mt-5 mb-1">{t('exercise.holdFor', { seconds: currentSetTarget })}</p>
+                  <p className="text-white/30 text-xs">{t('exercise.holdCountdown')}</p>
                 </>
               ) : (
                 <>
                   <p className="text-7xl font-bold tracking-tighter tabular-nums gradient-text mb-2">{currentSetTarget}</p>
-                  <p className="text-white/40 text-sm mb-2">{unitLabel}</p>
+                  <p className="text-white/40 text-sm mb-5">{unitLabel}</p>
+                  <div className="w-full max-w-xs mb-3">
+                    <Progress value={elapsed} max={Math.max(1, dwellTarget)} size="md" />
+                  </div>
+                  <p className="text-white/35 text-xs max-w-xs leading-relaxed">
+                    {canCompleteSet
+                      ? t('exercise.confirmRepsDone')
+                      : t('exercise.waitingToConfirm', { seconds: remaining })}
+                  </p>
                 </>
               )}
-              <p className="text-white/30 text-xs">{focusTip}</p>
+              <p className="text-white/25 text-xs mt-4">{focusTip}</p>
             </motion.div>
           )}
 
@@ -308,7 +388,12 @@ export function WorkoutSessionPage() {
                 <Droplets size={28} className="text-cyan-400" />
               </div>
               <h2 className="text-2xl font-bold mb-2">{t('exercise.restTitle')}</h2>
-              <p className="text-white/45 text-sm max-w-xs leading-relaxed">{t('exercise.restDesc')}</p>
+              <p className="text-5xl font-bold tracking-tighter tabular-nums mb-3">
+                {formatSessionTimer(restRemaining)}
+              </p>
+              <p className="text-white/45 text-sm max-w-xs leading-relaxed">
+                {canStartNextSet ? t('exercise.restReady') : t('exercise.restDesc')}
+              </p>
             </motion.div>
           )}
 
@@ -340,6 +425,11 @@ export function WorkoutSessionPage() {
             {t('exercise.startSet', { number: 1 })}
           </MotionButton>
         )}
+        {phase === 'setReady' && (
+          <MotionButton fullWidth size="xl" onClick={startCurrentSet}>
+            {isTimer ? t('exercise.startHold') : t('exercise.readyGo')}
+          </MotionButton>
+        )}
         {(phase === 'setActive' || phase === 'paused') && (
           <div className="flex gap-3">
             {isTimer && (
@@ -348,14 +438,21 @@ export function WorkoutSessionPage() {
                 {phase === 'paused' ? t('exercise.resume') : t('exercise.pause')}
               </MotionButton>
             )}
-            <MotionButton size="lg" className="flex-1" onClick={finishCurrentSet}>
-              {t('exercise.finishedSet')}
+            <MotionButton
+              size="lg"
+              className="flex-1"
+              disabled={!canCompleteSet}
+              onClick={finishCurrentSet}
+            >
+              {isTimer ? t('exercise.finishedSet') : t('exercise.confirmRepsDone')}
             </MotionButton>
           </div>
         )}
         {phase === 'setRest' && (
-          <MotionButton fullWidth size="xl" onClick={startNextSet}>
-            {t('exercise.startSet', { number: currentSet + 1 })}
+          <MotionButton fullWidth size="xl" disabled={!canStartNextSet} onClick={startNextSet}>
+            {canStartNextSet
+              ? t('exercise.startSet', { number: currentSet + 1 })
+              : t('exercise.restCountdown', { seconds: restRemaining })}
           </MotionButton>
         )}
         {phase === 'finished' && (
@@ -364,6 +461,18 @@ export function WorkoutSessionPage() {
           </MotionButton>
         )}
       </div>
+
+      <Modal open={abandonOpen} onClose={() => setAbandonOpen(false)} title={t('exercise.abandonTitle')}>
+        <p className="text-sm text-white/55 leading-relaxed mb-6">{t('exercise.abandonDesc')}</p>
+        <div className="flex gap-3">
+          <MotionButton variant="secondary" className="flex-1" onClick={() => setAbandonOpen(false)}>
+            {t('exercise.abandonKeep')}
+          </MotionButton>
+          <MotionButton variant="danger" className="flex-1" onClick={confirmAbandon}>
+            {t('exercise.abandonConfirm')}
+          </MotionButton>
+        </div>
+      </Modal>
     </div>
   )
 }

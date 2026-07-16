@@ -132,11 +132,8 @@ export interface AppState {
 
 export const EXERCISE_CATEGORIES: ExerciseCategory[] = ['cardio', 'chest', 'legs', 'core', 'arms']
 
-export const TIMER_EXERCISES: ExerciseType[] = ['plank', 'wall_sit', 'tricep_dips']
-
-export function isTimerExercise(type: ExerciseType): boolean {
-  return TIMER_EXERCISES.includes(type)
-}
+/** Duration-based holds (unit: seconds). Kept in sync with EXERCISES[].unit. */
+export const TIMER_EXERCISES: ExerciseType[] = ['plank', 'wall_sit']
 
 export const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
   jumping_jacks: { id: 'jumping_jacks', category: 'cardio', unit: 'reps', earnRate: 0.6, tier: 'standard', color: '#F59E0B', gradient: 'from-amber-500 to-orange-500', defaultTarget: 25 },
@@ -158,6 +155,10 @@ export const EXERCISES: Record<ExerciseType, ExerciseConfig> = {
   leg_raises: { id: 'leg_raises', category: 'core', unit: 'reps', earnRate: 1.4, tier: 'standard', color: '#0D9488', gradient: 'from-teal-600 to-emerald-600', defaultTarget: 12 },
   bicycle_crunches: { id: 'bicycle_crunches', category: 'core', unit: 'reps', earnRate: 1.5, tier: 'high', color: '#059669', gradient: 'from-emerald-600 to-green-600', defaultTarget: 20 },
   tricep_dips: { id: 'tricep_dips', category: 'arms', unit: 'reps', earnRate: 1.7, tier: 'high', color: '#3B82F6', gradient: 'from-blue-500 to-indigo-600', defaultTarget: 10 },
+}
+
+export function isTimerExercise(type: ExerciseType): boolean {
+  return EXERCISES[type].unit === 'seconds'
 }
 
 export function isExerciseType(value: string | null | undefined): value is ExerciseType {

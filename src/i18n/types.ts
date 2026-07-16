@@ -327,6 +327,19 @@ export interface Translations {
     setOf: string
     holdFor: string
     finishedSet: string
+    confirmRepsDone: string
+    waitingToConfirm: string
+    readyTitle: string
+    readyDesc: string
+    readyGo: string
+    startHold: string
+    holdCountdown: string
+    restCountdown: string
+    restReady: string
+    abandonTitle: string
+    abandonDesc: string
+    abandonConfirm: string
+    abandonKeep: string
     restTitle: string
     restDesc: string
     startSet: string
