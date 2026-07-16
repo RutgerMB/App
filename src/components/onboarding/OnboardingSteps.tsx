@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Check, TrendingDown, Dumbbell, Lock, Sparkles } from 'lucide-react'
+import { Check, Dumbbell, Lock, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTranslation } from '@/i18n/context'
 import {
@@ -10,6 +10,7 @@ import {
   INSIGHT_HORIZON_YEARS,
   REPLOCK_TARGET_REDUCTION,
 } from '@/lib/insight-math'
+import { screenTimeWindowLabel } from '@/lib/screen-time'
 
 export function formatHoursMinutes(totalHours: number): string {
   const h = Math.floor(totalHours)
@@ -42,9 +43,9 @@ export function RevealComparison({
   const fromDevice = actualHours != null
   const actual = actualHours
   const diff = fromDevice ? Math.abs(estimateHours - actual!) : 0
-  const pct = fromDevice && estimateHours > 0 ? Math.round((diff / estimateHours) * 100) : 0
   const actualLower = fromDevice && actual! < estimateHours
   const deltaLabel = fromDevice ? formatHoursMinutes(diff) : null
+  const windowLabel = screenTimeWindowLabel()
 
   return (
     <div className="flex flex-col items-center text-center w-full max-w-sm mx-auto">
@@ -54,39 +55,26 @@ export function RevealComparison({
           Reality check
         </span>
       </div>
-      <div className="w-14 h-14 rounded-2xl bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center mb-6">
-        <TrendingDown size={28} className="text-indigo-300" />
-      </div>
 
       {fromDevice ? (
         <>
           <p className="text-4xl sm:text-5xl font-bold tabular-nums gradient-text mb-2 tracking-tight">
             {formatHoursMinutes(actual!)}
           </p>
-          <p className="text-sm text-white/70 mb-2 leading-relaxed max-w-xs">
+          <p className="text-sm text-white/60 mb-1">
             {actualLower
-              ? `Your phone logged ${deltaLabel} less than your guess today.`
-              : `Your phone logged ${deltaLabel} more than your guess today.`}
+              ? `${deltaLabel} less than your guess`
+              : `${deltaLabel} more than your guess`}
           </p>
-          <p className="text-xs text-white/35 mb-3">
-            {actualLower
-              ? t('intro.revealActualLess', { pct })
-              : t('intro.revealActualMore', { pct })}
-          </p>
-          <p className="text-xs text-white/30 mb-8">{t('intro.revealFromDevice')}</p>
+          <p className="text-xs text-white/35 mb-8">{windowLabel}</p>
         </>
       ) : sawNativeReport ? (
         <>
           <p className="text-4xl sm:text-5xl font-bold tabular-nums gradient-text mb-2 tracking-tight">
             ✓
           </p>
-          <p className="text-sm text-white/70 mb-2 leading-relaxed max-w-xs">
-            You saw the real total in Apple&apos;s Screen Time report.
-          </p>
-          <p className="text-xs text-white/30 mb-2">{t('intro.revealSawNativeHint')}</p>
-          <p className="text-xs text-white/30 mb-4 max-w-xs leading-relaxed">
-            iPhone keeps that exact number inside Apple&apos;s report, so RepLock won&apos;t fake an in-app value.
-          </p>
+          <p className="text-sm text-white/60 mb-2">You saw Apple&apos;s report.</p>
+          <p className="text-xs text-white/35 mb-4">{windowLabel}</p>
           {onShowDeviceReport ? (
             <button
               type="button"
@@ -104,7 +92,7 @@ export function RevealComparison({
           <p className="text-4xl sm:text-5xl font-bold tabular-nums text-white/25 mb-2 tracking-tight">
             —
           </p>
-          <p className="text-sm text-white/70 mb-2 max-w-xs leading-relaxed">
+          <p className="text-sm text-white/60 mb-4 max-w-xs">
             {onShowDeviceReport
               ? t('intro.revealActualUseReport')
               : t('intro.revealActualUnavailable')}
@@ -118,7 +106,7 @@ export function RevealComparison({
               {t('intro.revealShowScreenTime')}
             </button>
           ) : (
-            <p className="text-xs text-white/30 mb-8">{t('intro.revealEstimateOnly')}</p>
+            <div className="mb-8" />
           )}
         </>
       )}
@@ -161,19 +149,6 @@ export function RevealComparison({
           </p>
         </div>
       </div>
-
-      <div className="mt-4 w-full rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-4 text-left">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35 mb-2">
-          What this means
-        </p>
-        <p className="text-sm text-white/72 leading-relaxed">
-          {fromDevice
-            ? 'RepLock can now plan against what your device actually recorded today.'
-            : sawNativeReport
-              ? 'The reveal came from your iPhone, and the next step uses your guess as a transparent fallback for the projection.'
-              : 'If you continue without the reveal, RepLock will use your guess as the baseline until Screen Time is available.'}
-        </p>
-      </div>
     </div>
   )
 }
@@ -193,7 +168,6 @@ export function PotentialBars({
   const max = Math.max(without, withApp, 0.5)
   const reductionPct = Math.round(REPLOCK_TARGET_REDUCTION * 100)
   const savedHours = Math.max(0, without - withApp)
-  const savedWeeklyHours = savedHours * 7
 
   return (
     <div className="space-y-6 w-full max-w-sm mx-auto">
@@ -214,36 +188,18 @@ export function PotentialBars({
         <BarRow label={t('intro.potentialWith')} value={withApp} max={max} variant="good" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4 text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35 mb-2">
-            Saved per day
-          </p>
-          <p className="text-lg font-bold text-white">{formatHoursMinutes(savedHours)}</p>
-        </div>
-        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4 text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35 mb-2">
-            Saved per week
-          </p>
-          <p className="text-lg font-bold text-white">{formatHoursMinutes(savedWeeklyHours)}</p>
-        </div>
-      </div>
-
-      <div className="rounded-2xl bg-indigo-500/10 border border-indigo-500/20 p-4 space-y-2">
-        <div className="flex items-center gap-2">
-          <Sparkles size={14} className="text-indigo-300 shrink-0" />
-          <p className="text-xs font-semibold text-indigo-200">{t('intro.potentialFormulaTitle')}</p>
-        </div>
-        <p className="text-[11px] text-white/45 leading-relaxed text-left">
-          {t('intro.potentialFormula', {
-            pct: reductionPct,
-            minutes: projection.earnedAllowanceMinutes,
-          })}
+      <p className="text-[11px] text-white/40 leading-relaxed text-center px-2">
+        {t('intro.potentialFormula', {
+          pct: reductionPct,
+          minutes: projection.earnedAllowanceMinutes,
+        })}{' '}
+        {fromDevice ? t('intro.potentialBasedOnDevice') : t('intro.potentialBasedOnGuess')}
+      </p>
+      {savedHours > 0 && (
+        <p className="text-sm text-white/55 text-center">
+          Save about {formatHoursMinutes(savedHours)} / day
         </p>
-        <p className="text-[11px] text-white/30 leading-relaxed text-left">
-          {fromDevice ? t('intro.potentialBasedOnDevice') : t('intro.potentialBasedOnGuess')}
-        </p>
-      </div>
+      )}
     </div>
   )
 }
@@ -309,14 +265,14 @@ export function BenefitsList() {
   ]
 
   return (
-    <ul className="space-y-3.5 w-full max-w-sm mx-auto">
+    <ul className="space-y-3 w-full max-w-sm mx-auto mb-6">
       {items.map((item, i) => (
         <motion.li
           key={item}
           initial={{ opacity: 0, x: -12 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: i * 0.06 }}
-          className="flex items-start gap-3 rounded-2xl bg-white/[0.03] border border-white/[0.07] px-4 py-3.5"
+          className="flex items-start gap-3 rounded-2xl bg-white/[0.03] border border-white/[0.07] px-4 py-3"
         >
           <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
             <Check size={14} className="text-emerald-400" />
@@ -439,7 +395,6 @@ export function BlockPreviewCarousel() {
           />
         ))}
       </div>
-      <p className="text-xs text-white/35 mt-4 text-center max-w-xs">{t('intro.blockPreview.hint')}</p>
     </div>
   )
 }

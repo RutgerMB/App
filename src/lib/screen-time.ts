@@ -21,6 +21,15 @@ export type IosScreenTimeAuthResult =
 export interface ScreenTimeResult {
   hours: number
   minutes: number
+  /** Calendar days in the average window when provided by native (default 7). */
+  windowDays?: number
+}
+
+/** Honest baseline window: Apple `.daily` DeviceActivityFilter max is 7 days. */
+export const SCREEN_TIME_BASELINE_WINDOW_DAYS = 7
+
+export function screenTimeWindowLabel(days = SCREEN_TIME_BASELINE_WINDOW_DAYS): string {
+  return `avg last ${days} days`
 }
 
 export interface AppUsageRow {

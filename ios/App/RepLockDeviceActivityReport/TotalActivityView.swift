@@ -26,18 +26,21 @@ struct TotalActivityView: View {
                         endPoint: .trailing
                     )
                 )
-            Text("today")
+            Text("avg / day")
                 .font(.system(size: 12, weight: .semibold))
                 .tracking(1.4)
                 .foregroundStyle(Color.secondary)
+            Text("last \(ScreenTimeWindow.dayCount) days")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(Color.secondary.opacity(0.85))
         }
-        .frame(maxWidth: .infinity, minHeight: 88)
-        .accessibilityLabel("Today's screen time \(totalActivity)")
+        .frame(maxWidth: .infinity, minHeight: 96)
+        .accessibilityLabel("Average daily screen time \(totalActivity) over last \(ScreenTimeWindow.dayCount) days")
     }
 }
 
 #Preview {
-    TotalActivityView(totalActivity: "1h 23m")
+    TotalActivityView(totalActivity: "4h 12m")
         .padding()
         .background(Color.black)
 }

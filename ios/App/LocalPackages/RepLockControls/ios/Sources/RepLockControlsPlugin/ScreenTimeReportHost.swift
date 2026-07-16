@@ -9,19 +9,29 @@ extension DeviceActivityReport.Context {
     static let repLockTotalActivity = Self(ScreenTimeSharedKeys.reportContextRawValue)
 }
 
+/// Apple `DeviceActivityFilter.Segment.daily` allows at most 7 days.
+/// Week average is the best honest baseline we can show in-report.
+enum ScreenTimeReportWindow {
+    static let dayCount = 7
+}
+
 @available(iOS 16.0, *)
 private struct ScreenTimeReportProbeView: View {
-    private var todayFilter: DeviceActivityFilter {
+    /// Last 7 calendar days (including today). Extension averages total ÷ 7.
+    private var weekAverageFilter: DeviceActivityFilter {
         let calendar = Calendar.current
         let now = Date()
-        let interval = calendar.dateInterval(of: .day, for: now)
-            ?? DateInterval(start: calendar.startOfDay(for: now), end: now)
+        let startOfToday = calendar.startOfDay(for: now)
+        let start = calendar.date(byAdding: .day, value: -(ScreenTimeReportWindow.dayCount - 1), to: startOfToday)
+            ?? startOfToday
+        // End at now so the interval stays ≤ 7 days (Apple `.daily` max).
+        let interval = DateInterval(start: start, end: max(start.addingTimeInterval(1), now))
         return DeviceActivityFilter(segment: .daily(during: interval))
     }
 
     var body: some View {
-        DeviceActivityReport(.repLockTotalActivity, filter: todayFilter)
-            .frame(maxWidth: .infinity, minHeight: 100, maxHeight: 140)
+        DeviceActivityReport(.repLockTotalActivity, filter: weekAverageFilter)
+            .frame(maxWidth: .infinity, minHeight: 110, maxHeight: 150)
     }
 }
 
@@ -136,17 +146,17 @@ private struct VisibleScreenTimeReportSheet: View {
                 )
                 .ignoresSafeArea()
 
-                VStack(spacing: 20) {
+                VStack(spacing: 18) {
                     Text("REALITY CHECK")
                         .font(.system(size: 11, weight: .semibold))
                         .tracking(2.2)
                         .foregroundStyle(Color.white.opacity(0.45))
 
-                    Text("Your actual screen time")
+                    Text("Avg last \(ScreenTimeReportWindow.dayCount) days")
                         .font(.system(size: 26, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
 
-                    Text("Apple measured this on your iPhone today. RepLock shows the system total here first, then sends you back to finish setup with context.")
+                    Text("Daily average from Apple Screen Time — not just today.")
                         .font(.system(size: 14, weight: .regular))
                         .foregroundStyle(Color.white.opacity(0.5))
                         .multilineTextAlignment(.center)
@@ -168,7 +178,7 @@ private struct VisibleScreenTimeReportSheet: View {
                     Spacer(minLength: 8)
 
                     Button(action: onContinue) {
-                        Text("Continue setup")
+                        Text("Continue")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)

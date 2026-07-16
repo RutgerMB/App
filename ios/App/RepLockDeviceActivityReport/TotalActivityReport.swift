@@ -2,8 +2,9 @@
 //  TotalActivityReport.swift
 //  RepLockDeviceActivityReport
 //
-//  DeviceActivityReport scene that sums today's activity and writes minutes
-//  into the App Group for the main app (RepLockControls probe) to read.
+//  DeviceActivityReport scene that averages daily activity over the last 7 days
+//  (Apple's max interval for `.daily` segments) and writes minutes into the
+//  App Group for the main app (RepLockControls probe) to read.
 //
 
 import DeviceActivity
@@ -12,6 +13,11 @@ import SwiftUI
 extension DeviceActivityReport.Context {
     /// Must match `ScreenTimeSharedKeys.reportContextRawValue` in the host app.
     static let repLockTotalActivity = Self(ScreenTimeSharedKeys.reportContextRawValue)
+}
+
+enum ScreenTimeWindow {
+    /// Apple `DeviceActivityFilter.Segment.daily` allows at most 7 days.
+    static let dayCount = 7
 }
 
 struct TotalActivityReport: DeviceActivityReportScene {
@@ -27,14 +33,15 @@ struct TotalActivityReport: DeviceActivityReportScene {
                 partial + segment.totalActivityDuration
             }
 
-        let totalMinutes = Int((totalDuration / 60.0).rounded())
+        // Average daily over the filter window (fixed 7 days, including zero-usage days).
+        let avgMinutes = Int((totalDuration / 60.0 / Double(ScreenTimeWindow.dayCount)).rounded())
         // Best-effort only: on physical devices the DeviceActivityReport sandbox
         // silently drops App Group / shared UserDefaults writes (Apple privacy).
         // Simulator often allows the write — host UI still shows this string.
-        ScreenTimeSharedStore.writeTodayTotalMinutes(totalMinutes)
+        ScreenTimeSharedStore.writeTodayTotalMinutes(avgMinutes)
 
-        let hours = totalMinutes / 60
-        let minutes = totalMinutes % 60
+        let hours = avgMinutes / 60
+        let minutes = avgMinutes % 60
         if hours > 0 {
             return "\(hours)h \(minutes)m"
         }

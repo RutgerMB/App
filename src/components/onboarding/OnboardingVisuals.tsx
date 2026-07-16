@@ -100,11 +100,8 @@ export function ScreenTimePermissionStep({
 
       {platform === 'ios' && (
         <>
-          <p className="text-sm text-white/50 leading-relaxed mb-4 max-w-sm">
+          <p className="text-sm text-white/50 leading-relaxed mb-6 max-w-sm">
             {t('onboarding.screenTimePermissionIos')}
-          </p>
-          <p className="text-xs text-white/35 leading-relaxed mb-6 max-w-sm">
-            {t('onboarding.screenTimePermissionIosEstimate')}
           </p>
           {granted ? (
             <div className="inline-flex items-center gap-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 px-4 py-3 mb-4">

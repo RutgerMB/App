@@ -39,13 +39,22 @@ public class ScreenTimePlugin extends Plugin {
         return mode == AppOpsManager.MODE_ALLOWED;
     }
 
-    private long[] todayRangeMs() {
+    /** Calendar days included in the average baseline (matches iOS DeviceActivity daily max). */
+    private static final int BASELINE_WINDOW_DAYS = 7;
+
+    /** Local midnight for (days - 1) days ago → now. */
+    private long[] lastDaysRangeMs(int days) {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
+        cal.add(Calendar.DAY_OF_YEAR, -(Math.max(1, days) - 1));
         return new long[] { cal.getTimeInMillis(), System.currentTimeMillis() };
+    }
+
+    private long[] todayRangeMs() {
+        return lastDaysRangeMs(1);
     }
 
     @PluginMethod
@@ -80,16 +89,21 @@ public class ScreenTimePlugin extends Plugin {
                 return;
             }
 
-            long[] range = todayRangeMs();
+            // Average daily over last 7 days (total ÷ 7). Honest baseline vs today-only.
+            long[] range = lastDaysRangeMs(BASELINE_WINDOW_DAYS);
             Map<String, UsageStats> stats = usm.queryAndAggregateUsageStats(range[0], range[1]);
             long totalMs = 0;
             for (UsageStats s : stats.values()) {
                 totalMs += s.getTotalTimeInForeground();
             }
 
+            double avgHours = (totalMs / (1000.0 * 60.0 * 60.0)) / BASELINE_WINDOW_DAYS;
+            double avgMinutes = (totalMs / (1000.0 * 60.0)) / BASELINE_WINDOW_DAYS;
+
             JSObject ret = new JSObject();
-            ret.put("hours", totalMs / (1000.0 * 60.0 * 60.0));
-            ret.put("minutes", totalMs / (1000.0 * 60.0));
+            ret.put("hours", avgHours);
+            ret.put("minutes", avgMinutes);
+            ret.put("windowDays", BASELINE_WINDOW_DAYS);
             call.resolve(ret);
         } catch (Exception e) {
             call.reject("Failed to read screen time", e);

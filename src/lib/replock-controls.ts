@@ -328,7 +328,7 @@ export async function fetchIosDailyScreenTimeHours(options?: {
 }
 
 /**
- * Show today's Screen Time in a premium native sheet once.
+ * Show avg last-7-days Screen Time in a premium native sheet once.
  * Resolves after the user taps Continue/Done, or after `timeoutMs` so callers
  * never hang — timeout still counts as success if the sheet was started.
  */

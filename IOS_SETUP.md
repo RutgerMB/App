@@ -239,8 +239,14 @@ RepLock therefore:
 2. Lets you type a **nickname** (and optional emoji) that is stored and shown in the WebView Apps tab
 3. Offers **View real names & icons (system)** on the Apps page for the same native labels anytime
 
-**Daily Screen Time totals (DeviceActivityReport)** — extension target is in `App.xcodeproj`. Onboarding can probe for App Group minutes (works on Simulator) and always present a system `DeviceActivityReport` sheet so users see today's total on a physical iPhone.
+**Daily Screen Time baseline (DeviceActivityReport)** — extension target is in `App.xcodeproj`. Onboarding can probe for App Group minutes (works on Simulator) and always present a system `DeviceActivityReport` sheet so users see their **7-day average** on a physical iPhone.
 
+> **Baseline = avg last 7 days** (total usage ÷ 7), not today-only. This matches onboarding copy and `getDailyScreenTimeHours`.
+>
+> **Apple `DeviceActivityFilter` limits:** `.daily` segments allow at most **7 days** (what RepLock uses). `.weekly` allows up to **15 weeks** (~rough monthly view, coarser granularity). A full **year** is **not** available via Device Activity filters.
+>
+> **Android:** `UsageStats` in `ScreenTimePlugin.getDailyScreenTimeHours` also returns a **7-day average**. Per-app usage (`getPerAppUsageMinutesToday`) remains **today-only** on Android.
+>
 > **Apple sandbox:** `DeviceActivityReport` extensions **cannot export** usage data to the host app via App Groups / UserDefaults on device (writes are silently dropped). The supported UX is to **display** `DeviceActivityReport` in-process. `getDailyScreenTimeHours` soft-resolves `NO_DATA` when no export is available.
 
 ---
@@ -249,18 +255,18 @@ RepLock therefore:
 
 ## DeviceActivityReport extension (Mac / Apple Developer setup)
 
-Apple does **not** let the main app process read OS Screen Time totals as numbers. A **Device Activity Report** extension receives usage data and **renders** today’s total in its own SwiftUI view. App Group writes from the report extension are blocked on device (Apple privacy sandbox); use `presentDailyScreenTimeReport` for the user-visible total.
+Apple does **not** let the main app process read OS Screen Time totals as numbers. A **Device Activity Report** extension receives usage data over a **7-day `.daily` filter window**, averages total duration (÷ 7), and **renders** that average in its own SwiftUI view. App Group writes from the report extension are blocked on device (Apple privacy sandbox); use `presentDailyScreenTimeReport` for the user-visible average.
 
 ### What is already in the repo
 
 
 | Path                                                                   | Role                                                 |
 | ---------------------------------------------------------------------- | ---------------------------------------------------- |
-| `ios/App/RepLockDeviceActivityReport/*.swift`                          | Extension sources (sum today’s activity → UI string; App Group write is best-effort / Simulator) |
+| `ios/App/RepLockDeviceActivityReport/*.swift`                          | Extension sources (sum 7-day window → avg daily minutes → UI string; App Group write is best-effort / Simulator) |
 | `ios/App/RepLockDeviceActivityReport/*.entitlements`                   | Family Controls + App Group                          |
 | `ios/App/LocalPackages/RepLockControls/.../ScreenTimeReportHost.swift` | On-screen `DeviceActivityReport` probe + visible sheet |
-| `RepLockControls.getDailyScreenTimeHours`                              | Hosts probe; returns hours when App Group export works |
-| `RepLockControls.presentDailyScreenTimeReport`                         | Shows today’s total in a system report sheet (device) |
+| `RepLockControls.getDailyScreenTimeHours`                              | Hosts probe; returns avg hours when App Group export works |
+| `RepLockControls.presentDailyScreenTimeReport`                         | Shows 7-day average in a system report sheet (device) |
 
 
 **Xcode target status:** `RepLockDeviceActivityReport` is already in `App.xcodeproj` (Embed ExtensionKit Extensions). On Mac, confirm signing + App Group on **both** App and extension, then clean rebuild on a physical iPhone.
@@ -301,7 +307,7 @@ open ios/App/App.xcodeproj
   - `RepLockDeviceActivityReport.appex` present, **Embed & Sign**
 3. Confirm context string **`RepLock.TotalActivity`** matches host + extension (`ScreenTimeSharedKeys.reportContextRawValue`).
 4. **Product → Clean Build Folder**, then **Run ▶** on a **physical iPhone** (scheme **App**, not the appex alone).
-5. Authorize Screen Time → onboarding should open **Show today's Screen Time** sheet (DeviceActivityReport). Console may still show soft `NO_DATA` for numeric JS export — that is expected on device.
+5. Authorize Screen Time → onboarding should open **Show Screen Time** sheet (DeviceActivityReport, 7-day average). Console may still show soft `NO_DATA` for numeric JS export — that is expected on device.
 
 **LaunchServices / “Failed to locate container app bundle record”**
 
