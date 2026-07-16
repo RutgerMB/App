@@ -55,7 +55,7 @@
 <body>
   <main>
     <h1>Privacy Policy</h1>
-    <p class="meta">RepLocks · Last updated: July 2026</p>
+    <p class="meta">RepLocks · Last updated: July 16, 2026</p>
 
     <p>
       This Privacy Policy describes how RepLocks (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) collects, uses,
@@ -70,89 +70,116 @@
       use third-party processors listed below.
     </p>
     <p>
-      For privacy questions or to exercise your rights, contact us at
+      For privacy questions, support, or to exercise your rights, contact us at
       <a href="mailto:RepLockIssue@outlook.com">RepLockIssue@outlook.com</a>.
+    </p>
+    <p>
+      Support page:
+      <a href="https://rutgermb.github.io/App/legal/support.html">https://rutgermb.github.io/App/legal/support.html</a>.
     </p>
 
     <h2>2. Information we collect</h2>
     <ul>
-      <li><strong>Account data:</strong> name, email address, and securely hashed password when you register.</li>
-      <li><strong>Workout and usage data:</strong> exercises completed, reps, streaks, earned screen-time balance, difficulty settings, and in-app preferences.</li>
-      <li><strong>Blocking settings:</strong> apps you choose to limit, daily opening limits, schedules, and related configuration. On Android, blocked app identifiers (package names) may be stored to enforce limits on your device.</li>
-      <li><strong>Subscription data:</strong> plan type, trial status, and transaction identifiers from Apple In-App Purchase, Google Play Billing, or RevenueCat. We do not store full payment card numbers.</li>
-      <li><strong>Technical data:</strong> device type, operating system, app version, language, and anonymized crash or error logs to improve reliability.</li>
+      <li><strong>Account data:</strong> name, email address, and authentication credentials when you register or sign in (via Firebase Authentication).</li>
+      <li><strong>Workout and progress data:</strong> exercises completed, amounts/reps, streaks, earned screen-time balance, difficulty settings, and in-app preferences.</li>
+      <li><strong>Blocking configuration:</strong> apps you choose to limit, nicknames/display names you assign, daily opening limits, schedules, unlock usage history, and related settings.</li>
+      <li><strong>Subscription data:</strong> plan type, trial status, and transaction / entitlement identifiers from Apple In-App Purchase, Google Play Billing, and/or RevenueCat. We do not store full payment card numbers.</li>
+      <li><strong>Technical data:</strong> device type, operating system, app version, language, and crash or error diagnostics needed to keep the Service reliable.</li>
       <li><strong>Communications:</strong> messages you send to support.</li>
     </ul>
-
-    <h2>3. App blocking &amp; device data</h2>
     <p>
-      On Android, RepLocks may use system permissions you explicitly enable to block selected apps.
-      Blocked app choices and enforcement data stay on your device where possible; we only store
-      configuration needed to sync your account.
-    </p>
-    <p>
-      On iOS, RepLocks uses Apple-approved APIs (such as Screen Time / Family Controls) to shield apps
-      you select. We do not read your passwords, messages, or full browsing history inside other apps.
-    </p>
-    <p>
-      We do not sell your personal data or use blocking data for advertising profiles.
+      We do <strong>not</strong> currently use Firebase Analytics or similar advertising analytics SDKs to build marketing profiles. If that changes, we will update this policy before enabling them.
     </p>
 
-    <h2>4. How we use your data</h2>
+    <h2>3. App blocking, Screen Time &amp; device data</h2>
+    <p>
+      <strong>Android.</strong> With permissions you enable (such as Accessibility and/or Usage Access),
+      RepLocks can block selected apps and, where permitted, read device usage statistics for apps you track.
+      Package names and local enforcement data stay on your device where possible; we store configuration
+      needed to sync your account and show in-app progress.
+    </p>
+    <p>
+      <strong>iOS.</strong> RepLocks uses Apple Family Controls / Screen Time APIs (Managed Settings, Device Activity,
+      and related frameworks) that you authorize. Apple presents system UI for selecting apps to shield.
+      Apple restricts what third-party apps can read: we generally <strong>cannot</strong> obtain the real
+      App Store name or icon of shielded apps for display in our web UI. You may assign a nickname so the app
+      is recognizable in RepLocks. Nicknames and selection tokens may be stored on-device (including in an
+      App Group shared with RepLocks extensions) and synced with your account configuration as needed.
+    </p>
+    <p>
+      We do not read your passwords, messages, photos, or the full contents of other apps. We do not sell
+      personal data or use blocking data for advertising profiles.
+    </p>
+    <p>
+      Blocking effectiveness depends on OS permissions, device settings, and Apple/Google platform rules.
+      We do not claim that blocking works in every edge case (for example after OS updates or if permissions are revoked).
+    </p>
+
+    <h2>4. Push notifications</h2>
+    <p>
+      If you allow notifications, the operating system may grant RepLocks permission to send push or local
+      notifications (for example workout reminders or trial-related notices when those features are enabled).
+      You can change this anytime in system Settings or in the app. Token registration for push delivery may
+      use Apple Push Notification service (APNs) or Google services as provided by the OS and our notification stack.
+      Reminder content may roll out over time; granting permission does not by itself mean every reminder type is already active.
+    </p>
+
+    <h2>5. How we use your data</h2>
     <ul>
       <li>To provide and operate the Service, including earning screen time through workouts and enforcing limits you configure.</li>
-      <li>To sync your progress across devices when you sign in.</li>
-      <li>To process subscriptions and free trials.</li>
-      <li>To send service-related messages (e.g. workout reminders or trial expiry) if you enable notifications.</li>
-      <li>To improve the Service, fix bugs, and understand aggregated usage patterns.</li>
-      <li>To comply with legal obligations and protect our rights.</li>
+      <li>To sync progress and settings across devices when you sign in.</li>
+      <li>To process subscriptions, free trials, restores, and entitlement checks (including via RevenueCat).</li>
+      <li>To send service-related messages if you enable notifications.</li>
+      <li>To improve reliability, fix bugs, and understand aggregated product usage.</li>
+      <li>To comply with legal obligations and protect our rights and users&apos; safety.</li>
     </ul>
 
-    <h2>5. Legal bases (EEA/UK)</h2>
+    <h2>6. Legal bases (EEA/UK)</h2>
     <p>
       We process data based on: (a) performance of our contract with you; (b) your consent where required
-      (e.g. optional notifications); (c) legitimate interests such as security and product improvement;
-      and (d) legal obligations. You may withdraw consent at any time without affecting the lawfulness
-      of processing before withdrawal.
+      (e.g. optional notifications or certain device permissions); (c) legitimate interests such as security
+      and product improvement; and (d) legal obligations. You may withdraw consent at any time without affecting
+      the lawfulness of processing before withdrawal.
     </p>
 
-    <h2>6. Sharing with third parties</h2>
+    <h2>7. Sharing with third parties</h2>
     <p>We share data only as needed with trusted service providers, including:</p>
     <ul>
-      <li><strong>Firebase (Google)</strong> — authentication and cloud database sync.</li>
-      <li><strong>Apple</strong> — In-App Purchases and App Store subscription management on iOS.</li>
-      <li><strong>Google</strong> — Google Play Billing on Android.</li>
-      <li><strong>RevenueCat</strong> — subscription status and purchase validation on mobile.</li>
-      <li><strong>Hosting and infrastructure providers</strong> that help us run the Service.</li>
+      <li><strong>Firebase (Google)</strong> — Authentication and Firestore (or similar) cloud sync for accounts and app state. We do not currently enable Firebase Analytics for advertising.</li>
+      <li><strong>Apple</strong> — In-App Purchases, App Store subscription management, Screen Time / Family Controls frameworks, and APNs where applicable.</li>
+      <li><strong>Google</strong> — Google Play Billing on Android and related Google mobile services you enable.</li>
+      <li><strong>RevenueCat</strong> — subscription status, receipt validation, and entitlement syncing on mobile.</li>
+      <li><strong>Hosting and infrastructure providers</strong> that help us run the Service (including GitHub Pages for public legal/support pages).</li>
     </ul>
     <p>
       Providers process data under their own privacy policies and our instructions. We may disclose data
       if required by law or to protect safety and rights.
     </p>
 
-    <h2>7. Retention</h2>
+    <h2>8. Retention</h2>
     <p>
       We keep account and workout data while your account is active. After you delete your account, we
       delete or anonymize personal data within a reasonable period, except where we must retain data for
       legal, tax, or dispute-resolution purposes. Backup copies may persist for a limited time before
-      automatic deletion.
+      automatic deletion. On-device App Group / Screen Time configuration may remain until you revoke
+      permissions or uninstall the app.
     </p>
 
-    <h2>8. Security</h2>
+    <h2>9. Security</h2>
     <p>
       We use technical and organizational measures to protect personal data, including encryption in
-      transit, hashed passwords, and access controls. No method of transmission or storage is 100% secure.
+      transit, access controls, and secure authentication. No method of transmission or storage is 100% secure.
       Keep your login credentials confidential.
     </p>
 
-    <h2>9. Log &amp; diagnostic data</h2>
+    <h2>10. Log &amp; diagnostic data</h2>
     <p>
       If the app crashes or errors occur, we may collect diagnostic information (device model, OS version,
       app version, error timestamps). This data is used to improve stability and is not used to identify
       you beyond your account when you are signed in.
     </p>
 
-    <h2>10. Your rights</h2>
+    <h2>11. Your rights</h2>
     <p>
       Depending on your location, you may have the right to access, correct, delete, restrict, or port
       your personal data, and to object to certain processing.
@@ -163,22 +190,26 @@
       EEA/UK users may lodge a complaint with their local data protection authority.
     </p>
 
-    <h2>11. Children</h2>
+    <h2>12. Children</h2>
     <p>
       The Service is not directed at children under 13 (or the minimum age in your country). We do not
       knowingly collect data from children. Contact us if you believe a child has provided personal data.
     </p>
 
-    <h2>12. International transfers</h2>
+    <h2>13. International transfers</h2>
     <p>
-      Your data may be processed in countries outside your own. Where required, we use appropriate
-      safeguards such as standard contractual clauses approved by the European Commission.
+      Your data may be processed in countries outside your own (including by Firebase, Apple, Google, or RevenueCat).
+      Where required, we use appropriate safeguards such as standard contractual clauses approved by the European Commission.
     </p>
 
-    <h2>13. Changes to this policy</h2>
+    <h2>14. Changes to this policy</h2>
     <p>
       We may update this Privacy Policy from time to time. We will post the new version at this URL and
       update the &quot;Last updated&quot; date. Material changes may require renewed consent where applicable.
+    </p>
+    <p>
+      Live URL:
+      <a href="https://rutgermb.github.io/App/legal/privacy.html">https://rutgermb.github.io/App/legal/privacy.html</a>.
     </p>
 
     <footer>

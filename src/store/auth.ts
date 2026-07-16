@@ -34,6 +34,7 @@ export function getAppStateSnapshot(): AppState {
     apps: s.apps,
     sessions: s.sessions,
     workoutPlanSessions: s.workoutPlanSessions,
+    usageHistory: s.usageHistory ?? [],
   }
 }
 

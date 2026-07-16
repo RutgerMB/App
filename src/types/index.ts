@@ -108,6 +108,13 @@ export interface UserProfile {
   createdAt: number
 }
 
+/** One calendar day of RepLock unlock usage (not OS Screen Time). */
+export interface UsageDayRecord {
+  date: string
+  unlockedMinutes: number
+  unlockOpenings: number
+}
+
 export interface AppState {
   profile: UserProfile
   screenTimeBalance: number
@@ -119,6 +126,8 @@ export interface AppState {
   apps: LockedApp[]
   sessions: ExerciseSession[]
   workoutPlanSessions: WorkoutPlanSession[]
+  /** Rolling daily unlock usage for Activity day/week/month views. */
+  usageHistory: UsageDayRecord[]
 }
 
 export const EXERCISE_CATEGORIES: ExerciseCategory[] = ['cardio', 'chest', 'legs', 'core', 'arms']

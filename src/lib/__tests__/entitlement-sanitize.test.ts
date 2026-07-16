@@ -27,6 +27,7 @@ function makeAppState(profileOverrides: Partial<AppState['profile']> = {}): AppS
     apps: [],
     sessions: [],
     workoutPlanSessions: [],
+    usageHistory: [],
   }
 }
 

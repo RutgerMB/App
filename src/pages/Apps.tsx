@@ -17,9 +17,8 @@ import { formatMinutes, formatTimeRemaining, cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/Toast'
 import { useNavigate } from 'react-router-dom'
 import { TrialBanner } from '@/components/TrialBanner'
-import { ProPromo } from '@/components/ProPromo'
 import { BlockerSetupCard } from '@/components/BlockerSetupCard'
-import { QuickBlockCard, ActiveScheduleCard } from '@/components/apps/AppsHubCards'
+import { AppsHubRow } from '@/components/apps/AppsHubCards'
 import { useTranslation } from '@/i18n/context'
 import { canPickInstalledApps, usesIosActivityPicker } from '@/lib/device-apps'
 import { presentIosSelectedAppsSheet } from '@/lib/replock-controls'
@@ -230,13 +229,6 @@ export function AppsPage() {
         />
 
         <section>
-          <div className="text-center mb-4">
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-              {t('nav.apps')}
-            </h2>
-            <div className="mx-auto mt-3 h-px w-10 bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent" />
-          </div>
-
           <div className="space-y-2">
             {apps.map((app, i) => {
               const isUnlocked = !app.isLocked
@@ -266,7 +258,7 @@ export function AppsPage() {
                       </div>
                       <p className="text-xs text-white/40 mt-0.5 truncate">
                         {app.usedMinutes}/{app.dailyLimitMinutes}
-                        {t('common.minutes')} {t('apps.dailyLimit')}
+                        {t('common.minutes')}
                         {isUnlocked && app.unlockedUntil && (
                           <> · {formatTimeRemaining(app.unlockedUntil)} {t('apps.left')}</>
                         )}
@@ -332,11 +324,7 @@ export function AppsPage() {
                 <Grid3X3 size={26} className="text-violet-400" />
               </div>
               <p className="text-white/45">{t('apps.noApps')}</p>
-              {onIos ? (
-                <p className="text-sm text-white/35 mt-3 max-w-sm mx-auto leading-relaxed">
-                  {t('apps.iosPickAppsHint')}
-                </p>
-              ) : (
+              {!onIos && (
                 <Button
                   variant="secondary"
                   className="mt-4 border-white/10 bg-white/[0.04]"
@@ -347,28 +335,25 @@ export function AppsPage() {
               )}
             </div>
           )}
-        </section>
 
-        <div className="space-y-3">
-          <TrialBanner compact />
-          <QuickBlockCard />
-          <ActiveScheduleCard />
-          <BlockerSetupCard compact />
           {onIos && apps.some((a) => a.iosTokenId) && (
             <button
               type="button"
               disabled={nativeSheetLoading}
               onClick={() => void handleViewNativeLabels()}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-white/70 bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.05] transition-colors disabled:opacity-50"
+              className="mt-2 w-full flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-white/60 bg-transparent border border-white/[0.06] hover:bg-white/[0.04] hover:text-white/80 transition-colors disabled:opacity-50"
             >
-              <Eye size={16} />
+              <Eye size={15} />
               {t('apps.iosViewSystemLabels')}
             </button>
           )}
-        </div>
+        </section>
 
-        <div className="pt-1">
-          <ProPromo variant="apps" compact />
+        <div className="space-y-3">
+          {/* One promo only: trial remaining while on trial; upgrade when free/expired; nothing when Pro */}
+          <TrialBanner compact />
+          <AppsHubRow />
+          <BlockerSetupCard compact />
         </div>
       </motion.div>
 

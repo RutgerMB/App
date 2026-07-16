@@ -16,6 +16,7 @@ export function normalizeAppState(state: AppState): AppState {
     apps,
     sessions: state.sessions ?? [],
     workoutPlanSessions: state.workoutPlanSessions ?? [],
+    usageHistory: state.usageHistory ?? [],
     profile: {
       ...state.profile,
       difficulty: state.profile.difficulty ?? 'medium',

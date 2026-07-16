@@ -405,6 +405,7 @@ export interface Translations {
     quickBlockDesc: string
     quickBlockCta: string
     activeScheduleTitle: string
+    activeScheduleCompact: string
     appsTrackedLabel: string
     templatesTitle: string
     templateComingSoon: string
@@ -462,6 +463,7 @@ export interface Translations {
     periodWeek: string
     periodMonth: string
     periodYear: string
+    periodDay: string
     totalEarned: string
     avgDaily: string
     bestDay: string
@@ -479,6 +481,7 @@ export interface Translations {
     bonusEarned: string
     baseEarned: string
     usageToday: string
+    usageTitle: string
     minutesSpent: string
     minutesSpentIosNote: string
     unlockedSessionTime: string

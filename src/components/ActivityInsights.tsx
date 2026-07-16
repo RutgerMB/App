@@ -26,8 +26,10 @@ import {
   type UsageInsightsSnapshot,
 } from '@/lib/usage-insights'
 import { requestScreenTimePermission } from '@/lib/screen-time'
+import { sumUsagePeriod, type UsagePeriod } from '@/lib/usage-history'
 
 const PERIODS: StatsPeriod[] = ['week', 'month', 'year']
+const USAGE_PERIODS: UsagePeriod[] = ['day', 'week', 'month']
 
 function ChartTooltip({
   active,
@@ -51,38 +53,90 @@ function ChartTooltip({
   )
 }
 
-function UsageSection({ usage }: { usage: UsageInsightsSnapshot | null }) {
+function UsageSection({
+  usage,
+  usagePeriod,
+  onPeriodChange,
+  periodTotals,
+}: {
+  usage: UsageInsightsSnapshot | null
+  usagePeriod: UsagePeriod
+  onPeriodChange: (p: UsagePeriod) => void
+  periodTotals: { unlockedMinutes: number; unlockOpenings: number }
+}) {
   const { t } = useTranslation()
   if (!usage) return null
 
-  const showOsTotal = usage.platform === 'android'
+  const showOsDayMetrics = usage.platform === 'android' && usagePeriod === 'day'
   const hasAppRows = usage.apps.some(
     (a) =>
-      (a.screenMinutes ?? 0) > 0 ||
+      (showOsDayMetrics && (a.screenMinutes ?? 0) > 0) ||
       a.unlockedMinutes > 0 ||
-      (a.blockAttempts ?? 0) > 0
+      (showOsDayMetrics && (a.blockAttempts ?? 0) > 0)
   )
+
+  const periodLabel = {
+    day: t('activity.periodDay'),
+    week: t('activity.periodWeek'),
+    month: t('activity.periodMonth'),
+  }
 
   return (
     <div className="space-y-4 mb-4">
       <div className="rounded-2xl p-5 bg-white/[0.03] border border-white/[0.07]">
-        <div className="flex items-center justify-center gap-2 mb-4">
+        <div className="flex items-center justify-center gap-2 mb-3">
           <Smartphone size={14} className="text-indigo-300/80" />
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
-            {t('activity.usageToday')}
+            {t('activity.usageTitle')}
           </p>
+        </div>
+
+        <div className="flex gap-2 mb-4">
+          {USAGE_PERIODS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => onPeriodChange(p)}
+              className={cn(
+                'flex-1 py-2 rounded-xl text-xs font-medium border transition-all',
+                usagePeriod === p
+                  ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
+                  : 'bg-white/[0.03] border-white/[0.07] text-white/40 hover:text-white/60'
+              )}
+            >
+              {periodLabel[p]}
+            </button>
+          ))}
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-center">
-            <p className="text-xs text-indigo-300 mb-1">{t('activity.minutesSpent')}</p>
-            {showOsTotal && usage.totalScreenMinutes != null ? (
-              <p className="text-2xl font-bold tabular-nums">
-                {formatMinutes(usage.totalScreenMinutes)}
+            <p className="text-xs text-indigo-300 mb-1">{t('activity.unlockedSessionTime')}</p>
+            <p className="text-2xl font-bold tabular-nums">
+              {formatMinutes(periodTotals.unlockedMinutes)}
+            </p>
+          </div>
+          <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.07] text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <Clock size={12} className="text-indigo-300/70" />
+              <p className="text-xs text-white/40">{t('activity.unlockOpenings')}</p>
+            </div>
+            <p className="text-2xl font-bold tabular-nums">{periodTotals.unlockOpenings}</p>
+          </div>
+        </div>
+
+        {/* Android-only OS metrics for today — never show broken iOS placeholders */}
+        {showOsDayMetrics && (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.07] text-center">
+              <p className="text-[10px] text-white/40 uppercase tracking-wider mb-1">
+                {t('activity.minutesSpent')}
               </p>
-            ) : showOsTotal && usage.screenTimePermissionNeeded ? (
-              <div className="space-y-2">
-                <p className="text-sm text-white/50">{t('activity.usagePermissionNeeded')}</p>
+              {usage.totalScreenMinutes != null ? (
+                <p className="text-xl font-bold tabular-nums">
+                  {formatMinutes(usage.totalScreenMinutes)}
+                </p>
+              ) : usage.screenTimePermissionNeeded ? (
                 <button
                   type="button"
                   onClick={() => {
@@ -92,52 +146,26 @@ function UsageSection({ usage }: { usage: UsageInsightsSnapshot | null }) {
                 >
                   {t('activity.grantUsageAccess')}
                 </button>
-              </div>
-            ) : (
-              <p className="text-sm text-white/45 leading-snug px-1">
-                {t('activity.minutesSpentIosNote')}
-              </p>
-            )}
-          </div>
-          <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.07] text-center">
-            <p className="text-xs text-white/40 mb-1">{t('activity.unlockedSessionTime')}</p>
-            <p className="text-2xl font-bold text-white/80 tabular-nums">
-              {formatMinutes(usage.totalUnlockedMinutes)}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.07] text-center">
-            <div className="flex items-center justify-center gap-1.5 mb-1">
-              <ShieldAlert size={12} className="text-amber-400/80" />
-              <p className="text-[10px] text-white/40 uppercase tracking-wider">
-                {t('activity.blockAttempts')}
-              </p>
+              ) : (
+                <p className="text-sm text-white/40">—</p>
+              )}
             </div>
-            {usage.blockAttemptsUnavailable ? (
-              <p className="text-xs text-white/40 leading-snug px-1">
-                {t('activity.blockAttemptsIosNote')}
-              </p>
-            ) : (
+            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.07] text-center">
+              <div className="flex items-center justify-center gap-1.5 mb-1">
+                <ShieldAlert size={12} className="text-amber-400/80" />
+                <p className="text-[10px] text-white/40 uppercase tracking-wider">
+                  {t('activity.blockAttempts')}
+                </p>
+              </div>
               <p className="text-xl font-bold tabular-nums">
                 {usage.blockAttempts?.total ?? 0}
               </p>
-            )}
-          </div>
-          <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.07] text-center">
-            <div className="flex items-center justify-center gap-1.5 mb-1">
-              <Clock size={12} className="text-indigo-300/70" />
-              <p className="text-[10px] text-white/40 uppercase tracking-wider">
-                {t('activity.unlockOpenings')}
-              </p>
             </div>
-            <p className="text-xl font-bold tabular-nums">{usage.unlockOpeningsToday}</p>
           </div>
-        </div>
+        )}
       </div>
 
-      {hasAppRows && (
+      {hasAppRows && usagePeriod === 'day' && (
         <div className="rounded-2xl p-4 bg-white/[0.03] border border-white/[0.07]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40 mb-3 text-center">
             {t('activity.byApp')}
@@ -146,17 +174,21 @@ function UsageSection({ usage }: { usage: UsageInsightsSnapshot | null }) {
             {usage.apps
               .filter(
                 (a) =>
-                  (a.screenMinutes ?? 0) > 0 ||
+                  (showOsDayMetrics && (a.screenMinutes ?? 0) > 0) ||
                   a.unlockedMinutes > 0 ||
-                  (a.blockAttempts ?? 0) > 0
+                  (showOsDayMetrics && (a.blockAttempts ?? 0) > 0)
               )
               .slice(0, 8)
               .map((app) => {
                 const primary =
-                  app.screenMinutes != null ? app.screenMinutes : app.unlockedMinutes
+                  showOsDayMetrics && app.screenMinutes != null
+                    ? app.screenMinutes
+                    : app.unlockedMinutes
                 const max = Math.max(
                   ...usage.apps.map((a) =>
-                    a.screenMinutes != null ? a.screenMinutes : a.unlockedMinutes
+                    showOsDayMetrics && a.screenMinutes != null
+                      ? a.screenMinutes
+                      : a.unlockedMinutes
                   ),
                   1
                 )
@@ -166,10 +198,14 @@ function UsageSection({ usage }: { usage: UsageInsightsSnapshot | null }) {
                     <div className="flex justify-between text-xs mb-1 gap-2">
                       <span className="text-white/70 truncate">{app.name}</span>
                       <span className="text-white/40 tabular-nums shrink-0">
-                        {app.screenMinutes != null
-                          ? formatMinutes(app.screenMinutes)
-                          : formatMinutes(app.unlockedMinutes)}
-                        {app.blockAttempts != null && app.blockAttempts > 0
+                        {formatMinutes(
+                          showOsDayMetrics && app.screenMinutes != null
+                            ? app.screenMinutes
+                            : app.unlockedMinutes
+                        )}
+                        {showOsDayMetrics &&
+                        app.blockAttempts != null &&
+                        app.blockAttempts > 0
                           ? ` · ${t('activity.blockAttemptsCount', { count: app.blockAttempts })}`
                           : ''}
                       </span>
@@ -183,22 +219,10 @@ function UsageSection({ usage }: { usage: UsageInsightsSnapshot | null }) {
                         }}
                       />
                     </div>
-                    {app.screenMinutes != null && app.unlockedMinutes > 0 && (
-                      <p className="text-[10px] text-white/30 mt-1 tabular-nums">
-                        {t('activity.unlockedOfApp', {
-                          amount: formatMinutes(app.unlockedMinutes),
-                        })}
-                      </p>
-                    )}
                   </div>
                 )
               })}
           </div>
-          {usage.osUsageUnavailable && usage.platform !== 'android' && (
-            <p className="text-[10px] text-white/35 text-center mt-3 leading-relaxed">
-              {t('activity.byAppUnlockNote')}
-            </p>
-          )}
         </div>
       )}
     </div>
@@ -208,8 +232,9 @@ function UsageSection({ usage }: { usage: UsageInsightsSnapshot | null }) {
 export function ActivityInsights() {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { sessions, profile, apps } = useStore()
+  const { sessions, profile, apps, usageHistory } = useStore()
   const [period, setPeriod] = useState<StatsPeriod>('week')
+  const [usagePeriod, setUsagePeriod] = useState<UsagePeriod>('day')
   const [usage, setUsage] = useState<UsageInsightsSnapshot | null>(null)
   const isPro = profile.isPro
 
@@ -266,6 +291,7 @@ export function ActivityInsights() {
   const categories = getCategoryBreakdown(sessions, (type) =>
     t(`categories.${EXERCISES[type as keyof typeof EXERCISES]?.category ?? 'cardio'}`)
   )
+  const usagePeriodTotals = sumUsagePeriod(usageHistory, usagePeriod)
 
   const periodLabel = {
     week: t('activity.periodWeek'),
@@ -283,7 +309,12 @@ export function ActivityInsights() {
       </div>
 
       <div className="relative">
-        <UsageSection usage={usage} />
+        <UsageSection
+          usage={usage}
+          usagePeriod={usagePeriod}
+          onPeriodChange={setUsagePeriod}
+          periodTotals={usagePeriodTotals}
+        />
 
         {/* Today vs Yesterday */}
         <div className="rounded-2xl p-5 mb-4 bg-white/[0.03] border border-white/[0.07]">

@@ -8,6 +8,7 @@ import { canAddMoreApps, getAppLimit } from '@/lib/trial'
 import { detectLocale } from '@/i18n'
 import { computeEarnedMinutes, FREE_DIFFICULTY } from '@/lib/earning'
 import { scheduleBlockingSync } from '@/lib/blocking-sync'
+import { applyUsageDayBoundary, upsertUsageDay, sumUnlockedMinutes } from '@/lib/usage-history'
 import type { DeviceAppDefinition } from '@/data/device-apps'
 import type { Locale, Difficulty } from '@/types'
 
@@ -44,6 +45,7 @@ const initialState: AppState = {
   apps: DEFAULT_APPS.map((app) => ({ ...app, id: generateId() })),
   sessions: [],
   workoutPlanSessions: [],
+  usageHistory: [],
 }
 
 interface StoreActions {
@@ -227,7 +229,16 @@ export const useStore = create<AppState & StoreActions>()(
       },
 
       unlockApp: (appId, minutes) => {
-        const { screenTimeBalance, apps, profile } = get()
+        const boundary = applyUsageDayBoundary(get())
+        if (boundary.rolled) {
+          set({
+            profile: boundary.profile,
+            apps: boundary.apps,
+            usageHistory: boundary.usageHistory,
+          })
+        }
+
+        const { screenTimeBalance, apps, profile, usageHistory } = get()
         if (screenTimeBalance < minutes) return false
 
         const app = apps.find((a) => a.id === appId)
@@ -240,14 +251,21 @@ export const useStore = create<AppState & StoreActions>()(
         if (Number.isFinite(maxOpenings) && openingsUsed >= maxOpenings) return false
 
         const unlockUntil = Date.now() + minutes * 60 * 1000
+        const nextOpenings = openingsUsed + 1
 
         set((s) => ({
           screenTimeBalance: s.screenTimeBalance - minutes,
           profile: {
             ...s.profile,
-            openingsUsedToday: openingsUsed + 1,
+            openingsUsedToday: nextOpenings,
             openingsDate: today,
           },
+          usageHistory: upsertUsageDay(
+            usageHistory,
+            today,
+            sumUnlockedMinutes(apps),
+            nextOpenings
+          ),
           apps: s.apps.map((a) =>
             a.id === appId
               ? {
@@ -264,8 +282,8 @@ export const useStore = create<AppState & StoreActions>()(
       },
 
       useAppTime: (appId, minutes) => {
-        set((s) => ({
-          apps: s.apps.map((a) => {
+        set((s) => {
+          const apps = s.apps.map((a) => {
             if (a.id !== appId) return a
             const newUsed = a.usedMinutes + minutes
             const limitReached = newUsed >= a.dailyLimitMinutes
@@ -275,8 +293,15 @@ export const useStore = create<AppState & StoreActions>()(
               isLocked: limitReached,
               unlockedUntil: limitReached ? null : a.unlockedUntil,
             }
-          }),
-        }))
+          })
+          const today = localDateString()
+          const openings =
+            s.profile.openingsDate === today ? (s.profile.openingsUsedToday ?? 0) : 0
+          return {
+            apps,
+            usageHistory: upsertUsageDay(s.usageHistory, today, sumUnlockedMinutes(apps), openings),
+          }
+        })
       },
 
       addApp: (appData) => {
@@ -339,23 +364,27 @@ export const useStore = create<AppState & StoreActions>()(
         })),
 
       resetDailyUsage: () =>
-        set((s) => ({
-          profile: {
-            ...s.profile,
-            openingsUsedToday: 0,
-            openingsDate: localDateString(),
-          },
-          apps: s.apps.map((a) => ({
-            ...a,
-            usedMinutes: 0,
-            isLocked: true,
-            unlockedUntil: null,
-          })),
-        })),
+        set((s) => {
+          const today = localDateString()
+          return {
+            profile: {
+              ...s.profile,
+              openingsUsedToday: 0,
+              openingsDate: today,
+            },
+            apps: s.apps.map((a) => ({
+              ...a,
+              usedMinutes: 0,
+              isLocked: true,
+              unlockedUntil: null,
+            })),
+            usageHistory: upsertUsageDay(s.usageHistory, today, 0, 0),
+          }
+        }),
     }),
     {
       name: 'replock-storage',
-      version: 10,
+      version: 11,
       migrate: (persisted, version) => {
         const state = persisted as AppState
         if (version < 2) {
@@ -416,6 +445,17 @@ export const useStore = create<AppState & StoreActions>()(
             openingsDate: state.profile.openingsDate ?? null,
           }
         }
+        if (version < 11) {
+          const today = localDateString()
+          const openings =
+            state.profile.openingsDate === today ? (state.profile.openingsUsedToday ?? 0) : 0
+          state.usageHistory = upsertUsageDay(
+            state.usageHistory,
+            today,
+            sumUnlockedMinutes(state.apps ?? []),
+            openings
+          )
+        }
         return state as AppState & StoreActions
       },
       onRehydrateStorage: () => (state) => {
@@ -431,6 +471,10 @@ export const useStore = create<AppState & StoreActions>()(
           )
           state.currentStreak = streak
           state.longestStreak = longest
+          const boundary = applyUsageDayBoundary(state)
+          state.profile = boundary.profile
+          state.apps = boundary.apps
+          state.usageHistory = boundary.usageHistory
         }
       },
     }
@@ -462,44 +506,54 @@ if (typeof window !== 'undefined') {
       return false
     })
     if (needsUpdate) {
+      const nextApps = state.apps.map((a) => {
+        if (!a.unlockedUntil) return a
+
+        if (a.unlockedUntil < now) {
+          const baseline = a.usedMinutesAtUnlock ?? a.usedMinutes
+          const sessionMinutes = a.unlockedAt
+            ? Math.max(1, Math.ceil((a.unlockedUntil - a.unlockedAt) / 60_000))
+            : 0
+          const newUsed = baseline + sessionMinutes
+          return {
+            ...a,
+            usedMinutes: newUsed,
+            isLocked: true,
+            unlockedUntil: null,
+            unlockedAt: null,
+            usedMinutesAtUnlock: null,
+          }
+        }
+
+        if (a.unlockedAt) {
+          const baseline = a.usedMinutesAtUnlock ?? a.usedMinutes
+          const elapsed = Math.ceil((now - a.unlockedAt) / 60_000)
+          const newUsed = baseline + elapsed
+          if (newUsed === a.usedMinutes) return a
+          const limitReached = newUsed >= a.dailyLimitMinutes
+          return {
+            ...a,
+            usedMinutes: newUsed,
+            isLocked: limitReached,
+            unlockedUntil: limitReached ? null : a.unlockedUntil,
+            unlockedAt: limitReached ? null : a.unlockedAt,
+            usedMinutesAtUnlock: limitReached ? null : a.usedMinutesAtUnlock,
+          }
+        }
+
+        return a
+      })
+      const today = localDateString()
+      const openings =
+        state.profile.openingsDate === today ? (state.profile.openingsUsedToday ?? 0) : 0
       useStore.setState({
-        apps: state.apps.map((a) => {
-          if (!a.unlockedUntil) return a
-
-          if (a.unlockedUntil < now) {
-            const baseline = a.usedMinutesAtUnlock ?? a.usedMinutes
-            const sessionMinutes = a.unlockedAt
-              ? Math.max(1, Math.ceil((a.unlockedUntil - a.unlockedAt) / 60_000))
-              : 0
-            const newUsed = baseline + sessionMinutes
-            return {
-              ...a,
-              usedMinutes: newUsed,
-              isLocked: true,
-              unlockedUntil: null,
-              unlockedAt: null,
-              usedMinutesAtUnlock: null,
-            }
-          }
-
-          if (a.unlockedAt) {
-            const baseline = a.usedMinutesAtUnlock ?? a.usedMinutes
-            const elapsed = Math.ceil((now - a.unlockedAt) / 60_000)
-            const newUsed = baseline + elapsed
-            if (newUsed === a.usedMinutes) return a
-            const limitReached = newUsed >= a.dailyLimitMinutes
-            return {
-              ...a,
-              usedMinutes: newUsed,
-              isLocked: limitReached,
-              unlockedUntil: limitReached ? null : a.unlockedUntil,
-              unlockedAt: limitReached ? null : a.unlockedAt,
-              usedMinutesAtUnlock: limitReached ? null : a.usedMinutesAtUnlock,
-            }
-          }
-
-          return a
-        }),
+        apps: nextApps,
+        usageHistory: upsertUsageDay(
+          state.usageHistory,
+          today,
+          sumUnlockedMinutes(nextApps),
+          openings
+        ),
       })
       scheduleBlockingSync()
     }

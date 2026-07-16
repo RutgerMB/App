@@ -7,7 +7,7 @@ import { localDateString } from '@/lib/dates'
 import { useTranslation } from '@/i18n/context'
 import { cn } from '@/lib/utils'
 
-export function QuickBlockCard() {
+export function QuickBlockCard({ compact }: { compact?: boolean }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
 
@@ -16,30 +16,42 @@ export function QuickBlockCard() {
       type="button"
       onClick={() => navigate('/exercise')}
       className={cn(
-        'w-full text-left rounded-2xl px-4 py-3.5',
+        'w-full text-left rounded-2xl',
         'bg-gradient-to-br from-indigo-500/15 to-violet-500/5 border border-indigo-500/20',
-        'hover:border-indigo-500/35 hover:from-indigo-500/18 active:scale-[0.985] transition-all duration-200'
+        'hover:border-indigo-500/35 hover:from-indigo-500/18 active:scale-[0.985] transition-all duration-200',
+        compact ? 'px-3.5 py-3 h-full' : 'px-4 py-3.5'
       )}
     >
-      <div className="flex items-center gap-3.5">
-        <div className="w-11 h-11 rounded-xl bg-indigo-500/20 flex items-center justify-center shrink-0">
-          <Zap size={20} className="text-indigo-400" />
+      <div className={cn('flex items-center gap-3', compact && 'flex-col items-start gap-2')}>
+        <div
+          className={cn(
+            'rounded-xl bg-indigo-500/20 flex items-center justify-center shrink-0',
+            compact ? 'w-9 h-9' : 'w-11 h-11'
+          )}
+        >
+          <Zap size={compact ? 16 : 20} className="text-indigo-400" />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-[15px] tracking-tight">{t('apps.quickBlockTitle')}</p>
-          <p className="text-xs text-white/45 mt-0.5 leading-relaxed truncate">
-            {t('apps.quickBlockDesc')}
+        <div className="flex-1 min-w-0 w-full">
+          <p className={cn('font-semibold tracking-tight', compact ? 'text-sm' : 'text-[15px]')}>
+            {t('apps.quickBlockTitle')}
           </p>
+          {!compact && (
+            <p className="text-xs text-white/45 mt-0.5 leading-relaxed truncate">
+              {t('apps.quickBlockDesc')}
+            </p>
+          )}
         </div>
-        <span className="text-xs font-semibold text-indigo-300 shrink-0">
-          {t('apps.quickBlockCta')} →
-        </span>
+        {!compact && (
+          <span className="text-xs font-semibold text-indigo-300 shrink-0">
+            {t('apps.quickBlockCta')} →
+          </span>
+        )}
       </div>
     </button>
   )
 }
 
-export function ActiveScheduleCard() {
+export function ActiveScheduleCard({ compact }: { compact?: boolean }) {
   const { t } = useTranslation()
   const profile = useStore((s) => s.profile)
   const apps = useStore((s) => s.apps)
@@ -65,31 +77,63 @@ export function ActiveScheduleCard() {
   return (
     <div
       className={cn(
-        'rounded-2xl px-4 py-3.5',
-        'bg-gradient-to-br from-violet-500/10 to-indigo-500/5 border border-violet-500/20'
+        'rounded-2xl',
+        'bg-gradient-to-br from-violet-500/10 to-indigo-500/5 border border-violet-500/20',
+        compact ? 'px-3.5 py-3 h-full' : 'px-4 py-3.5'
       )}
     >
-      <div className="flex items-start gap-3 mb-3">
-        <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center shrink-0">
-          <Calendar size={18} className="text-violet-400" />
+      <div className={cn('flex items-center gap-3', compact ? 'mb-2' : 'mb-3 items-start')}>
+        <div
+          className={cn(
+            'rounded-xl bg-violet-500/20 flex items-center justify-center shrink-0',
+            compact ? 'w-9 h-9' : 'w-10 h-10'
+          )}
+        >
+          <Calendar size={compact ? 16 : 18} className="text-violet-400" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[15px] font-semibold tracking-tight">{t('apps.activeScheduleTitle')}</p>
-          <p className="text-xs text-white/45 mt-0.5 leading-relaxed">
-            {t('onboarding.goalSchedule', { day: weekday, openings, minutes: minutesPerOpening })}
+          <p className={cn('font-semibold tracking-tight', compact ? 'text-sm' : 'text-[15px]')}>
+            {t('apps.activeScheduleTitle')}
+          </p>
+          <p className="text-[11px] text-white/40 mt-0.5 truncate">
+            {compact
+              ? t('apps.activeScheduleCompact', {
+                  openings,
+                  minutes: minutesPerOpening,
+                })
+              : t('onboarding.goalSchedule', {
+                  day: weekday,
+                  openings,
+                  minutes: minutesPerOpening,
+                })}
           </p>
         </div>
       </div>
-      <div className="flex items-center justify-between text-xs text-white/40 mb-2">
-        <span>{t('onboarding.goalProgress')}</span>
+      <div className="flex items-center justify-between text-[11px] text-white/40 mb-1.5">
         <span className="tabular-nums">
           {progressOpenings}/{openings}
         </span>
       </div>
       <Progress value={progressOpenings} max={openings} size="sm" />
-      <p className="text-[11px] text-white/30 mt-2">
-        {apps.length} {t('apps.appsTrackedLabel')}
-      </p>
+    </div>
+  )
+}
+
+/** Quick Block + Active Schedule on one compact row when schedule is visible. */
+export function AppsHubRow() {
+  const profile = useStore((s) => s.profile)
+  const apps = useStore((s) => s.apps)
+  const openings = profile.dailyOpenings ?? DEFAULT_DAILY_OPENINGS
+  const showSchedule = openings >= 1 && apps.length > 0
+
+  if (!showSchedule) {
+    return <QuickBlockCard />
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-2.5">
+      <QuickBlockCard compact />
+      <ActiveScheduleCard compact />
     </div>
   )
 }

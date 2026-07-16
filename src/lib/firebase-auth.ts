@@ -55,6 +55,7 @@ export function createEmptyAppState(name: string, email: string): AppState {
     apps: DEFAULT_APPS.map((app) => ({ ...app, id: generateId() })),
     sessions: [],
     workoutPlanSessions: [],
+    usageHistory: [],
   }
 }
 

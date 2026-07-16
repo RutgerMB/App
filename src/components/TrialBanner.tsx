@@ -39,7 +39,7 @@ export function TrialBanner({ compact }: TrialBannerProps) {
     return (
       <button
         onClick={openUpgrade}
-        className={`w-full mb-4 p-3 rounded-xl border flex items-center gap-3 text-left transition-colors ${
+        className={`w-full p-3 rounded-xl border flex items-center gap-3 text-left transition-colors ${
           isExpired
             ? 'bg-amber-500/10 border-amber-500/25 hover:bg-amber-500/15'
             : isUrgent
@@ -53,11 +53,10 @@ export function TrialBanner({ compact }: TrialBannerProps) {
           <Clock size={16} className={`shrink-0 ${isUrgent ? 'text-orange-400' : 'text-indigo-400'}`} />
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium">
-            {isExpired ? t('trial.trialEnded') : `${t('trial.fullAccess')} · ${timeLabel}`}
-          </p>
-          <p className="text-xs text-white/40 truncate">
-            {isExpired ? t('trial.upgradeKeepApps') : t('trial.trialFeatures', { days: TRIAL_DAYS })}
+          <p className="text-sm font-medium truncate">
+            {isExpired
+              ? t('trial.upgradeKeepApps')
+              : `${t('trial.fullAccess')} · ${timeLabel}`}
           </p>
         </div>
         <Sparkles size={14} className="text-indigo-400 shrink-0" />
