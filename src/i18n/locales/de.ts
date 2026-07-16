@@ -168,7 +168,8 @@ export const de = {
     screenTimeIosError_notDetermined:
       'Screen Time is not fully set yet. Tap Authorize again, or open Settings → Screen Time.',
     screenTimeIosError_plugin_missing: 'Blocking plugin not loaded. On your Mac run npm run cap:ios:sync, then Run ▶ in Xcode again.',
-    screenTimeIosError_failed: 'Could not show permission dialog.',
+    screenTimeIosError_failed:
+      'Screen Time authorization failed. Turn on Settings → Screen Time, unlock with your passcode/Face ID, then tap Authorize again.',
     screenTimeIosError_unsupported: 'Only available on iPhone.',
     screenTimePermissionWeb: 'Bildschirmzeit kann im Browser nicht gelesen werden.',
     screenTimePermissionOpenSettings: 'Nutzungszugriff öffnen',

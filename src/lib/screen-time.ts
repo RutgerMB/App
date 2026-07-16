@@ -90,9 +90,18 @@ export async function requestIosScreenTimeAccess(): Promise<IosScreenTimeAuthRes
     if (result.ok) {
       return { ok: true, authorized: true, status: result.status }
     }
+    if (!result.ok && 'detail' in result && result.detail) {
+      console.warn('[ScreenTime] iOS auth failed', {
+        reason: result.reason,
+        status: result.status,
+        code: result.code,
+        detail: result.detail,
+      })
+    }
     // Do not collapse notDetermined into denied — user may still be able to retry.
     return { ok: false, reason: result.reason, status: result.status }
-  } catch {
+  } catch (err) {
+    console.warn('[ScreenTime] iOS auth threw', err)
     return { ok: false, reason: 'failed' }
   }
 }
@@ -104,8 +113,8 @@ export async function refreshIosScreenTimeAccess(): Promise<IosScreenTimeAuthRes
   if (!ready) return { ok: false, reason: 'plugin_missing' }
 
   const status = await refreshIosControlsAuthorization()
-  if (status.authorized && status.status === 'approved') {
-    return { ok: true, authorized: true, status: status.status }
+  if (status.authorized) {
+    return { ok: true, authorized: true, status: status.status || 'approved' }
   }
   if (status.status === 'denied') {
     return { ok: false, reason: 'denied', status: status.status }

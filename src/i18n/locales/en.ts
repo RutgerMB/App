@@ -173,7 +173,7 @@ export const en: Translations = {
     screenTimeIosError_plugin_missing:
       'Blocking plugin not loaded. On your Mac run npm run cap:ios:sync, then Run ▶ in Xcode again.',
     screenTimeIosError_failed:
-      'Could not show Apple\'s permission dialog. Rebuild the app from Xcode after cap:ios:sync.',
+      'Screen Time authorization failed. Turn on Settings → Screen Time, unlock with your passcode/Face ID, then tap Authorize again. If this device is new to Family Controls Development, register it under your Apple Developer account.',
     screenTimeIosError_unsupported: 'Screen Time authorization is only available on iPhone.',
     screenTimePermissionWeb:
       'Screen time cannot be read in the browser. Your estimate on the next screen will personalize your plan.',

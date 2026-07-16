@@ -78,10 +78,12 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func requestAuthorization(_ call: CAPPluginCall) {
         guard #available(iOS 16.0, *) else {
-            repLockReject(call, "Family Controls requires iOS 16+")
+            repLockReject(call, "Family Controls requires iOS 16+", code: "UNSUPPORTED")
             return
         }
 
+        // Hop to main immediately so Face ID / the system sheet can present from
+        // the same UI turn as the JS user gesture (Capacitor bridge may call off-main).
         Task { @MainActor in
             do {
                 let result = try await AuthorizationManager.requestAuthorization()
@@ -99,15 +101,51 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
                     ])
                     return
                 }
-                let status = refreshed.status
-                let code = status == "denied" ? "DENIED" : (status == "notDetermined" ? "NOT_DETERMINED" : "FAILED")
-                repLockReject(
-                    call,
-                    "Authorization failed: \(error.localizedDescription) (status=\(status))",
-                    code: code
-                )
+                let mapped = Self.mapAuthorizationFailure(error, status: refreshed.status)
+                print("[RepLockControls] requestAuthorization failed code=\(mapped.code) status=\(refreshed.status) err=\(error)")
+                repLockReject(call, mapped.message, code: mapped.code)
             }
         }
+    }
+
+    @available(iOS 16.0, *)
+    private static func mapAuthorizationFailure(_ error: Error, status: String) -> (code: String, message: String) {
+        if let requestError = error as? AuthorizationRequestError {
+            return ("NOT_ACTIVE", "Authorization failed: \(requestError.localizedDescription) (status=\(status))")
+        }
+
+        if let fcError = error as? FamilyControlsError {
+            let code: String
+            switch fcError {
+            case .authorizationCanceled:
+                code = "CANCELED"
+            case .restricted:
+                code = "RESTRICTED"
+            case .unavailable:
+                code = "UNAVAILABLE"
+            case .authenticationMethodUnavailable:
+                code = "NO_PASSCODE"
+            case .invalidAccountType:
+                code = "INVALID_ACCOUNT"
+            case .authorizationConflict:
+                code = "CONFLICT"
+            case .networkError:
+                code = "NETWORK"
+            case .invalidArgument:
+                code = "INVALID_ARGUMENT"
+            @unknown default:
+                code = "FAILED"
+            }
+            return (code, "Authorization failed: \(fcError.localizedDescription) (status=\(status))")
+        }
+
+        if status == "denied" {
+            return ("DENIED", "Authorization failed: \(error.localizedDescription) (status=\(status))")
+        }
+        if status == "notDetermined" {
+            return ("NOT_DETERMINED", "Authorization failed: \(error.localizedDescription) (status=\(status))")
+        }
+        return ("FAILED", "Authorization failed: \(error.localizedDescription) (status=\(status))")
     }
 
     @objc func presentActivityPicker(_ call: CAPPluginCall) {

@@ -19,7 +19,14 @@ export interface IosControlsStatus {
 
 export type IosAuthRequestResult =
   | { ok: true; authorized: true; status: string }
-  | { ok: false; authorized: false; status: string; reason: 'denied' | 'notDetermined' | 'failed' }
+  | {
+      ok: false
+      authorized: false
+      status: string
+      reason: 'denied' | 'notDetermined' | 'failed'
+      detail?: string
+      code?: string
+    }
 
 interface RepLockControlsPlugin {
   isSupported(): Promise<{ supported: boolean }>
@@ -35,10 +42,20 @@ interface RepLockControlsPlugin {
 const RepLockControlsNative = registerPlugin<RepLockControlsPlugin>('RepLockControls')
 
 function pluginErrorMeta(err: unknown): { message: string; code: string } {
-  const anyErr = err as { message?: string; code?: string }
-  const message = err instanceof Error ? err.message : String(anyErr?.message ?? err)
+  const anyErr = err as { message?: string; code?: string; errorMessage?: string }
+  const message =
+    err instanceof Error
+      ? err.message
+      : String(anyErr?.message ?? anyErr?.errorMessage ?? err)
   const code = typeof anyErr?.code === 'string' ? anyErr.code : ''
   return { message, code }
+}
+
+/** Native normalizes approvedWithDataAccess → "approved"; accept both for safety. */
+function isApprovedAuth(authorized: boolean | undefined, status: string | undefined): boolean {
+  if (authorized === true) return true
+  const s = (status || '').toLowerCase()
+  return s === 'approved' || s === 'approvedwithdataaccess' || s.includes('approved')
 }
 
 export function isIosControlsAvailable(): boolean {
@@ -54,14 +71,14 @@ export async function getIosControlsStatus(): Promise<IosControlsStatus> {
       RepLockControlsNative.isSupported(),
       RepLockControlsNative.checkAuthorization(),
     ])
-    // Only `.approved` counts — never treat notDetermined as connected.
-    const approved = auth.status === 'approved' && auth.authorized === true
+    const approved = isApprovedAuth(auth.authorized, auth.status)
     return {
       supported: supported,
       authorized: approved,
-      status: auth.status,
+      status: approved ? 'approved' : auth.status,
     }
-  } catch {
+  } catch (err) {
+    console.warn('[RepLockControls] checkAuthorization failed', pluginErrorMeta(err))
     return { supported: false, authorized: false, status: 'error' }
   }
 }
@@ -72,9 +89,8 @@ export async function refreshIosControlsAuthorization(): Promise<IosControlsStat
 }
 
 /**
- * Request Family Controls. Success only when status is actually `.approved`
- * (matches presentActivityPicker / isAuthorized). Do not claim success on
- * a non-throwing request while status is still notDetermined/denied.
+ * Request Family Controls. Success only when status is actually approved
+ * (including approvedWithDataAccess, normalized to approved).
  */
 export async function requestIosControlsAuthorizationDetailed(): Promise<IosAuthRequestResult> {
   if (!isIosControlsAvailable()) {
@@ -82,12 +98,8 @@ export async function requestIosControlsAuthorizationDetailed(): Promise<IosAuth
   }
   try {
     const result = await RepLockControlsNative.requestAuthorization()
-    // Prefer a fresh check so JS matches native picker gates.
     const again = await getIosControlsStatus()
-    if (again.authorized && again.status === 'approved') {
-      return { ok: true, authorized: true, status: 'approved' }
-    }
-    if (result.authorized === true && result.status === 'approved') {
+    if (isApprovedAuth(again.authorized, again.status) || isApprovedAuth(result.authorized, result.status)) {
       return { ok: true, authorized: true, status: 'approved' }
     }
     const status = again.status || result.status || 'unknown'
@@ -97,21 +109,62 @@ export async function requestIosControlsAuthorizationDetailed(): Promise<IosAuth
     if (status === 'notDetermined') {
       return { ok: false, authorized: false, status, reason: 'notDetermined' }
     }
-    return { ok: false, authorized: false, status, reason: 'failed' }
+    console.warn('[RepLockControls] auth request resolved without approval', { result, again })
+    return {
+      ok: false,
+      authorized: false,
+      status,
+      reason: 'failed',
+      detail: `native status=${result.status} authorized=${String(result.authorized)}`,
+    }
   } catch (err) {
     const { message, code } = pluginErrorMeta(err)
-    // User may have allowed in Settings while the dialog errored — refresh.
+    console.warn('[RepLockControls] auth request rejected', { code, message })
+
     const again = await getIosControlsStatus()
-    if (again.authorized && again.status === 'approved') {
+    if (isApprovedAuth(again.authorized, again.status)) {
       return { ok: true, authorized: true, status: 'approved' }
     }
-    if (code === 'DENIED' || again.status === 'denied' || /denied/i.test(message)) {
-      return { ok: false, authorized: false, status: again.status || 'denied', reason: 'denied' }
+
+    if (
+      code === 'DENIED' ||
+      again.status === 'denied' ||
+      /denied/i.test(message)
+    ) {
+      return {
+        ok: false,
+        authorized: false,
+        status: again.status || 'denied',
+        reason: 'denied',
+        detail: message,
+        code,
+      }
     }
-    if (code === 'NOT_DETERMINED' || again.status === 'notDetermined') {
-      return { ok: false, authorized: false, status: 'notDetermined', reason: 'notDetermined' }
+
+    if (
+      code === 'CANCELED' ||
+      code === 'NOT_DETERMINED' ||
+      again.status === 'notDetermined' ||
+      /cancel/i.test(message)
+    ) {
+      return {
+        ok: false,
+        authorized: false,
+        status: 'notDetermined',
+        reason: 'notDetermined',
+        detail: message,
+        code,
+      }
     }
-    return { ok: false, authorized: false, status: again.status || 'error', reason: 'failed' }
+
+    return {
+      ok: false,
+      authorized: false,
+      status: again.status || 'error',
+      reason: 'failed',
+      detail: message,
+      code: code || 'FAILED',
+    }
   }
 }
 

@@ -171,7 +171,8 @@ export const nl = {
     screenTimeIosError_notDetermined:
       'Screen Time is nog niet volledig ingesteld. Tik opnieuw op Autoriseren, of open Instellingen → Schermtijd.',
     screenTimeIosError_plugin_missing: 'Blokkeer-plugin niet geladen. Run op je Mac: npm run cap:ios:sync, daarna Run ▶ in Xcode.',
-    screenTimeIosError_failed: 'Kon Apple\'s dialoog niet tonen. Rebuild vanuit Xcode na cap:ios:sync.',
+    screenTimeIosError_failed:
+      'Screen Time-autorisatie mislukt. Zet Instellingen → Schermtijd aan, ontgrendel met toegangscode/Face ID, tik opnieuw op Autoriseren. Nieuw testapparaat? Registreer het onder je Apple Developer-account (Family Controls Development).',
     screenTimeIosError_unsupported: 'Screen Time-autorisatie werkt alleen op iPhone.',
     screenTimePermissionWeb: 'Schermtijd kan niet in de browser worden gelezen. Je schatting personaliseert je plan.',
     screenTimePermissionOpenSettings: 'Open gebruikstoegang',
