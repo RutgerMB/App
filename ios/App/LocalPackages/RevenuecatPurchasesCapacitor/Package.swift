@@ -1,0 +1,28 @@
+// swift-tools-version: 5.9
+import PackageDescription
+
+let package = Package(
+    name: "RevenuecatPurchasesCapacitor",
+    platforms: [.iOS(.v16)],
+    products: [
+        .library(
+            name: "RevenuecatPurchasesCapacitor",
+            targets: ["RevenuecatPurchasesCapacitor"])
+    ],
+    dependencies: [
+        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.1"),
+        .package(url: "https://github.com/RevenueCat/purchases-hybrid-common.git", exact: "18.19.0"),
+        .package(name: "RepLockControls", path: "../RepLockControls")
+    ],
+    targets: [
+        .target(
+            name: "RevenuecatPurchasesCapacitor",
+            dependencies: [
+                .product(name: "RepLockPluginBridge", package: "RepLockControls"),
+                .product(name: "Capacitor", package: "capacitor-swift-pm"),
+                .product(name: "Cordova", package: "capacitor-swift-pm"),
+                .product(name: "PurchasesHybridCommon", package: "purchases-hybrid-common")
+            ],
+            path: "ios/Sources/RevenuecatPurchasesCapacitor")
+    ]
+)

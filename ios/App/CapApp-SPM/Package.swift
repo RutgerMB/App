@@ -14,7 +14,7 @@ let package = Package(
         .package(name: "RepLockRevenueCat", path: "../LocalPackages/RepLockRevenueCat"),
         .package(name: "RepLockControls", path: "../LocalPackages/RepLockControls"),
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.1"),
-        .package(name: "RevenuecatPurchasesCapacitor", path: "../../../node_modules/@revenuecat/purchases-capacitor"),
+        .package(name: "RevenuecatPurchasesCapacitor", path: "../LocalPackages/RevenuecatPurchasesCapacitor"),
         .package(name: "CapgoNativePurchases", path: "../LocalPackages/CapgoNativePurchases")
     ],
     targets: [

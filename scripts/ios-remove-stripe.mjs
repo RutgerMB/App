@@ -19,11 +19,13 @@ const LOCAL_REPLOCK_CONTROLS_PATH = '../LocalPackages/RepLockControls'
 const LOCAL_CAPGO_NATIVE_PURCHASES_PATH = '../LocalPackages/CapgoNativePurchases'
 
 const LOCAL_REPLOCK_REVENUECAT_PATH = '../LocalPackages/RepLockRevenueCat'
+const LOCAL_REVENUECAT_PURCHASES_CAPACITOR_PATH = '../LocalPackages/RevenuecatPurchasesCapacitor'
 
 const REQUIRED_LOCAL_PACKAGES = [
   { name: 'RepLockControls', path: LOCAL_REPLOCK_CONTROLS_PATH },
   { name: 'CapgoNativePurchases', path: LOCAL_CAPGO_NATIVE_PURCHASES_PATH },
   { name: 'RepLockRevenueCat', path: LOCAL_REPLOCK_REVENUECAT_PATH },
+  { name: 'RevenuecatPurchasesCapacitor', path: LOCAL_REVENUECAT_PURCHASES_CAPACITOR_PATH },
 ]
 
 const REQUIRED_PRODUCTS = [
@@ -124,7 +126,7 @@ if (existsSync(spmPackagePath)) {
   pkg = ensureLocalPackagesAndProducts(pkg)
   if (pkg !== before) {
     writeFileSync(spmPackagePath, pkg)
-    console.log('Patched CapApp-SPM/Package.swift (RepLockControls + CapgoNativePurchases + RepLockRevenueCat, iOS 16+)')
+    console.log('Patched CapApp-SPM/Package.swift (RepLockControls + CapgoNativePurchases + RepLockRevenueCat + RevenuecatPurchasesCapacitor, iOS 16+)')
     changed = true
   } else {
     console.log('CapApp-SPM/Package.swift already up to date')
@@ -156,5 +158,5 @@ if (changed) {
 }
 
 console.log(
-  '\nNote: Native Apple IAP (CapgoNativePurchases), RevenueCat SwiftUI (RepLockRevenueCat), and app blocking (RepLockControls) are linked via local SPM packages.'
+  '\nNote: Native Apple IAP (CapgoNativePurchases), RevenueCat Capacitor (RevenuecatPurchasesCapacitor), RevenueCat SwiftUI (RepLockRevenueCat), and app blocking (RepLockControls) are linked via local SPM packages.'
 )
