@@ -84,8 +84,18 @@ export async function isRepLockControlsPluginReady(): Promise<boolean> {
   if (!isIosControlsAvailable()) return false
   try {
     const { supported } = await RepLockControlsNative.isSupported()
-    return supported
-  } catch {
+    return supported === true
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    // Capacitor web stub / missing native registration
+    if (
+      /not implemented|plugin is not implemented|UNIMPLEMENTED|"RepLockControls"/i.test(msg) ||
+      msg.toLowerCase().includes('not available')
+    ) {
+      console.warn(
+        '[RepLockControls] native plugin not loaded — on Mac run: npm run cap:ios:sync, then rebuild in Xcode'
+      )
+    }
     return false
   }
 }

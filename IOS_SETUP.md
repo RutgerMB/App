@@ -178,14 +178,19 @@ That’s expected if you didn’t run `cap:ios:sync` — browser uses `localhost
 
 **"Blocking plugin not loaded" (Screen Time / app blocking)**
 
-`npx cap sync ios` resets `ios/App/CapApp-SPM/Package.swift` to Capacitor-only and drops local SPM plugins. The post-sync script (`scripts/ios-remove-stripe.mjs`, run automatically by `npm run cap:ios:sync`) re-adds **RepLockControls** and **CapgoNativePurchases**.
+`npx cap sync ios` resets `ios/App/CapApp-SPM/Package.swift` and regenerates `capacitor.config.json`. Local plugins are **not** npm packages, so they disappear from Capacitor’s `packageClassList` unless re-injected. Capacitor only registers classes listed there (`NSClassFromString`).
 
-1. Run `npm run cap:ios:sync` (not just `npx cap sync ios` alone).
+`npm run cap:ios:sync` runs `scripts/ios-remove-stripe.mjs`, which:
+- Re-adds **RepLockControls**, **CapgoNativePurchases**, **RepLockRevenueCat** to CapApp-SPM
+- Injects `RepLockControlsPlugin` (and related) into `packageClassList`
+
+1. Run `npm run cap:ios:sync` (not bare `npx cap sync ios`).
 2. Open `ios/App/App.xcodeproj` in Xcode.
-3. **Product → Clean Build Folder** (⇧⌘K) if you synced recently.
-4. **Run ▶** on a **physical iPhone** (blocking does not work in Simulator).
+3. **Product → Clean Build Folder** (⇧⌘K).
+4. **Run ▶** on a **physical iPhone** (Family Controls does not work in Simulator).
+5. Tap **Authorize Screen Time** — Apple’s permission dialog should appear.
 
-If it still fails, in Xcode: **File → Packages → Reset Package Caches**, then Clean Build Folder and Run again.
+If it still fails: **File → Packages → Reset Package Caches**, Clean Build Folder, Run again. Confirm `ios/App/App/capacitor.config.json` includes `"RepLockControlsPlugin"` in `packageClassList`.
 
 **Swift compile errors (`NativePurchases`, StoreKit, or Capacitor plugin errors)**
 
