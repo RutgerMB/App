@@ -6,6 +6,10 @@ enum RepLockControlsConstants {
     static let appGroupId = "group.com.replock.fitness"
     static let selectionKey = "replock.familyActivitySelection"
     static let unlockMapKey = "replock.unlockMap"
+    /// User-chosen labels keyed by opaque token id. Apple never exposes real app
+    /// names/bundle IDs to the host app — only FamilyControls `Label(token)` can
+    /// render system name+icon inside a native UI surface.
+    static let displayNamesKey = "replock.tokenDisplayNames"
 }
 
 @available(iOS 16.0, *)
@@ -31,6 +35,7 @@ final class SelectionStore {
     func saveSelection(_ selection: FamilyActivitySelection) {
         guard let data = try? JSONEncoder().encode(selection) else { return }
         defaults?.set(data, forKey: RepLockControlsConstants.selectionKey)
+        pruneDisplayNames(to: selection)
     }
 
     func stableTokenId(for token: ApplicationToken) -> String? {
@@ -48,12 +53,58 @@ final class SelectionStore {
         return map
     }
 
-    func selectedAppsPayload(from selection: FamilyActivitySelection) -> [[String: String]] {
-        selection.applicationTokens.enumerated().map { index, token in
+    // MARK: - Display names (user-editable; not system app names)
+
+    func loadDisplayNames() -> [String: String] {
+        (defaults?.dictionary(forKey: RepLockControlsConstants.displayNamesKey) as? [String: String]) ?? [:]
+    }
+
+    func saveDisplayNames(_ names: [String: String]) {
+        var cleaned: [String: String] = [:]
+        for (id, raw) in names {
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                cleaned[id] = trimmed
+            }
+        }
+        defaults?.set(cleaned, forKey: RepLockControlsConstants.displayNamesKey)
+    }
+
+    func setDisplayName(_ name: String, forTokenId tokenId: String) {
+        var names = loadDisplayNames()
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            names.removeValue(forKey: tokenId)
+        } else {
+            names[tokenId] = trimmed
+        }
+        saveDisplayNames(names)
+    }
+
+    private func pruneDisplayNames(to selection: FamilyActivitySelection) {
+        let valid = Set(tokenIdMap(from: selection).keys)
+        var names = loadDisplayNames()
+        let before = names.count
+        names = names.filter { valid.contains($0.key) }
+        if names.count != before {
+            saveDisplayNames(names)
+        }
+    }
+
+    /// Payload for JS. `name` is a user label when set; otherwise a placeholder.
+    /// Real system names cannot be read from ApplicationToken (Apple privacy).
+    func selectedAppsPayload(from selection: FamilyActivitySelection) -> [[String: Any]] {
+        let custom = loadDisplayNames()
+        return selection.applicationTokens.enumerated().map { index, token in
             let id = stableTokenId(for: token) ?? "ios-\(index)"
+            let placeholder = "App \(index + 1)"
+            let customName = custom[id]
+            let name = (customName?.isEmpty == false) ? customName! : placeholder
             return [
                 "id": id,
-                "name": "App \(index + 1)",
+                "name": name,
+                "hasCustomName": customName != nil && !(customName?.isEmpty ?? true),
+                "placeholderName": placeholder,
             ]
         }
     }

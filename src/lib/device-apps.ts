@@ -39,9 +39,14 @@ function mapInstalledApp(app: NativeInstalledApp): DeviceAppDefinition {
   })
 }
 
-function mapIosSelectedApp(app: { id: string; name: string }): DeviceAppDefinition {
+function mapIosSelectedApp(app: {
+  id: string
+  name: string
+  hasCustomName?: boolean
+}): DeviceAppDefinition {
   return enrichDeviceApp({
     id: app.id,
+    // User nickname when set; otherwise opaque placeholder (Apple blocks real names).
     name: app.name,
     color: '#6366F1',
     iosTokenId: app.id,

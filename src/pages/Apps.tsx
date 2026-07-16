@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Trash2, Unlock, Clock, Grid3X3, Pencil } from 'lucide-react'
+import { Plus, Trash2, Unlock, Clock, Grid3X3, Pencil, Eye } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Badge } from '@/components/ui/Badge'
@@ -23,14 +23,26 @@ import { BlockerSetupCard } from '@/components/BlockerSetupCard'
 import { QuickBlockCard, ActiveScheduleCard } from '@/components/apps/AppsHubCards'
 import { useTranslation } from '@/i18n/context'
 import { canPickInstalledApps, usesIosActivityPicker } from '@/lib/device-apps'
+import { presentIosSelectedAppsSheet } from '@/lib/replock-controls'
 import type { DeviceAppDefinition } from '@/data/device-apps'
 import { openUpgradeOrFallback } from '@/lib/replock-revenuecat-native'
+
+const IOS_ICON_PRESETS = ['📱', '💬', '📸', '🎵', '🎮', '📺', '🛒', '📰', '✉️', '🌐'] as const
 
 export function AppsPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const { t } = useTranslation()
-  const { apps, profile, screenTimeBalance, unlockApp, addApp, removeApp, updateAppLimit } = useStore()
+  const {
+    apps,
+    profile,
+    screenTimeBalance,
+    unlockApp,
+    addApp,
+    removeApp,
+    updateAppLimit,
+    renameApp,
+  } = useStore()
   const trialStatus = getTrialStatus(profile)
   const canEditLimits = profile.isPro || trialStatus === 'trial'
   const appLimitLabel = getAppLimitLabel(profile)
@@ -40,10 +52,16 @@ export function AppsPage() {
   const [showPicker, setShowPicker] = useState(false)
   const [pendingApp, setPendingApp] = useState<DeviceAppDefinition | null>(null)
   const [dailyLimit, setDailyLimit] = useState(30)
+  const [pendingName, setPendingName] = useState('')
+  const [pendingIcon, setPendingIcon] = useState('')
   const [showUnlock, setShowUnlock] = useState<string | null>(null)
   const [unlockMinutes, setUnlockMinutes] = useState(15)
   const [editLimitApp, setEditLimitApp] = useState<string | null>(null)
   const [editLimitValue, setEditLimitValue] = useState(30)
+  const [renameTarget, setRenameTarget] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
+  const [renameIcon, setRenameIcon] = useState('')
+  const [nativeSheetLoading, setNativeSheetLoading] = useState(false)
 
   const existingIds = apps.flatMap((a) => [
     a.brand ?? '',
@@ -72,14 +90,17 @@ export function AppsPage() {
 
   const handleSelectApp = (app: DeviceAppDefinition) => {
     setPendingApp(app)
+    setPendingName(app.name.startsWith('App ') ? '' : app.name)
+    setPendingIcon('')
     setDailyLimit(30)
   }
 
   const handleConfirmAdd = () => {
     if (!pendingApp) return
+    const displayName = pendingName.trim() || pendingApp.name
     const success = addApp({
-      name: pendingApp.name,
-      icon: '',
+      name: displayName,
+      icon: pendingIcon,
       brand: pendingApp.brand,
       packageName: pendingApp.packageName,
       iosTokenId: pendingApp.iosTokenId,
@@ -87,7 +108,12 @@ export function AppsPage() {
       dailyLimitMinutes: dailyLimit,
     })
     if (success) {
-      toast(pendingApp.name, 'success')
+      if (pendingApp.iosTokenId && pendingName.trim()) {
+        void import('@/lib/replock-controls').then(({ setIosDisplayNames }) =>
+          setIosDisplayNames({ [pendingApp.iosTokenId!]: pendingName.trim() })
+        )
+      }
+      toast(displayName, 'success')
       setPendingApp(null)
     } else {
       const msg =
@@ -111,6 +137,40 @@ export function AppsPage() {
     updateAppLimit(editLimitApp, clamped)
     toast(t('apps.limitUpdated', { amount: clamped }), 'success')
     setEditLimitApp(null)
+  }
+
+  const openRename = (appId: string) => {
+    const app = apps.find((a) => a.id === appId)
+    if (!app) return
+    setRenameTarget(appId)
+    setRenameValue(app.name)
+    setRenameIcon(app.icon || '')
+  }
+
+  const handleSaveRename = () => {
+    if (!renameTarget || !renameValue.trim()) return
+    renameApp(renameTarget, renameValue.trim(), renameIcon)
+    toast(t('apps.renameSaved'), 'success')
+    setRenameTarget(null)
+  }
+
+  const handleViewNativeLabels = async () => {
+    setNativeSheetLoading(true)
+    try {
+      const updated = await presentIosSelectedAppsSheet()
+      for (const row of updated) {
+        if (!row.hasCustomName) continue
+        const match = apps.find((a) => a.iosTokenId === row.id)
+        if (match && match.name !== row.name) {
+          renameApp(match.id, row.name)
+        }
+      }
+      toast(t('apps.iosNativeLabelsDone'), 'success')
+    } catch {
+      toast(t('apps.iosPickError_failed'), 'error')
+    } finally {
+      setNativeSheetLoading(false)
+    }
   }
 
   return (
@@ -144,6 +204,17 @@ export function AppsPage() {
           <QuickBlockCard />
           <ActiveScheduleCard />
           <BlockerSetupCard compact />
+          {onIos && apps.some((a) => a.iosTokenId) && (
+            <button
+              type="button"
+              disabled={nativeSheetLoading}
+              onClick={() => void handleViewNativeLabels()}
+              className="w-full flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-white/70 bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.05] transition-colors disabled:opacity-50"
+            >
+              <Eye size={16} />
+              {t('apps.iosViewSystemLabels')}
+            </button>
+          )}
         </div>
 
         <section>
@@ -197,6 +268,14 @@ export function AppsPage() {
                         )}
                       </p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => openRename(app.id)}
+                      className="p-2 rounded-lg hover:bg-indigo-500/10 text-white/20 hover:text-indigo-400 transition-colors"
+                      aria-label={t('apps.renameApp')}
+                    >
+                      <Pencil size={16} />
+                    </button>
                     {canEditLimits && (
                       <button
                         type="button"
@@ -204,7 +283,7 @@ export function AppsPage() {
                         className="p-2 rounded-lg hover:bg-indigo-500/10 text-white/20 hover:text-indigo-400 transition-colors"
                         aria-label={t('apps.editLimit')}
                       >
-                        <Pencil size={16} />
+                        <Clock size={16} />
                       </button>
                     )}
                     <button
@@ -289,16 +368,49 @@ export function AppsPage() {
             <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.07]">
               <AppIcon
                 brand={pendingApp.brand}
-                name={pendingApp.name}
-                icon=""
+                name={pendingName || pendingApp.name}
+                icon={pendingIcon}
                 color={pendingApp.color}
                 size="lg"
               />
-              <div>
-                <p className="font-semibold text-sm">{pendingApp.name}</p>
+              <div className="min-w-0">
+                <p className="font-semibold text-sm truncate">{pendingName || pendingApp.name}</p>
                 <p className="text-xs text-white/40">{t('apps.setDailyLimit')}</p>
               </div>
             </div>
+
+            {(onIos || pendingApp.iosTokenId) && (
+              <>
+                <Input
+                  id="pending-app-name"
+                  label={t('apps.renameLabel')}
+                  placeholder={t('apps.renamePlaceholder')}
+                  value={pendingName}
+                  onChange={(e) => setPendingName(e.target.value)}
+                />
+                <p className="text-xs text-white/35 -mt-2">{t('apps.iosNamePrivacyNote')}</p>
+                <div>
+                  <p className="text-xs text-white/45 mb-2">{t('apps.iconPresetLabel')}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {IOS_ICON_PRESETS.map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => setPendingIcon(pendingIcon === emoji ? '' : emoji)}
+                        className={cn(
+                          'w-10 h-10 rounded-xl text-lg border transition-colors',
+                          pendingIcon === emoji
+                            ? 'border-indigo-500/50 bg-indigo-500/20'
+                            : 'border-white/10 bg-white/[0.03]'
+                        )}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
 
             <Input
               id="daily-limit"
@@ -315,6 +427,51 @@ export function AppsPage() {
             </MotionButton>
           </div>
         )}
+      </Modal>
+
+      <Modal
+        open={!!renameTarget}
+        onClose={() => setRenameTarget(null)}
+        title={t('apps.renameTitle')}
+        position="center"
+      >
+        <div className="space-y-4">
+          <Input
+            id="rename-app"
+            label={t('apps.renameLabel')}
+            placeholder={t('apps.renamePlaceholder')}
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+          />
+          {onIos && (
+            <>
+              <p className="text-xs text-white/35 -mt-2">{t('apps.iosNamePrivacyNote')}</p>
+              <div>
+                <p className="text-xs text-white/45 mb-2">{t('apps.iconPresetLabel')}</p>
+                <div className="flex flex-wrap gap-2">
+                  {IOS_ICON_PRESETS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => setRenameIcon(renameIcon === emoji ? '' : emoji)}
+                      className={cn(
+                        'w-10 h-10 rounded-xl text-lg border transition-colors',
+                        renameIcon === emoji
+                          ? 'border-indigo-500/50 bg-indigo-500/20'
+                          : 'border-white/10 bg-white/[0.03]'
+                      )}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+          <MotionButton fullWidth size="lg" onClick={handleSaveRename} disabled={!renameValue.trim()}>
+            {t('apps.renameSave')}
+          </MotionButton>
+        </div>
       </Modal>
 
       <Modal

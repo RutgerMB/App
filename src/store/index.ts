@@ -59,6 +59,7 @@ interface StoreActions {
   addApp: (app: Omit<LockedApp, 'id' | 'usedMinutes' | 'isLocked' | 'unlockedUntil'>) => boolean
   removeApp: (appId: string) => void
   updateAppLimit: (appId: string, limit: number) => void
+  renameApp: (appId: string, name: string, icon?: string) => void
   setProStatus: (isPro: boolean, customerId?: string, subscriptionId?: string, status?: 'active' | 'canceled' | 'past_due') => void
   resetDailyUsage: () => void
   getEarnedMinutes: (type: ExerciseType, amount: number) => number
@@ -285,6 +286,28 @@ export const useStore = create<AppState & StoreActions>()(
             a.id === appId ? { ...a, dailyLimitMinutes: limit } : a
           ),
         })),
+
+      renameApp: (appId, name, icon) => {
+        const trimmed = name.trim()
+        if (!trimmed) return
+        set((s) => ({
+          apps: s.apps.map((a) =>
+            a.id === appId
+              ? {
+                  ...a,
+                  name: trimmed,
+                  ...(icon !== undefined ? { icon } : {}),
+                }
+              : a
+          ),
+        }))
+        const app = get().apps.find((a) => a.id === appId)
+        if (app?.iosTokenId) {
+          void import('@/lib/replock-controls').then(({ setIosDisplayNames }) =>
+            setIosDisplayNames({ [app.iosTokenId!]: trimmed })
+          )
+        }
+      },
 
       setProStatus: (isPro, customerId, subscriptionId, status) =>
         set((s) => ({

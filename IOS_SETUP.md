@@ -201,6 +201,17 @@ Family Controls authorization is **not** the same toggle as Screen Time preferen
 3. Return to RepLock (app re-checks on focus) and tap **Authorize Screen Time** again.
 4. Approved ≠ apps picked: after authorization you still need Apple’s **app picker** to choose which apps to shield. That is normal and is **not** a denial.
 
+**Why apps show as “App 1” / gray letter in the web UI**
+
+Apple’s `ApplicationToken` is opaque — the host app **cannot** read the real app name, icon, or bundle ID into JavaScript. Family Controls only lets you render them with SwiftUI `Label(token)` on a **native** surface.
+
+RepLock therefore:
+1. Shows a native confirmation sheet after the picker (`Label(token)` = real name + icon)
+2. Lets you type a **nickname** (and optional emoji) that is stored and shown in the WebView Apps tab
+3. Offers **View real names & icons (system)** on the Apps page for the same native labels anytime
+
+Daily OS Screen Time totals also cannot be read into JS until a **DeviceActivityReport** extension is added (not implemented yet).
+
 **Mac rebuild after this fix**
 
 ```bash

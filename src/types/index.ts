@@ -45,7 +45,9 @@ export interface LockedApp {
   icon: string
   brand?: AppBrand
   packageName?: string
-  /** Opaque Family Controls token id (iOS) — not a bundle id */
+  /** Opaque Family Controls token id (iOS) — not a bundle id.
+   * Apple privacy: real app name/icon cannot be read from this token into JS.
+   * Use native Label(token) UI + user nicknames instead. */
   iosTokenId?: string
   color: string
   dailyLimitMinutes: number

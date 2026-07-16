@@ -47,7 +47,9 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "checkAuthorization", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "requestAuthorization", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "presentActivityPicker", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "presentSelectedAppsSheet", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getSelectedApps", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setDisplayNames", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "applyRules", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearShields", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getDailyScreenTimeHours", returnType: CAPPluginReturnPromise),
@@ -168,13 +170,49 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
                 return
             }
 
+            // After the system picker, a native confirmation sheet shows
+            // Label(token) (real name+icon). Only user nicknames are bridged to JS.
             ActivityPickerPresenter.shared.present(
                 from: presenter,
                 initialSelection: initial
-            ) { selection in
+            ) { selection, displayNames in
+                store.saveDisplayNames(displayNames)
                 store.saveSelection(selection)
                 call.resolve([
                     "count": selection.applicationTokens.count,
+                ])
+            }
+        }
+    }
+
+    /// Native sheet with FamilyControls `Label(token)` + nickname editors.
+    @objc func presentSelectedAppsSheet(_ call: CAPPluginCall) {
+        guard #available(iOS 16.0, *) else {
+            repLockReject(call, "Family Controls requires iOS 16+")
+            return
+        }
+
+        Task { @MainActor in
+            guard AuthorizationManager.isAuthorized() else {
+                repLockReject(call, "Screen Time authorization required")
+                return
+            }
+
+            guard let presenter = repLockPresenter(for: self) else {
+                repLockReject(call, "Unable to present apps sheet")
+                return
+            }
+
+            let store = SelectionStore.shared
+            let selection = store.loadSelection()
+            ActivityPickerPresenter.shared.presentReview(
+                from: presenter,
+                selection: selection
+            ) { displayNames in
+                store.saveDisplayNames(displayNames)
+                call.resolve([
+                    "count": selection.applicationTokens.count,
+                    "apps": store.selectedAppsPayload(from: selection),
                 ])
             }
         }
@@ -189,6 +227,40 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
         let selection = SelectionStore.shared.loadSelection()
         let apps = SelectionStore.shared.selectedAppsPayload(from: selection)
         call.resolve(["apps": apps])
+    }
+
+    /// Persist user nicknames for opaque tokens (Apple never exposes real names to JS).
+    @objc func setDisplayNames(_ call: CAPPluginCall) {
+        guard #available(iOS 16.0, *) else {
+            call.resolve(["ok": true])
+            return
+        }
+
+        guard let raw = call.getObject("names") else {
+            repLockReject(call, "names object required")
+            return
+        }
+
+        let store = SelectionStore.shared
+        var merged = store.loadDisplayNames()
+        for (id, value) in raw {
+            let name: String
+            if let s = value as? String {
+                name = s
+            } else if let n = value as? NSNumber {
+                name = n.stringValue
+            } else {
+                continue
+            }
+            let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty {
+                merged.removeValue(forKey: id)
+            } else {
+                merged[id] = trimmed
+            }
+        }
+        store.saveDisplayNames(merged)
+        call.resolve(["ok": true])
     }
 
     @objc func applyRules(_ call: CAPPluginCall) {
@@ -223,6 +295,10 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
         call.resolve(["ok": true])
     }
 
+    /// OS-wide daily Screen Time totals are sandboxed. Apple only exposes usage
+    /// charts via a DeviceActivityReport extension (separate app extension target
+    /// that renders in a privacy-preserving report view). That extension is not
+    /// in this project yet — so hours cannot be read into JS.
     @objc func getDailyScreenTimeHours(_ call: CAPPluginCall) {
         repLockReject(
             call,

@@ -126,10 +126,12 @@ export async function refreshIosScreenTimeAccess(): Promise<IosScreenTimeAuthRes
 }
 
 export async function fetchDailyScreenTimeHours(): Promise<ScreenTimeResult | null> {
-  if (getScreenTimePlatform() === 'ios') {
-    // Phase 3: Device Activity Report extension
-    return null
-  }
+    // OS-wide daily Screen Time totals are sandboxed on iOS. Apple only surfaces
+    // usage via a DeviceActivityReport extension (not implemented yet), so we
+    // cannot return hours into JS. Android uses UsageStatsManager instead.
+    if (getScreenTimePlatform() === 'ios') {
+      return null
+    }
 
   if (getScreenTimePlatform() !== 'android') return null
   try {

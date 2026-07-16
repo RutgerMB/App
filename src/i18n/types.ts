@@ -368,6 +368,16 @@ export interface Translations {
     iosPickAppsButton: string
     iosPickAppsAgain: string
     iosNoAppsPicked: string
+    iosViewSystemLabels: string
+    iosNativeLabelsDone: string
+    iosNamePrivacyNote: string
+    renameApp: string
+    renameTitle: string
+    renameLabel: string
+    renamePlaceholder: string
+    renameSave: string
+    renameSaved: string
+    iconPresetLabel: string
     iosPickError_denied: string
     iosPickError_notDetermined: string
     iosPickError_plugin_missing: string

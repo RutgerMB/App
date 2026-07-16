@@ -146,6 +146,23 @@ export function AppIcon({
   size?: 'sm' | 'md' | 'lg'
   grayscale?: boolean
 }) {
+  // Prefer an explicit emoji/icon the user chose (common for iOS nicknamed apps).
+  if (icon && !brand) {
+    const sizes = { sm: 'w-8 h-8 text-base', md: 'w-10 h-10 text-xl', lg: 'w-12 h-12 text-2xl' }
+    return (
+      <div
+        className={cn(
+          'rounded-2xl flex items-center justify-center shrink-0',
+          sizes[size],
+          grayscale && 'grayscale opacity-50'
+        )}
+        style={{ backgroundColor: `${color}20` }}
+      >
+        {icon}
+      </div>
+    )
+  }
+
   if (brand || !icon) {
     return (
       <AppBrandIcon

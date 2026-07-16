@@ -3,6 +3,9 @@ import { Capacitor, registerPlugin } from '@capacitor/core'
 export interface IosSelectedApp {
   id: string
   name: string
+  /** True when the user set a nickname (Apple never exposes the real app name to JS). */
+  hasCustomName?: boolean
+  placeholderName?: string
 }
 
 export interface IosBlockerRule {
@@ -33,7 +36,9 @@ interface RepLockControlsPlugin {
   checkAuthorization(): Promise<{ authorized: boolean; status: string }>
   requestAuthorization(): Promise<{ authorized: boolean; status: string }>
   presentActivityPicker(): Promise<{ count: number }>
+  presentSelectedAppsSheet(): Promise<{ count: number; apps: IosSelectedApp[] }>
   getSelectedApps(): Promise<{ apps: IosSelectedApp[] }>
+  setDisplayNames(options: { names: Record<string, string> }): Promise<{ ok: boolean }>
   applyRules(options: { rules: IosBlockerRule[] }): Promise<{ ok: boolean }>
   clearShields(): Promise<{ ok: boolean }>
   getDailyScreenTimeHours(): Promise<{ hours: number; minutes: number }>
@@ -217,6 +222,34 @@ export async function getIosSelectedApps(): Promise<IosSelectedApp[]> {
     return apps ?? []
   } catch {
     return []
+  }
+}
+
+/**
+ * Native sheet with FamilyControls Label(token) — real name+icon on-device only.
+ * Returns nicknames the user typed (still cannot export Apple’s real labels to JS).
+ */
+export async function presentIosSelectedAppsSheet(): Promise<IosSelectedApp[]> {
+  if (!isIosControlsAvailable()) return []
+  try {
+    const { apps } = await RepLockControlsNative.presentSelectedAppsSheet()
+    return apps ?? []
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (msg.includes('authorization required')) {
+      throw new Error('AUTH_REQUIRED')
+    }
+    throw err
+  }
+}
+
+/** Persist user nicknames for opaque ApplicationTokens (App Group). */
+export async function setIosDisplayNames(names: Record<string, string>): Promise<void> {
+  if (!isIosControlsAvailable()) return
+  try {
+    await RepLockControlsNative.setDisplayNames({ names })
+  } catch {
+    // Non-fatal — web store still keeps the rename.
   }
 }
 

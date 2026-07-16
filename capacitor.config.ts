@@ -8,7 +8,11 @@ const config: CapacitorConfig = {
   appName: 'RepLock',
   webDir: 'dist',
   ios: {
-    includePlugins: ['@revenuecat/purchases-capacitor', '@capgo/native-purchases'],
+    includePlugins: [
+      '@revenuecat/purchases-capacitor',
+      '@capgo/native-purchases',
+      '@capacitor/push-notifications',
+    ],
   },
   android: {
     includePlugins: [

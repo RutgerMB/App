@@ -1,6 +1,9 @@
 import UIKit
 import SwiftUI
 import FamilyControls
+import ManagedSettings
+
+// MARK: - Picker
 
 @available(iOS 16.0, *)
 struct RepLockActivityPickerView: View {
@@ -25,20 +28,194 @@ struct RepLockActivityPickerView: View {
     }
 }
 
+// MARK: - Confirmation (real Label(token) names + icons)
+
+/// Shows Apple's privacy-safe `Label(ApplicationToken)` so the user sees the
+/// real app name and icon. The host app still cannot read those strings into
+/// JS — only optional user-typed display names are bridged.
+@available(iOS 16.0, *)
+struct RepLockSelectedAppsConfirmView: View {
+    let tokens: [ApplicationToken]
+    let tokenIds: [String]
+    @State private var displayNames: [String: String]
+    let onConfirm: ([String: String]) -> Void
+    let onCancel: () -> Void
+
+    init(
+        tokens: [ApplicationToken],
+        tokenIds: [String],
+        initialNames: [String: String],
+        onConfirm: @escaping ([String: String]) -> Void,
+        onCancel: @escaping () -> Void
+    ) {
+        self.tokens = tokens
+        self.tokenIds = tokenIds
+        self._displayNames = State(initialValue: initialNames)
+        self.onConfirm = onConfirm
+        self.onCancel = onCancel
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    Text(
+                        "Apple shows each app’s real name and icon below. RepLock cannot read those into the app UI — type a nickname so it shows up in the Apps tab."
+                    )
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .listRowBackground(Color.clear)
+                }
+
+                Section("Selected apps") {
+                    ForEach(Array(tokens.enumerated()), id: \.offset) { index, token in
+                        let id = tokenIds[index]
+                        VStack(alignment: .leading, spacing: 10) {
+                            // System-rendered name + icon (not exportable to WebView).
+                            Label(token)
+                                .labelStyle(.titleAndIcon)
+
+                            TextField(
+                                "Nickname in RepLock (e.g. Instagram)",
+                                text: Binding(
+                                    get: { displayNames[id] ?? "" },
+                                    set: { displayNames[id] = $0 }
+                                )
+                            )
+                            .textInputAutocapitalization(.words)
+                            .autocorrectionDisabled()
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+            }
+            .navigationTitle("Confirm apps")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Back", action: onCancel)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        onConfirm(displayNames)
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
+        }
+    }
+}
+
+/// Read-only / rename sheet for previously selected tokens (Apps tab).
+@available(iOS 16.0, *)
+struct RepLockSelectedAppsReviewView: View {
+    let tokens: [ApplicationToken]
+    let tokenIds: [String]
+    @State private var displayNames: [String: String]
+    let onSave: ([String: String]) -> Void
+    let onDismiss: () -> Void
+
+    init(
+        tokens: [ApplicationToken],
+        tokenIds: [String],
+        initialNames: [String: String],
+        onSave: @escaping ([String: String]) -> Void,
+        onDismiss: @escaping () -> Void
+    ) {
+        self.tokens = tokens
+        self.tokenIds = tokenIds
+        self._displayNames = State(initialValue: initialNames)
+        self.onSave = onSave
+        self.onDismiss = onDismiss
+    }
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if tokens.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "app.dashed")
+                            .font(.largeTitle)
+                            .foregroundStyle(.secondary)
+                        Text("No apps selected")
+                            .font(.headline)
+                        Text("Use Choose apps to pick distractions with Apple’s Screen Time picker.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List {
+                        Section {
+                            Text(
+                                "Icons and titles below are rendered by iOS. Nicknames are stored only on this device for the RepLock Apps list."
+                            )
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .listRowBackground(Color.clear)
+                        }
+
+                        Section("Blocked selection") {
+                            ForEach(Array(tokens.enumerated()), id: \.offset) { index, token in
+                                let id = tokenIds[index]
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Label(token)
+                                        .labelStyle(.titleAndIcon)
+                                    TextField(
+                                        "Nickname in RepLock",
+                                        text: Binding(
+                                            get: { displayNames[id] ?? "" },
+                                            set: { displayNames[id] = $0 }
+                                        )
+                                    )
+                                    .textInputAutocapitalization(.words)
+                                    .autocorrectionDisabled()
+                                }
+                                .padding(.vertical, 4)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Screen Time apps")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close", action: onDismiss)
+                }
+                if !tokens.isEmpty {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") {
+                            onSave(displayNames)
+                        }
+                        .fontWeight(.semibold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Presenter
+
 @available(iOS 16.0, *)
 final class ActivityPickerPresenter {
     static let shared = ActivityPickerPresenter()
 
     private var hostingController: UIViewController?
 
+    /// Presents FamilyActivityPicker, then a confirmation sheet with `Label(token)`.
     func present(
         from presenter: UIViewController?,
         initialSelection: FamilyActivitySelection,
-        onComplete: @escaping (FamilyActivitySelection) -> Void
+        onComplete: @escaping (FamilyActivitySelection, [String: String]) -> Void
     ) {
         guard let presenter else { return }
 
         var selection = initialSelection
+        let store = SelectionStore.shared
 
         let root = RepLockActivityPickerView(
             selection: Binding(
@@ -47,12 +224,89 @@ final class ActivityPickerPresenter {
             ),
             onDone: { [weak self] in
                 self?.dismiss {
-                    onComplete(selection)
+                    self?.presentConfirmation(
+                        from: presenter,
+                        selection: selection,
+                        initialNames: store.loadDisplayNames(),
+                        onConfirm: { names in
+                            onComplete(selection, names)
+                        },
+                        onCancel: {
+                            // Discard picker changes — keep prior selection.
+                            onComplete(initialSelection, store.loadDisplayNames())
+                        }
+                    )
                 }
             },
             onCancel: { [weak self] in
                 self?.dismiss {
-                    onComplete(selection)
+                    onComplete(initialSelection, store.loadDisplayNames())
+                }
+            }
+        )
+
+        let host = UIHostingController(rootView: root)
+        host.modalPresentationStyle = .pageSheet
+        hostingController = host
+        presenter.present(host, animated: true)
+    }
+
+    func presentReview(
+        from presenter: UIViewController?,
+        selection: FamilyActivitySelection,
+        onComplete: @escaping ([String: String]) -> Void
+    ) {
+        guard let presenter else { return }
+
+        let store = SelectionStore.shared
+        let tokens = Array(selection.applicationTokens)
+        let tokenIds = tokens.map { store.stableTokenId(for: $0) ?? UUID().uuidString }
+
+        let root = RepLockSelectedAppsReviewView(
+            tokens: tokens,
+            tokenIds: tokenIds,
+            initialNames: store.loadDisplayNames(),
+            onSave: { [weak self] names in
+                self?.dismiss {
+                    onComplete(names)
+                }
+            },
+            onDismiss: { [weak self] in
+                self?.dismiss {
+                    onComplete(store.loadDisplayNames())
+                }
+            }
+        )
+
+        let host = UIHostingController(rootView: root)
+        host.modalPresentationStyle = .pageSheet
+        hostingController = host
+        presenter.present(host, animated: true)
+    }
+
+    private func presentConfirmation(
+        from presenter: UIViewController,
+        selection: FamilyActivitySelection,
+        initialNames: [String: String],
+        onConfirm: @escaping ([String: String]) -> Void,
+        onCancel: @escaping () -> Void
+    ) {
+        let store = SelectionStore.shared
+        let tokens = Array(selection.applicationTokens)
+        let tokenIds = tokens.map { store.stableTokenId(for: $0) ?? UUID().uuidString }
+
+        let root = RepLockSelectedAppsConfirmView(
+            tokens: tokens,
+            tokenIds: tokenIds,
+            initialNames: initialNames,
+            onConfirm: { [weak self] names in
+                self?.dismiss {
+                    onConfirm(names)
+                }
+            },
+            onCancel: { [weak self] in
+                self?.dismiss {
+                    onCancel()
                 }
             }
         )
