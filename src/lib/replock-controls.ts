@@ -54,9 +54,11 @@ export async function getIosControlsStatus(): Promise<IosControlsStatus> {
       RepLockControlsNative.isSupported(),
       RepLockControlsNative.checkAuthorization(),
     ])
+    // Only `.approved` counts — never treat notDetermined as connected.
+    const approved = auth.status === 'approved' && auth.authorized === true
     return {
       supported: supported,
-      authorized: auth.authorized === true || auth.status === 'approved',
+      authorized: approved,
       status: auth.status,
     }
   } catch {
@@ -70,8 +72,9 @@ export async function refreshIosControlsAuthorization(): Promise<IosControlsStat
 }
 
 /**
- * Request Family Controls. Apple: non-throwing request = user allowed.
- * Never map `notDetermined` / lag to "denied".
+ * Request Family Controls. Success only when status is actually `.approved`
+ * (matches presentActivityPicker / isAuthorized). Do not claim success on
+ * a non-throwing request while status is still notDetermined/denied.
  */
 export async function requestIosControlsAuthorizationDetailed(): Promise<IosAuthRequestResult> {
   if (!isIosControlsAvailable()) {
@@ -79,29 +82,27 @@ export async function requestIosControlsAuthorizationDetailed(): Promise<IosAuth
   }
   try {
     const result = await RepLockControlsNative.requestAuthorization()
-    const status = result.status || (result.authorized ? 'approved' : 'unknown')
-    // Native reports authorized after a successful (non-throwing) request even if
-    // AuthorizationCenter briefly lags on `.notDetermined`.
-    if (result.authorized || status === 'approved') {
-      return { ok: true, authorized: true, status: status === 'notDetermined' ? 'approved' : status }
+    // Prefer a fresh check so JS matches native picker gates.
+    const again = await getIosControlsStatus()
+    if (again.authorized && again.status === 'approved') {
+      return { ok: true, authorized: true, status: 'approved' }
     }
+    if (result.authorized === true && result.status === 'approved') {
+      return { ok: true, authorized: true, status: 'approved' }
+    }
+    const status = again.status || result.status || 'unknown'
     if (status === 'denied') {
       return { ok: false, authorized: false, status, reason: 'denied' }
     }
     if (status === 'notDetermined') {
-      // Stale intermediate — re-check once before treating as failure.
-      const again = await getIosControlsStatus()
-      if (again.authorized || again.status === 'approved') {
-        return { ok: true, authorized: true, status: 'approved' }
-      }
-      return { ok: false, authorized: false, status: again.status, reason: 'notDetermined' }
+      return { ok: false, authorized: false, status, reason: 'notDetermined' }
     }
     return { ok: false, authorized: false, status, reason: 'failed' }
   } catch (err) {
     const { message, code } = pluginErrorMeta(err)
     // User may have allowed in Settings while the dialog errored — refresh.
     const again = await getIosControlsStatus()
-    if (again.authorized || again.status === 'approved') {
+    if (again.authorized && again.status === 'approved') {
       return { ok: true, authorized: true, status: 'approved' }
     }
     if (code === 'DENIED' || again.status === 'denied' || /denied/i.test(message)) {

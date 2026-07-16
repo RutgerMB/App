@@ -139,7 +139,7 @@ export function GoalCreatedCard({
       </motion.div>
       <p className="text-lg font-bold text-center mb-6">{t('onboarding.goalCreatedTitle')}</p>
 
-      <div className="w-full rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 to-violet-500/5 p-4">
+      <div className="w-full rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
             <Zap size={16} className="text-indigo-400" />
@@ -180,7 +180,7 @@ export function NotificationsPreview() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="flex items-start gap-3 p-4 rounded-2xl bg-surface-2 border border-border"
+            className="flex items-start gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.07]"
           >
             <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', n.bg)}>
               <Icon size={18} className={n.color} />

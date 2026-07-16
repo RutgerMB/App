@@ -8,6 +8,7 @@ import {
   IntroPrimaryButton,
   IntroHeading,
   IntroSubtext,
+  IntroBrandMark,
 } from '@/components/onboarding/IntroShell'
 import {
   RevealComparison,
@@ -54,14 +55,15 @@ const SCREEN_TIME_KEY = 'replock-onboarding-screen-hours'
 const DEFAULT_SELECTED_APPS = ['instagram', 'tiktok', 'youtube']
 const MINUTES_PER_OPENING = 5
 
+/** Screen-time narrative: GUESS (A) → REVEAL guess vs actual (B) → POTENTIAL with RepLock (C) → YEARS. */
 const STEP = {
   INTRO: 1,
   LANGUAGE: 2,
   SCREEN_TIME_PERMISSION: 3,
   SCREEN_TIME_GUESS: 4,
   REVEAL: 5,
-  YEARS: 6,
-  POTENTIAL: 7,
+  POTENTIAL: 6,
+  YEARS: 7,
   WEEK_ONE: 8,
   BENEFITS: 9,
   BLOCK_PREVIEW: 10,
@@ -89,7 +91,7 @@ function PrivacySheet({ open, onClose }: { open: boolean; onClose: () => void })
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-surface-2 border border-border p-6 shadow-2xl text-white"
+        className="relative w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-surface-2 border border-white/[0.08] p-6 shadow-2xl text-white"
       >
         <button
           type="button"
@@ -106,7 +108,7 @@ function PrivacySheet({ open, onClose }: { open: boolean; onClose: () => void })
             { title: t('intro.privacyStatTitle'), desc: t('intro.privacyStatDesc') },
             { title: t('intro.privacyBlockTitle'), desc: t('intro.privacyBlockDesc') },
           ].map((card) => (
-            <div key={card.title} className="rounded-2xl border border-border bg-surface-3 p-4">
+            <div key={card.title} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
               <div className="flex items-start gap-3">
                 <Shield size={18} className="text-indigo-400 shrink-0 mt-0.5" />
                 <div>
@@ -139,7 +141,12 @@ function ScreenTimeSlider({ value, onChange }: { value: number; onChange: (v: nu
 
   return (
     <div className="flex flex-col items-center w-full max-w-sm mx-auto">
-      <p className="text-5xl font-bold gradient-text mb-8 tabular-nums">{value}h</p>
+      <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] px-8 py-6 mb-8 w-full max-w-xs text-center">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40 mb-3">
+          {t('intro.screenTimeGuessLabel')}
+        </p>
+        <p className="text-5xl font-bold gradient-text tabular-nums tracking-tight">{value}h</p>
+      </div>
       <Slider
         min={1}
         max={12}
@@ -162,7 +169,7 @@ function ScreenTimeSlider({ value, onChange }: { value: number; onChange: (v: nu
               'px-4 py-2 rounded-xl text-sm font-semibold border transition-colors',
               value === h
                 ? 'bg-indigo-500/25 border-indigo-400/50 text-indigo-200'
-                : 'bg-surface-2 border-border text-white/55 hover:border-border-hover'
+                : 'bg-white/[0.03] border-white/[0.07] text-white/55 hover:border-white/[0.12]'
             )}
           >
             {h}h
@@ -217,11 +224,11 @@ export function OnboardingPage() {
   )
 
   const needsNameStep = resolvedName.length === 0
-  const SKIPPED_ONBOARDING_STEPS = 2 // POTENTIAL + WEEK_ONE skipped after YEARS
+  const SKIPPED_ONBOARDING_STEPS = 1 // WEEK_ONE skipped after YEARS
   const totalSteps = (needsNameStep ? 17 : 16) - SKIPPED_ONBOARDING_STEPS
-  const progressStep =
-    step > STEP.YEARS + SKIPPED_ONBOARDING_STEPS ? step - SKIPPED_ONBOARDING_STEPS : step
+  const progressStep = step > STEP.WEEK_ONE ? step - SKIPPED_ONBOARDING_STEPS : step
   const screenTimePlatform = getScreenTimePlatform()
+  const baselineHours = actualScreenHours ?? screenHours
 
   useEffect(() => {
     setLocale(selectedLocale)
@@ -386,6 +393,7 @@ export function OnboardingPage() {
       return
     }
     if (step === STEP.YEARS) {
+      // Skip WEEK_ONE — go straight to benefits after lifetime insight.
       setStep(STEP.BENEFITS)
       return
     }
@@ -477,13 +485,14 @@ export function OnboardingPage() {
             <button
               type="button"
               onClick={() => void logout()}
-              className="text-sm text-white/50 mb-4 self-start hover:text-white/80"
+              className="text-sm text-white/45 mb-3 self-start hover:text-white/80 transition-colors"
             >
               ← {t('intro.backToLogin')}
             </button>
             <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
             <IntroHeading className="mb-3">{t('intro.setupIntroTitle')}</IntroHeading>
-            <IntroSubtext className="mb-6">{t('intro.setupIntroDesc')}</IntroSubtext>
+            <IntroSubtext className="mb-8">{t('intro.setupIntroDesc')}</IntroSubtext>
             <SetupIllustration />
             <button
               type="button"
@@ -499,8 +508,9 @@ export function OnboardingPage() {
         return (
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
-            <IntroHeading className="mb-2 text-left">{t('onboarding.chooseLanguage')}</IntroHeading>
-            <IntroSubtext className="mb-8 text-left">{t('onboarding.chooseLanguageDesc')}</IntroSubtext>
+            <IntroBrandMark />
+            <IntroHeading className="mb-2">{t('onboarding.chooseLanguage')}</IntroHeading>
+            <IntroSubtext className="mb-8">{t('onboarding.chooseLanguageDesc')}</IntroSubtext>
             <LanguagePicker large value={selectedLocale} onChange={setSelectedLocale} />
           </>
         )
@@ -509,6 +519,7 @@ export function OnboardingPage() {
         return (
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
             <IntroHeading className="mb-2">{t('onboarding.screenTimePermissionTitle')}</IntroHeading>
             <IntroSubtext className="mb-8">{t('onboarding.screenTimePermissionDesc')}</IntroSubtext>
             <ScreenTimePermissionStep
@@ -525,6 +536,7 @@ export function OnboardingPage() {
         return (
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
             <IntroHeading className="mb-2">{t('intro.screenTimeQuestion')}</IntroHeading>
             <IntroSubtext className="mb-8">{t('intro.screenTimeHint')}</IntroSubtext>
             <ScreenTimeSlider value={screenHours} onChange={setScreenHours} />
@@ -536,9 +548,24 @@ export function OnboardingPage() {
         return (
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
             <IntroHeading className="mb-2">{t('intro.revealTitle')}</IntroHeading>
             <IntroSubtext className="mb-6">{t('intro.revealSubtitle')}</IntroSubtext>
             <RevealComparison estimateHours={screenHours} actualHours={actualScreenHours} />
+          </>
+        )
+
+      case STEP.POTENTIAL:
+        return (
+          <>
+            <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
+            <IntroHeading className="mb-2">{t('intro.potentialTitle')}</IntroHeading>
+            <IntroSubtext className="mb-8">{t('intro.potentialSubtitle')}</IntroSubtext>
+            <PotentialBars
+              baselineHours={baselineHours}
+              fromDevice={actualScreenHours != null}
+            />
           </>
         )
 
@@ -547,19 +574,9 @@ export function OnboardingPage() {
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
             <YearsInsight
-              dailyHours={actualScreenHours ?? screenHours}
+              dailyHours={baselineHours}
               fromDevice={actualScreenHours != null}
             />
-          </>
-        )
-
-      case STEP.POTENTIAL:
-        return (
-          <>
-            <IntroProgressBar step={progressStep} total={totalSteps} />
-            <IntroHeading className="mb-2">{t('intro.potentialTitle')}</IntroHeading>
-            <IntroSubtext className="mb-8">{t('intro.potentialSubtitle')}</IntroSubtext>
-            <PotentialBars estimateHours={actualScreenHours ?? screenHours} />
           </>
         )
 
@@ -567,6 +584,7 @@ export function OnboardingPage() {
         return (
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
             <IntroHeading className="mb-6">{t('intro.weekOneTitle')}</IntroHeading>
             <WeekOneStat />
             <p className="text-[11px] text-white/30 text-center mt-8">{t('intro.weekOneFootnote')}</p>
@@ -577,6 +595,7 @@ export function OnboardingPage() {
         return (
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
             <IntroHeading className="mb-2">{t('intro.benefitsTitle')}</IntroHeading>
             <IntroSubtext className="mb-8">{t('intro.benefitsSubtitle')}</IntroSubtext>
             <BenefitsList />
@@ -588,6 +607,7 @@ export function OnboardingPage() {
         return (
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
             <IntroHeading className="mb-6">{t('intro.blockPreviewTitle')}</IntroHeading>
             <BlockPreviewCarousel />
           </>
@@ -597,6 +617,7 @@ export function OnboardingPage() {
         return (
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
             <IntroHeading className="mb-2">{t('onboarding.selectAppsTitle')}</IntroHeading>
             <IntroSubtext className="mb-6">{t('onboarding.selectAppsDesc')}</IntroSubtext>
             <BlocklistPicker selected={selectedApps} onChange={setSelectedApps} />
@@ -607,6 +628,7 @@ export function OnboardingPage() {
         return (
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
             <IntroHeading className="mb-2">{t('onboarding.createGoalTitle')}</IntroHeading>
             <IntroSubtext className="mb-8">{t('onboarding.createGoalDesc')}</IntroSubtext>
             <OpeningsSlider value={openingsPerDay} onChange={setOpeningsPerDay} />
@@ -617,8 +639,11 @@ export function OnboardingPage() {
         return (
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
             <GoalCreatedCard openings={openingsPerDay} minutesPerOpening={MINUTES_PER_OPENING} />
-            <p className="text-sm text-white/45 text-center mt-6 leading-relaxed">{t('onboarding.goalCreatedDesc')}</p>
+            <p className="text-sm text-white/45 text-center mt-6 leading-relaxed">
+              {t('onboarding.goalCreatedDesc')}
+            </p>
           </>
         )
 
@@ -626,6 +651,7 @@ export function OnboardingPage() {
         return (
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
             <IntroHeading className="mb-2">{t('onboarding.notificationsTitle')}</IntroHeading>
             <IntroSubtext className="mb-6">{t('onboarding.notificationsDesc')}</IntroSubtext>
             <NotificationsPreview />
@@ -636,6 +662,7 @@ export function OnboardingPage() {
         return (
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
             <IntroHeading className="mb-2">{t('onboarding.trialTitle')}</IntroHeading>
             <IntroSubtext className="mb-8">{t('onboarding.trialDesc')}</IntroSubtext>
             <TrialTimeline />
@@ -646,8 +673,9 @@ export function OnboardingPage() {
         return (
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
-            <IntroHeading className="mb-2 text-left">{t('onboarding.chooseDifficulty')}</IntroHeading>
-            <IntroSubtext className="mb-6 text-left">{t('onboarding.chooseDifficultyDesc')}</IntroSubtext>
+            <IntroBrandMark />
+            <IntroHeading className="mb-2">{t('onboarding.chooseDifficulty')}</IntroHeading>
+            <IntroSubtext className="mb-6">{t('onboarding.chooseDifficultyDesc')}</IntroSubtext>
             <DifficultyPicker
               large
               value={selectedDifficulty}
@@ -661,8 +689,9 @@ export function OnboardingPage() {
         return (
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
-            <IntroHeading className="mb-2 text-left">{t('onboarding.yourName')}</IntroHeading>
-            <IntroSubtext className="mb-8 text-left">{t('onboarding.yourNameDesc')}</IntroSubtext>
+            <IntroBrandMark />
+            <IntroHeading className="mb-2">{t('onboarding.yourName')}</IntroHeading>
+            <IntroSubtext className="mb-8">{t('onboarding.yourNameDesc')}</IntroSubtext>
             <Input
               id="name"
               label={t('onboarding.nameLabel')}
@@ -680,15 +709,24 @@ export function OnboardingPage() {
 
   return (
     <>
-      <IntroShell variant="setup" footer={step === STEP.NOTIFICATIONS ? notificationsFooter : step === STEP.SELECT_APPS ? selectAppsFooter : footer}>
+      <IntroShell
+        variant="setup"
+        footer={
+          step === STEP.NOTIFICATIONS
+            ? notificationsFooter
+            : step === STEP.SELECT_APPS
+              ? selectAppsFooter
+              : footer
+        }
+      >
         <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
               className="flex-1 flex flex-col"
             >
               {stepContent()}

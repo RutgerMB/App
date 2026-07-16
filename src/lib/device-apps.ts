@@ -111,12 +111,16 @@ export async function pickIosAppsWithAuth(): Promise<IosPickAppsResult> {
     const status = await getIosControlsStatus()
     if (!status.authorized) {
       const auth = await requestIosControlsAuthorizationDetailed()
-      if (!auth.ok) {
+      if (!auth.ok || !auth.authorized) {
         if (auth.reason === 'denied') return { ok: false, reason: 'denied' }
         if (auth.reason === 'notDetermined') return { ok: false, reason: 'notDetermined' }
         return { ok: false, reason: 'failed' }
       }
-      // Successful request = user allowed; do not fail on a lagging follow-up check.
+      // Confirm approved before opening the picker (avoids false-positive auth).
+      const confirmed = await getIosControlsStatus()
+      if (!confirmed.authorized) {
+        return { ok: false, reason: confirmed.status === 'denied' ? 'denied' : 'auth_required' }
+      }
     }
 
     await presentIosActivityPicker()

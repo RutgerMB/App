@@ -104,7 +104,7 @@ export async function refreshIosScreenTimeAccess(): Promise<IosScreenTimeAuthRes
   if (!ready) return { ok: false, reason: 'plugin_missing' }
 
   const status = await refreshIosControlsAuthorization()
-  if (status.authorized || status.status === 'approved') {
+  if (status.authorized && status.status === 'approved') {
     return { ok: true, authorized: true, status: status.status }
   }
   if (status.status === 'denied') {

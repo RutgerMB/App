@@ -57,6 +57,7 @@ export interface Translations {
     screenTimeQuestion: string
     screenTimeHint: string
     screenTimeFooter: string
+    screenTimeGuessLabel: string
     privacySheetTitle: string
     privacySheetDesc: string
     privacyStatTitle: string
@@ -74,6 +75,8 @@ export interface Translations {
     revealActualMore: string
     revealFromDevice: string
     revealEstimateOnly: string
+    revealActualUnavailable: string
+    revealActualUnavailableShort: string
     yearsPerDay: string
     yearsBasedOnDevice: string
     yearsBasedOnEstimate: string
@@ -88,6 +91,11 @@ export interface Translations {
     potentialWorkoutsLabel: string
     potentialNow: string
     potentialWith: string
+    potentialReduction: string
+    potentialFormulaTitle: string
+    potentialFormula: string
+    potentialBasedOnDevice: string
+    potentialBasedOnGuess: string
     weekOneTitle: string
     weekOneDesc: string
     weekOneFootnote: string

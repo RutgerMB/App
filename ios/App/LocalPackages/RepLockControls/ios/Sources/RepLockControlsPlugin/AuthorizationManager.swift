@@ -8,10 +8,13 @@ enum AuthorizationManager {
         AuthorizationCenter.shared.authorizationStatus == .approved
     }
 
-    /// Apple: if `requestAuthorization` returns without throwing, the user granted access.
-    /// `authorizationStatus` can briefly lag behind that success — poll briefly, then
-    /// treat a non-throwing result as approved even if status has not flipped yet.
-    /// Must run on the main actor.
+    /// Request Family Controls authorization.
+    ///
+    /// Apple: a non-throwing `requestAuthorization` means the user tapped Allow.
+    /// `authorizationStatus` can lag briefly, so we poll — but we only report
+    /// `authorized: true` when status is actually `.approved`. Claiming success
+    /// while status is still `.notDetermined` / `.denied` causes the activity
+    /// picker to fail with "Screen Time authorization required".
     @MainActor
     static func requestAuthorization() async throws -> (authorized: Bool, status: String) {
         if isAuthorized() {
@@ -21,22 +24,19 @@ enum AuthorizationManager {
         try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
 
         // Status sometimes stays `.notDetermined` for a short window after Allow.
-        for _ in 0..<12 {
-            if AuthorizationCenter.shared.authorizationStatus == .approved {
+        for _ in 0..<40 {
+            let status = AuthorizationCenter.shared.authorizationStatus
+            if status == .approved {
                 return (true, "approved")
             }
-            if AuthorizationCenter.shared.authorizationStatus == .denied {
-                break
+            if status == .denied {
+                return (false, "denied")
             }
-            try? await Task.sleep(nanoseconds: 50_000_000) // 50ms
+            try? await Task.sleep(nanoseconds: 50_000_000) // 50ms × 40 = 2s
         }
 
-        let label = statusLabel()
-        // Non-throwing requestAuthorization means the user allowed — do not report denied.
-        if AuthorizationCenter.shared.authorizationStatus == .denied {
-            return (false, "denied")
-        }
-        return (true, label == "denied" ? "approved" : label)
+        // Honest result — never fabricate approved.
+        return (isAuthorized(), statusLabel())
     }
 
     /// Re-read after a failed request — user may have approved in Settings meanwhile.

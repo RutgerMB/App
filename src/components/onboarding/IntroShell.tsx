@@ -11,33 +11,65 @@ interface IntroShellProps {
 /** RepLock-themed shell for welcome, auth, and onboarding flows. */
 export function IntroShell({ children, footer, variant = 'hero', className }: IntroShellProps) {
   return (
-    <div className={cn('min-h-dvh flex flex-col safe-top safe-bottom overflow-hidden bg-surface-0 noise', className)}>
+    <div
+      className={cn(
+        'min-h-dvh min-h-[100dvh] flex flex-col safe-top safe-bottom overflow-hidden bg-surface-0 noise',
+        className
+      )}
+    >
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div
           className={cn(
-            'absolute top-0 left-1/2 -translate-x-1/2 w-[28rem] h-80 rounded-full blur-3xl',
-            variant === 'hero' ? 'bg-indigo-500/20' : 'bg-indigo-500/12'
+            'absolute -top-8 left-1/2 -translate-x-1/2 w-[30rem] h-96 rounded-full blur-3xl',
+            variant === 'hero' ? 'bg-indigo-500/22' : 'bg-indigo-500/14'
           )}
         />
-        {variant === 'hero' && (
-          <div className="absolute bottom-1/4 right-0 w-64 h-64 bg-violet-600/10 rounded-full blur-3xl" />
+        {variant !== 'auth' && (
+          <div className="absolute bottom-[18%] right-[-10%] w-72 h-72 bg-violet-600/10 rounded-full blur-3xl" />
+        )}
+        {variant === 'setup' && (
+          <div className="absolute top-1/3 left-[-15%] w-56 h-56 bg-cyan-500/5 rounded-full blur-3xl" />
         )}
       </div>
-      <div className="relative flex-1 flex flex-col px-6 pt-6 pb-8 text-white">{children}</div>
-      {footer && <div className="relative shrink-0 px-6 pb-8 safe-bottom">{footer}</div>}
+      <div className="relative flex-1 flex flex-col px-5 pt-5 pb-6 text-white overflow-y-auto">
+        {children}
+      </div>
+      {footer && (
+        <div className="relative shrink-0 px-5 pb-6 pt-2 safe-bottom border-t border-white/[0.04] bg-surface-0/80 backdrop-blur-md">
+          {footer}
+        </div>
+      )}
     </div>
   )
 }
 
 export function IntroProgressBar({ step, total }: { step: number; total: number }) {
-  const pct = Math.min(100, Math.max(6, (step / total) * 100))
+  const pct = Math.min(100, Math.max(8, (step / total) * 100))
   return (
-    <div className="h-1 w-[7.5rem] mx-auto rounded-full bg-white/10 overflow-hidden mb-6">
-      <div
-        className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-500 ease-out"
-        style={{ width: `${pct}%` }}
-      />
+    <div className="w-full max-w-[10rem] mx-auto mb-7">
+      <div className="h-1 rounded-full bg-white/10 overflow-hidden">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-500 ease-out shadow-sm shadow-indigo-500/40"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="text-[10px] text-white/25 text-center mt-2 tabular-nums">
+        {step}/{total}
+      </p>
     </div>
+  )
+}
+
+export function IntroBrandMark({ className }: { className?: string }) {
+  return (
+    <p
+      className={cn(
+        'text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-300/70 text-center mb-3',
+        className
+      )}
+    >
+      RepLock
+    </p>
   )
 }
 
@@ -97,7 +129,7 @@ export function IntroAuthButton({
     <button
       type="button"
       onClick={onClick}
-      className="w-full h-14 rounded-2xl bg-surface-2 border border-border text-white text-base font-semibold flex items-center justify-center gap-3 hover:bg-surface-3 hover:border-indigo-500/30 active:scale-[0.99] transition-all"
+      className="w-full h-14 rounded-2xl bg-white/[0.03] border border-white/[0.07] text-white text-base font-semibold flex items-center justify-center gap-3 hover:bg-white/[0.055] hover:border-indigo-500/30 active:scale-[0.99] transition-all"
     >
       {icon}
       {children}
@@ -107,12 +139,21 @@ export function IntroAuthButton({
 
 export function IntroHeading({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <h2 className={cn('text-2xl sm:text-3xl font-bold text-center leading-tight text-white', className)}>
+    <h2
+      className={cn(
+        'text-[1.65rem] sm:text-3xl font-bold text-center leading-[1.15] tracking-tight text-white',
+        className
+      )}
+    >
       {children}
     </h2>
   )
 }
 
 export function IntroSubtext({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={cn('text-white/50 text-center text-sm sm:text-base leading-relaxed', className)}>{children}</p>
+  return (
+    <p className={cn('text-white/45 text-center text-sm sm:text-[15px] leading-relaxed', className)}>
+      {children}
+    </p>
+  )
 }
