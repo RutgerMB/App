@@ -157,3 +157,22 @@ export async function restoreApplePurchases(): Promise<ApplePurchaseResult | nul
     return null
   }
 }
+
+const APPLE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions'
+
+/** Opens Apple subscription management (StoreKit sheet, else App Store URL). */
+export async function openAppleManageSubscriptions(): Promise<boolean> {
+  if (Capacitor.getPlatform() === 'ios') {
+    try {
+      await NativePurchases.manageSubscriptions()
+      return true
+    } catch {
+      /* fall through */
+    }
+  }
+  if (typeof window !== 'undefined') {
+    window.open(APPLE_SUBSCRIPTIONS_URL, '_blank', 'noopener,noreferrer')
+    return true
+  }
+  return false
+}

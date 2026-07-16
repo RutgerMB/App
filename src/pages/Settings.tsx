@@ -18,8 +18,8 @@ import { Switch } from '@/components/ui/Switch'
 import { isNativeBlockingAvailable, isIosBlockingAvailable } from '@/lib/app-blocker'
 import {
   isNativeRevenueCatAvailable,
+  openManageSubscription,
   openUpgradeOrFallback,
-  presentNativeCustomerCenter,
 } from '@/lib/replock-revenuecat-native'
 import { useStore } from '@/store'
 import { useAuthStore } from '@/store/auth'
@@ -72,29 +72,36 @@ export function SettingsPage() {
   }
 
   const handleSubscriptionPress = () => {
-    if (profile.isPro && isNativeRevenueCatAvailable()) {
-      void (async () => {
-        try {
-          const { presented } = await presentNativeCustomerCenter()
-          if (!presented) navigate('/pricing')
-        } catch {
-          navigate('/pricing')
-        }
-      })()
+    if (profile.isPro) {
+      if (isNativeRevenueCatAvailable()) {
+        void handleManageSubscription()
+        return
+      }
+      toast(t('pricing.onPro'), 'info')
       return
     }
     void openUpgradeOrFallback(() => navigate('/pricing'))
   }
 
-  const handleManageSubscription = () => {
-    void (async () => {
-      try {
-        const { presented } = await presentNativeCustomerCenter()
-        if (!presented) navigate('/pricing')
-      } catch {
-        navigate('/pricing')
+  const handleManageSubscription = async () => {
+    try {
+      const result = await openManageSubscription({ restoreIfNeeded: !profile.isPro })
+      if (result.restored) {
+        toast(t('pricing.restored'), 'success')
+        return
       }
-    })()
+      if (!result.opened) {
+        toast(t('settings.subscriptionNativeFailed'), 'error')
+        if (!profile.isPro) {
+          void openUpgradeOrFallback(() => navigate('/pricing'))
+        }
+      }
+    } catch {
+      toast(t('settings.subscriptionNativeFailed'), 'error')
+      if (!profile.isPro) {
+        void openUpgradeOrFallback(() => navigate('/pricing'))
+      }
+    }
   }
 
   const menuSections = [

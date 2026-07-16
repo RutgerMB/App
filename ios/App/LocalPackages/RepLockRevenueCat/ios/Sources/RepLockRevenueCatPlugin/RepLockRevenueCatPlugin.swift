@@ -144,9 +144,13 @@ public class RepLockRevenueCatPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func presentCustomerCenter(_ call: CAPPluginCall) {
         Task { @MainActor [self] in
-            let presented = PaywallPresenter.presentCustomerCenter(from: repLockPresenter(for: self))
+            let presented = await PaywallPresenter.presentCustomerCenterAndWait(from: repLockPresenter(for: self))
             if presented {
-                call.resolve(["presented": true])
+                _ = try? await RevenueCatManager.shared.refreshCustomerInfo()
+                call.resolve([
+                    "presented": true,
+                    "isPro": RevenueCatManager.shared.hasProEntitlement(),
+                ])
             } else {
                 repLockReject(call, "Could not present customer center — no host view controller", code: "NO_HOST")
             }

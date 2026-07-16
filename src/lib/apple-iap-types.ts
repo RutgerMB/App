@@ -17,6 +17,9 @@ export interface NativePurchasesPlugin {
 
   restorePurchases(): Promise<void>
 
+  /** Opens Apple’s subscription management sheet (iOS 15+). */
+  manageSubscriptions(): Promise<void>
+
   getPurchases(options?: {
     productType?: PURCHASE_TYPE
   }): Promise<{

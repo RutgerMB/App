@@ -6,6 +6,9 @@ const stub: NativePurchasesPlugin = {
     throw new Error('Apple In-App Purchase is only available in the native iOS app')
   },
   restorePurchases: async () => {},
+  manageSubscriptions: async () => {
+    throw new Error('Subscription management is only available in the native iOS app')
+  },
   getPurchases: async () => ({ purchases: [] }),
 }
 

@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ChevronDown, ChevronRight, Sparkles } from 'lucide-react'
 import { CategoryIcon, ExerciseIcon, WorkoutPlanIcon } from '@/components/ExerciseIcons'
@@ -13,7 +13,7 @@ import {
 } from '@/types'
 import { cn } from '@/lib/utils'
 import { useTranslation } from '@/i18n/context'
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState } from 'react'
 import type { WorkoutPlan } from '@/types'
 
 const CATEGORY_GRADIENT: Record<ExerciseCategory, string> = {
@@ -36,28 +36,22 @@ const PLANNED_WORKOUTS_PREVIEW = 3
 
 function WorkoutPlanRow({
   plan,
-  index,
   onSelect,
 }: {
   plan: WorkoutPlan
-  index: number
   onSelect: () => void
 }) {
   const { t } = useTranslation()
 
   return (
-    <motion.button
+    <button
       type="button"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -4 }}
-      transition={{ delay: index * 0.04, duration: 0.35, ease: 'easeOut' }}
       onClick={onSelect}
       className={cn(
         'group w-full text-left rounded-2xl px-4 py-3.5',
         'bg-white/[0.03] border border-white/[0.07]',
         'hover:bg-white/[0.055] hover:border-white/[0.12]',
-        'active:scale-[0.985] transition-all duration-200'
+        'active:scale-[0.985] transition-transform duration-150'
       )}
     >
       <div className="flex items-center gap-3.5">
@@ -93,7 +87,7 @@ function WorkoutPlanRow({
           />
         </div>
       </div>
-    </motion.button>
+    </button>
   )
 }
 
@@ -103,9 +97,16 @@ export function ExercisePage() {
   const [plansExpanded, setPlansExpanded] = useState(false)
 
   const hasMorePlans = WORKOUT_PLANS.length > PLANNED_WORKOUTS_PREVIEW
-  const previewPlans = WORKOUT_PLANS.slice(0, PLANNED_WORKOUTS_PREVIEW)
-  const extraPlans = WORKOUT_PLANS.slice(PLANNED_WORKOUTS_PREVIEW)
-  const hiddenCount = extraPlans.length
+  const visiblePlans = plansExpanded
+    ? WORKOUT_PLANS
+    : WORKOUT_PLANS.slice(0, PLANNED_WORKOUTS_PREVIEW)
+  const hiddenCount = WORKOUT_PLANS.length - PLANNED_WORKOUTS_PREVIEW
+
+  const togglePlansExpanded = () => {
+    startTransition(() => {
+      setPlansExpanded((open) => !open)
+    })
+  }
 
   return (
     <AppShell>
@@ -141,32 +142,20 @@ export function ExercisePage() {
             </h2>
           </div>
           <div className="space-y-2">
-            {previewPlans.map((plan, i) => (
+            {visiblePlans.map((plan) => (
               <WorkoutPlanRow
                 key={plan.id}
                 plan={plan}
-                index={i}
                 onSelect={() => navigate(`/exercise/workout?plan=${plan.id}`)}
               />
             ))}
-            <AnimatePresence initial={false}>
-              {plansExpanded &&
-                extraPlans.map((plan, i) => (
-                  <WorkoutPlanRow
-                    key={plan.id}
-                    plan={plan}
-                    index={i}
-                    onSelect={() => navigate(`/exercise/workout?plan=${plan.id}`)}
-                  />
-                ))}
-            </AnimatePresence>
           </div>
           {hasMorePlans && (
             <Button
               variant="outline"
               fullWidth
               className="mt-3 border-white/10 bg-transparent hover:bg-white/[0.04]"
-              onClick={() => setPlansExpanded((open) => !open)}
+              onClick={togglePlansExpanded}
             >
               {plansExpanded
                 ? t('exercise.showFewerWorkouts')

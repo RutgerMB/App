@@ -1,6 +1,17 @@
 import UIKit
 import SwiftUI
 
+/// UIHostingController that notifies PaywallPresenter when dismissed (swipe or Close).
+@MainActor
+private final class TrackedHostingController<Content: View>: UIHostingController<Content> {
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        if isBeingDismissed || presentingViewController == nil {
+            PaywallPresenter.clearPresentedReference()
+        }
+    }
+}
+
 @MainActor
 public enum PaywallPresenter {
     private static weak var presentedController: UIViewController?
@@ -27,7 +38,7 @@ public enum PaywallPresenter {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             dismissContinuations.append(continuation)
 
-            let paywall = UIHostingController(rootView: RepLockPaywallView())
+            let paywall = TrackedHostingController(rootView: RepLockPaywallView())
             paywall.modalPresentationStyle = .pageSheet
             if let sheet = paywall.sheetPresentationController {
                 sheet.detents = [.large()]
@@ -43,10 +54,13 @@ public enum PaywallPresenter {
     /// Returns `true` when a paywall sheet is shown (or already visible). Non-blocking.
     @discardableResult
     public static func presentPaywall(from viewController: UIViewController? = nil) -> Bool {
-        if presentedController != nil { return true }
+        if let existing = presentedController, existing.presentingViewController != nil {
+            return true
+        }
+        clearPresentedReference()
         guard let host = viewController ?? topViewController() else { return false }
 
-        let paywall = UIHostingController(rootView: RepLockPaywallView())
+        let paywall = TrackedHostingController(rootView: RepLockPaywallView())
         paywall.modalPresentationStyle = .pageSheet
         if let sheet = paywall.sheetPresentationController {
             sheet.detents = [.large()]
@@ -58,13 +72,40 @@ public enum PaywallPresenter {
         return true
     }
 
-    /// Returns `true` when Customer Center is shown (or already visible).
-    @discardableResult
-    public static func presentCustomerCenter(from viewController: UIViewController? = nil) -> Bool {
-        if presentedController != nil { return true }
+    /// Present Customer Center and wait until it is dismissed.
+    public static func presentCustomerCenterAndWait(from viewController: UIViewController? = nil) async -> Bool {
+        if presentedController != nil {
+            await waitUntilDismissed()
+        }
+        guard presentedController == nil else { return true }
         guard let host = viewController ?? topViewController() else { return false }
 
-        let center = UIHostingController(rootView: RepLockCustomerCenterView())
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            dismissContinuations.append(continuation)
+
+            let center = TrackedHostingController(rootView: RepLockCustomerCenterView())
+            center.modalPresentationStyle = .pageSheet
+            if let sheet = center.sheetPresentationController {
+                sheet.detents = [.large()]
+                sheet.prefersGrabberVisible = true
+            }
+            presentedController = center
+            center.presentationController?.delegate = PresentationDelegate.shared
+            host.present(center, animated: true)
+        }
+        return true
+    }
+
+    /// Returns `true` when Customer Center is shown. Prefer `presentCustomerCenterAndWait` from plugins.
+    @discardableResult
+    public static func presentCustomerCenter(from viewController: UIViewController? = nil) -> Bool {
+        if let existing = presentedController, existing.presentingViewController != nil {
+            return true
+        }
+        clearPresentedReference()
+        guard let host = viewController ?? topViewController() else { return false }
+
+        let center = TrackedHostingController(rootView: RepLockCustomerCenterView())
         center.modalPresentationStyle = .pageSheet
         if let sheet = center.sheetPresentationController {
             sheet.detents = [.large()]

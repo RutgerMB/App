@@ -22,7 +22,7 @@ export interface RepLockRevenueCatPlugin {
   }): Promise<RepLockRevenueCatCustomerInfo & { cancelled?: boolean }>
   restorePurchases(): Promise<RepLockRevenueCatCustomerInfo>
   presentPaywall(): Promise<{ presented: boolean; isPro?: boolean }>
-  presentCustomerCenter(): Promise<{ presented: boolean }>
+  presentCustomerCenter(): Promise<{ presented: boolean; isPro?: boolean }>
   addListener(
     eventName: 'customerInfoUpdated',
     listenerFunc: (info: RepLockRevenueCatCustomerInfo) => void,
@@ -64,15 +64,85 @@ export async function presentNativePaywall(): Promise<{ presented: boolean; isPr
   }
 }
 
-/** Present RevenueCat Customer Center for subscription management. */
-export async function presentNativeCustomerCenter(): Promise<{ presented: boolean }> {
-  if (!isNativeRevenueCatPlatform()) return { presented: false }
+/** Present RevenueCat Customer Center for subscription management. Resolves when dismissed. */
+export async function presentNativeCustomerCenter(): Promise<{
+  presented: boolean
+  isPro: boolean
+}> {
+  if (!isNativeRevenueCatPlatform()) return { presented: false, isPro: false }
   try {
     const result = await RepLockRevenueCatNative.presentCustomerCenter()
-    return { presented: Boolean(result?.presented) }
+    return {
+      presented: Boolean(result?.presented),
+      isPro: Boolean(result?.isPro),
+    }
   } catch (error) {
     throw error instanceof Error ? error : new Error('Failed to present customer center')
   }
+}
+
+/** Open Apple’s subscription management (StoreKit sheet or App Store URL). */
+export async function openAppleSubscriptionManagement(): Promise<boolean> {
+  const { openAppleManageSubscriptions } = await import('@/lib/apple-iap')
+  return openAppleManageSubscriptions()
+}
+
+export type ManageSubscriptionResult = {
+  /** Customer Center or Apple manage UI was shown / opened. */
+  opened: boolean
+  /** Pro after any restore / refresh during the flow. */
+  isPro: boolean
+  /** Used restorePurchases when Customer Center was unavailable. */
+  restored: boolean
+}
+
+/**
+ * iOS subscription management: Customer Center (restore / cancel / change plan).
+ * Falls back to Apple manage-subscriptions sheet / App Store URL — never Pricing alone.
+ */
+export async function openManageSubscription(options?: {
+  /** When Customer Center fails, also attempt restore. Default true. */
+  restoreIfNeeded?: boolean
+}): Promise<ManageSubscriptionResult> {
+  const restoreIfNeeded = options?.restoreIfNeeded !== false
+
+  if (!isNativeRevenueCatPlatform()) {
+    const opened = await openAppleSubscriptionManagement()
+    return { opened, isPro: false, restored: false }
+  }
+
+  const ready = await isNativeRevenueCatPluginReady()
+  if (ready) {
+    try {
+      const { presented, isPro } = await presentNativeCustomerCenter()
+      if (presented) {
+        const { syncEntitlementAfterPurchase } = await import('@/lib/entitlement')
+        await syncEntitlementAfterPurchase().catch(() => {})
+        return { opened: true, isPro, restored: false }
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+
+  let restored = false
+  let isPro = false
+  if (restoreIfNeeded) {
+    try {
+      const { restoreMobilePurchases } = await import('@/lib/mobile-purchases')
+      restored = await restoreMobilePurchases()
+      if (restored) {
+        const { syncEntitlementAfterPurchase } = await import('@/lib/entitlement')
+        const sync = await syncEntitlementAfterPurchase().catch(() => null)
+        isPro = Boolean(sync?.isPro || restored)
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const opened = await openAppleSubscriptionManagement()
+  return { opened, isPro, restored }
 }
 
 /**

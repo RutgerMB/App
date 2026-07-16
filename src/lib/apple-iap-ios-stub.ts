@@ -9,6 +9,11 @@ const stub: NativePurchasesPlugin = {
     )
   },
   restorePurchases: async () => {},
+  manageSubscriptions: async () => {
+    throw new Error(
+      'Subscription management on iPhone requires a build made with Xcode 26.'
+    )
+  },
   getPurchases: async () => ({ purchases: [] }),
 }
 
