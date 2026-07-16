@@ -301,10 +301,9 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
         call.resolve(["ok": true])
     }
 
-    /// Hosts an on-screen `DeviceActivityReport` probe, then tries to read today's
-    /// total from the App Group (best-effort: Apple's DAR sandbox drops App Group
-    /// writes on device — use `presentDailyScreenTimeReport` to show the number).
-    /// Requires the `RepLockDeviceActivityReport` target embedded in the app.
+    /// Best-effort App Group read only — never presents UI.
+    /// On device, Apple's DeviceActivityReport sandbox usually blocks App Group
+    /// writes; use `presentDailyScreenTimeReport` to show today's total once.
     @objc func getDailyScreenTimeHours(_ call: CAPPluginCall) {
         guard #available(iOS 16.0, *) else {
             repLockReject(call, "iOS 16+ required for screen time totals", code: "UNSUPPORTED")
@@ -312,7 +311,8 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         // Cap 8 SPM on Xcode 15.x requires the two-arg getBool(_:_:).
-        let force = call.getBool("force", false)
+        // `force` is accepted for API compat but no longer re-hosts the report.
+        _ = call.getBool("force", false)
         Task { @MainActor in
             let auth = AuthorizationManager.refreshStatus()
             guard auth.authorized else {
@@ -320,16 +320,13 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
                 return
             }
 
-            let presenter = repLockPresenter(for: self)
-            let snap = await ScreenTimeReportHost.refresh(from: presenter, force: force)
+            let snap = await ScreenTimeReportHost.refresh(from: nil, force: false)
             guard let snap else {
-                // Soft resolve — Capacitor rejects show up as ERROR spam during
-                // onboarding while the report is still warming / App Group blocked.
                 call.resolve([
                     "available": false,
                     "code": "NO_DATA",
                     "message":
-                        "No numeric screen time export yet. On device, DeviceActivityReport cannot write App Groups; present the report UI or wait for a Simulator write.",
+                        "No numeric screen time export. On device, present the report sheet once; App Group export is usually blocked.",
                     "hours": NSNull(),
                     "source": "none",
                 ])
@@ -349,8 +346,8 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    /// Presents a user-visible DeviceActivityReport sheet (supported way to show
-    /// today's total — the extension may only render inside its own view).
+    /// Presents a premium DeviceActivityReport sheet once. Resolves after the user
+    /// taps Continue/Done (soft-dismiss back to onboarding).
     @objc func presentDailyScreenTimeReport(_ call: CAPPluginCall) {
         guard #available(iOS 16.0, *) else {
             repLockReject(call, "iOS 16+ required for screen time totals", code: "UNSUPPORTED")

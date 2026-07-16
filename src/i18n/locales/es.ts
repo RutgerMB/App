@@ -74,6 +74,10 @@ export const es = {
     revealActualUseReport:
       'Apple solo muestra el tiempo de pantalla en un informe del sistema. Ábrelo para ver el total de hoy.',
     revealShowScreenTime: 'Mostrar tiempo de pantalla de hoy',
+    revealSawNative: 'Ya viste el tiempo de pantalla de hoy en tu iPhone.',
+    revealSawNativeHint:
+      'Apple mantiene el número exacto en su informe. Tu estimación sigue personalizando el plan.',
+    revealActualSeenShort: 'Visto',
     yearsPerDay: 'al día en tu teléfono.',
     yearsBasedOnDevice: 'Basado en el tiempo de pantalla medido en tu teléfono.',
     yearsBasedOnEstimate: 'Basado en tu estimación diaria.',

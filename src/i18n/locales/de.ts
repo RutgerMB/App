@@ -75,6 +75,10 @@ export const de = {
     revealActualUseReport:
       'Apple shows Screen Time only inside a system report. Open it to see today\'s total.',
     revealShowScreenTime: 'Show today\'s Screen Time',
+    revealSawNative: 'You already saw today\'s Screen Time on your iPhone.',
+    revealSawNativeHint:
+      'Apple keeps the exact number inside its report. Your guess still personalizes the plan below.',
+    revealActualSeenShort: 'Seen',
     yearsPerDay: 'pro Tag am Handy.',
     yearsBasedOnDevice: 'Basierend auf der gemessenen Bildschirmzeit deines Handys.',
     yearsBasedOnEstimate: 'Basierend auf deiner täglichen Schätzung.',

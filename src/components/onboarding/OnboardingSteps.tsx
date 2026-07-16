@@ -28,10 +28,13 @@ export function projectedDailyHours(estimateHours: number): number {
 export function RevealComparison({
   estimateHours,
   actualHours,
+  sawNativeReport = false,
   onShowDeviceReport,
 }: {
   estimateHours: number
   actualHours: number | null
+  /** iOS: user already viewed the native DeviceActivityReport sheet. */
+  sawNativeReport?: boolean
   /** iOS: open DeviceActivityReport sheet when numeric export is unavailable. */
   onShowDeviceReport?: () => void
 }) {
@@ -59,6 +62,25 @@ export function RevealComparison({
               : t('intro.revealActualMore', { pct })}
           </p>
           <p className="text-xs text-white/30 mb-8">{t('intro.revealFromDevice')}</p>
+        </>
+      ) : sawNativeReport ? (
+        <>
+          <p className="text-4xl sm:text-5xl font-bold tabular-nums gradient-text mb-2 tracking-tight">
+            ✓
+          </p>
+          <p className="text-sm text-white/45 mb-2">{t('intro.revealSawNative')}</p>
+          <p className="text-xs text-white/30 mb-4">{t('intro.revealSawNativeHint')}</p>
+          {onShowDeviceReport ? (
+            <button
+              type="button"
+              onClick={onShowDeviceReport}
+              className="mb-8 text-sm font-semibold text-indigo-300 underline underline-offset-4"
+            >
+              {t('intro.revealShowScreenTime')}
+            </button>
+          ) : (
+            <div className="mb-8" />
+          )}
         </>
       ) : (
         <>
@@ -96,7 +118,9 @@ export function RevealComparison({
             'rounded-2xl p-4 border',
             fromDevice
               ? 'bg-emerald-500/10 border-emerald-500/25'
-              : 'bg-white/[0.03] border-white/[0.07]'
+              : sawNativeReport
+                ? 'bg-indigo-500/10 border-indigo-500/25'
+                : 'bg-white/[0.03] border-white/[0.07]'
           )}
         >
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35 mb-2">
@@ -105,10 +129,18 @@ export function RevealComparison({
           <p
             className={cn(
               'text-lg font-bold tabular-nums',
-              fromDevice ? 'text-emerald-400' : 'text-white/30'
+              fromDevice
+                ? 'text-emerald-400'
+                : sawNativeReport
+                  ? 'text-indigo-300'
+                  : 'text-white/30'
             )}
           >
-            {fromDevice ? formatHoursMinutes(actual!) : t('intro.revealActualUnavailableShort')}
+            {fromDevice
+              ? formatHoursMinutes(actual!)
+              : sawNativeReport
+                ? t('intro.revealActualSeenShort')
+                : t('intro.revealActualUnavailableShort')}
           </p>
         </div>
       </div>

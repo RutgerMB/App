@@ -206,6 +206,8 @@ export function OnboardingPage() {
     isNativeIos() ? new Set() : new Set(DEFAULT_SELECTED_APPS)
   )
   const [actualScreenHours, setActualScreenHours] = useState<number | null>(null)
+  /** iOS: user saw the native DeviceActivityReport sheet (numeric export usually unavailable). */
+  const [sawNativeScreenTimeReport, setSawNativeScreenTimeReport] = useState(false)
   const [screenTimeGranted, setScreenTimeGranted] = useState(false)
   const [screenTimeChecking, setScreenTimeChecking] = useState(false)
   const [appCatalog, setAppCatalog] = useState<DeviceAppDefinition[]>([])
@@ -242,15 +244,27 @@ export function OnboardingPage() {
     try {
       const granted = await checkScreenTimePermission()
       setScreenTimeGranted(granted)
-      if (granted) {
-        const data = opts?.retry
-          ? await fetchDailyScreenTimeHoursWithRetry()
-          : await fetchDailyScreenTimeHours()
+      if (!granted) return
+      // iOS: never tight-poll App Group (export blocked on device; old probe UI flashed).
+      if (screenTimePlatform === 'ios') {
+        const data = await fetchDailyScreenTimeHours()
         if (data) setActualScreenHours(Math.max(0.5, Math.round(data.hours * 10) / 10))
+        return
       }
+      const data = opts?.retry
+        ? await fetchDailyScreenTimeHoursWithRetry()
+        : await fetchDailyScreenTimeHours()
+      if (data) setActualScreenHours(Math.max(0.5, Math.round(data.hours * 10) / 10))
     } finally {
       setScreenTimeChecking(false)
     }
+  }
+
+  const showNativeScreenTimeSheetOnce = async () => {
+    if (screenTimePlatform !== 'ios') return false
+    const shown = await presentDailyScreenTimeReport()
+    if (shown) setSawNativeScreenTimeReport(true)
+    return shown
   }
 
   const handleScreenTimeAuthorize = async () => {
@@ -268,58 +282,35 @@ export function OnboardingPage() {
             const msg = t(key as 'onboarding.screenTimeIosError_failed')
             toast(msg !== key ? msg : t('onboarding.screenTimeIosError_failed'), 'error')
           }
-        } else if (result.authorized) {
+          return
+        }
+        if (result.authorized) {
+          setScreenTimeGranted(true)
           toast(t('onboarding.screenTimeIosAuthorized'), 'success')
-          // Force report probe + retries before guess-vs-actual.
-          const data = await fetchDailyScreenTimeHoursWithRetry()
+          // One soft App Group read (usually null on device) — never poll.
+          const data = await fetchDailyScreenTimeHours()
           if (data) {
             setActualScreenHours(Math.max(0.5, Math.round(data.hours * 10) / 10))
-            setScreenTimeGranted(true)
-            return
           }
-          // On device, App Group export from DeviceActivityReport is usually blocked.
-          // Show the system-rendered report so the user still sees today's total.
-          setScreenTimeGranted(true)
-          await presentDailyScreenTimeReport()
+          // Present the premium sheet once so the user sees today's total.
+          await showNativeScreenTimeSheetOnce()
           return
         }
       } else {
         await requestScreenTimePermission()
+        await refreshScreenTimeAccess({ retry: true })
       }
-      await refreshScreenTimeAccess({ retry: true })
     } finally {
       setScreenTimeChecking(false)
     }
   }
 
   useEffect(() => {
-    if (step === STEP.SCREEN_TIME_PERMISSION) void refreshScreenTimeAccess({ retry: true })
+    if (step === STEP.SCREEN_TIME_PERMISSION) void refreshScreenTimeAccess()
   }, [step])
 
-  // Before reveal: one more forced refresh so actual hours aren't stuck on "unavailable".
-  useEffect(() => {
-    if (step !== STEP.SCREEN_TIME_GUESS && step !== STEP.REVEAL) return
-    if (actualScreenHours != null) return
-    if (!screenTimeGranted && screenTimePlatform === 'ios') return
-    let cancelled = false
-    void (async () => {
-      const data = await fetchDailyScreenTimeHoursWithRetry()
-      if (cancelled) return
-      if (data) {
-        setActualScreenHours(Math.max(0.5, Math.round(data.hours * 10) / 10))
-        setScreenTimeGranted(true)
-        return
-      }
-      // iOS: numeric export often unavailable — present the on-screen report once.
-      if (screenTimePlatform === 'ios' && screenTimeGranted && step === STEP.REVEAL) {
-        await presentDailyScreenTimeReport()
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [step, actualScreenHours, screenTimeGranted, screenTimePlatform])
-
+  // Do not auto-re-fetch or re-present DeviceActivityReport on reveal —
+  // that re-flashed the raw total every minute / every poll.
   useEffect(() => {
     if (step !== STEP.SELECT_APPS) return
     void getDeviceApps().then((apps) => {
@@ -417,13 +408,19 @@ export function OnboardingPage() {
         await refreshScreenTimeAccess({ retry: true })
         return
       }
-      // Refresh totals (with retries on iOS) before guess / reveal.
+      // iOS: permission check only — never poll App Group / re-host the report.
+      if (screenTimePlatform === 'ios') {
+        await refreshScreenTimeAccess()
+        advance()
+        return
+      }
       await refreshScreenTimeAccess({ retry: true })
       advance()
       return
     }
     if (step === STEP.SCREEN_TIME_GUESS) {
-      if (actualScreenHours == null) {
+      // Do not block Continue on iOS numeric export (usually unavailable).
+      if (actualScreenHours == null && screenTimePlatform !== 'ios') {
         await refreshScreenTimeAccess({ retry: true })
       }
       advance()
@@ -627,10 +624,11 @@ export function OnboardingPage() {
             <RevealComparison
               estimateHours={screenHours}
               actualHours={actualScreenHours}
+              sawNativeReport={sawNativeScreenTimeReport}
               onShowDeviceReport={
                 screenTimePlatform === 'ios' && screenTimeGranted
                   ? () => {
-                      void presentDailyScreenTimeReport()
+                      void showNativeScreenTimeSheetOnce()
                     }
                   : undefined
               }

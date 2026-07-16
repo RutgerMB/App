@@ -284,11 +284,11 @@ export async function clearIosShields(): Promise<void> {
 }
 
 /**
- * Today's OS Screen Time from the DeviceActivityReport extension via App Group.
+ * Today's OS Screen Time from the App Group (best-effort).
  * Returns null if unauthorized, extension missing, or no report written yet.
  * On device, Apple's DAR sandbox usually blocks App Group export — use
- * `presentIosDailyScreenTimeReport` to show the system-rendered total.
- * Onboarding should poll — the first probe after authorize can take several seconds.
+ * `presentIosDailyScreenTimeReport` to show the system-rendered total once.
+ * Never force-hosts a report view (that caused black "6h9m" flashes).
  */
 export async function fetchIosDailyScreenTimeHours(options?: {
   force?: boolean
@@ -299,11 +299,11 @@ export async function fetchIosDailyScreenTimeHours(options?: {
     if (!ready) return null
     const status = await getIosControlsStatus()
     if (!status.authorized) return null
+    // force is ignored for presentation — native only reads App Group now.
     const result = await RepLockControlsNative.getDailyScreenTimeHours(
-      options?.force !== false ? { force: true } : undefined
+      options?.force ? { force: true } : { force: false }
     )
     if (result?.available === false || result?.code === 'NO_DATA') {
-      // Soft: expected while waiting / when App Group export is sandboxed.
       console.debug('[RepLockControls] screen time report not ready', {
         code: result.code ?? 'NO_DATA',
         message: result.message,
@@ -327,35 +327,46 @@ export async function fetchIosDailyScreenTimeHours(options?: {
   }
 }
 
-/** Show today's Screen Time in a native DeviceActivityReport sheet (supported path). */
-export async function presentIosDailyScreenTimeReport(): Promise<boolean> {
+/**
+ * Show today's Screen Time in a premium native sheet once.
+ * Resolves after the user taps Continue/Done, or after `timeoutMs` so callers
+ * never hang — timeout still counts as success if the sheet was started.
+ */
+export async function presentIosDailyScreenTimeReport(options?: {
+  timeoutMs?: number
+}): Promise<boolean> {
   if (!isIosControlsAvailable()) return false
+  const timeoutMs = options?.timeoutMs ?? 8_000
   try {
     const ready = await isRepLockControlsPluginReady()
     if (!ready) return false
     const status = await getIosControlsStatus()
     if (!status.authorized) return false
-    const result = await RepLockControlsNative.presentDailyScreenTimeReport()
-    return result?.ok === true || result?.presented === true
+
+    const dismissed = RepLockControlsNative.presentDailyScreenTimeReport()
+      .then((result) => result?.ok === true || result?.presented === true)
+      .catch(() => false)
+
+    const timedOut = new Promise<boolean>((resolve) => {
+      window.setTimeout(() => resolve(true), timeoutMs)
+    })
+    // Soft-dismiss preferred; timeout unblocks onboarding while the sheet can stay up.
+    return await Promise.race([dismissed, timedOut])
   } catch (err) {
     console.warn('[RepLockControls] presentDailyScreenTimeReport failed', pluginErrorMeta(err))
     return false
   }
 }
 
-/** Poll the report probe until data appears or attempts are exhausted. */
+/**
+ * One quick App Group read — do not poll. On device export almost never works;
+ * callers should present the report sheet instead of retrying.
+ */
 export async function fetchIosDailyScreenTimeHoursWithRetry(options?: {
   attempts?: number
   delayMs?: number
 }): Promise<{ hours: number; minutes: number; totalMinutes?: number } | null> {
-  const attempts = options?.attempts ?? 4
-  const delayMs = options?.delayMs ?? 1500
-  for (let i = 0; i < attempts; i++) {
-    const data = await fetchIosDailyScreenTimeHours({ force: true })
-    if (data) return data
-    if (i < attempts - 1) {
-      await new Promise((r) => setTimeout(r, delayMs))
-    }
-  }
-  return null
+  // Keep signature for callers; ignore multi-attempt polling (caused Loading… hangs).
+  void options
+  return fetchIosDailyScreenTimeHours({ force: false })
 }

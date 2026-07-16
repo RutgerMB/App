@@ -72,11 +72,15 @@ export const nl = {
     revealFromDevice: 'Gebaseerd op schermtijd van je apparaat',
     revealEstimateOnly:
       'We konden de schermtijd van vandaag nog niet lezen. Je schatting wordt gebruikt — autoriseer Screen Time en wacht even, of ga door en probeer later opnieuw.',
-    revealActualUnavailable: 'Schermtijd laden…',
-    revealActualUnavailableShort: 'Laden…',
+    revealActualUnavailable: 'Autoriseer Screen Time om het totaal van vandaag te zien.',
+    revealActualUnavailableShort: 'Nog niet',
     revealActualUseReport:
       'Apple toont schermtijd alleen in een systeemrapport. Open het om het totaal van vandaag te zien.',
     revealShowScreenTime: 'Toon schermtijd van vandaag',
+    revealSawNative: 'Je hebt de schermtijd van vandaag al op je iPhone gezien.',
+    revealSawNativeHint:
+      'Apple bewaart het exacte getal in het rapport. Je schatting personaliseert hieronder nog steeds het plan.',
+    revealActualSeenShort: 'Gezien',
     yearsPerDay: 'per dag op je telefoon.',
     yearsBasedOnDevice: 'Gebaseerd op de gemeten schermtijd van je telefoon.',
     yearsBasedOnEstimate: 'Gebaseerd op je dagelijkse schatting.',
@@ -169,7 +173,7 @@ export const nl = {
     screenTimePermissionIosEstimate:
       'Autoriseren ontgrendelt app-blokkering. Na Toestaan leest RepLock de schermtijd van vandaag voor de volgende schermen (kan een paar seconden duren).',
     screenTimePermissionIosSkip: 'Tik op Doorgaan om over te slaan — je kunt later autoriseren via Apps.',
-    screenTimeIosAuthorized: 'Screen Time geautoriseerd — schermtijd van vandaag ophalen…',
+    screenTimeIosAuthorized: 'Screen Time geautoriseerd',
     screenTimeIosError_denied:
       'Screen Time geweigerd. Op iPhone: Instellingen → Schermtijd → sta RepLock toe, kom terug en tik opnieuw op Autoriseren.',
     screenTimeIosError_notDetermined:

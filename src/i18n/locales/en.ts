@@ -72,11 +72,14 @@ export const en: Translations = {
     revealFromDevice: 'Based on your device screen time',
     revealEstimateOnly:
       'We could not read today\'s Screen Time total yet. Your guess is used below — authorize Screen Time and wait a moment, or continue and try again later.',
-    revealActualUnavailable: 'Still loading Screen Time…',
-    revealActualUnavailableShort: 'Loading…',
+    revealActualUnavailable: 'Authorize Screen Time to see today\'s total.',
+    revealActualUnavailableShort: 'Not yet',
     revealActualUseReport:
       'Apple only shows Screen Time inside a system report. Open it to see today\'s total.',
     revealShowScreenTime: 'Show today\'s Screen Time',
+    revealSawNative: 'You already saw today\'s Screen Time on your iPhone.',
+    revealSawNativeHint: 'Apple keeps the exact number inside its report. Your guess still personalizes the plan below.',
+    revealActualSeenShort: 'Seen',
     yearsPerDay: 'per day on your phone.',
     yearsBasedOnDevice: 'Based on your phone\'s measured screen time.',
     yearsBasedOnEstimate: 'Based on your daily guess.',
@@ -167,9 +170,9 @@ export const en: Translations = {
       'Allow RepLock to use Apple Screen Time so you can pick and block apps. Apple shows a system permission dialog — tap Allow.',
     screenTimePermissionIosAuthorize: 'Authorize Screen Time access',
     screenTimePermissionIosEstimate:
-      'Authorizing unlocks app blocking. After Allow, RepLock reads today\'s Screen Time total for the next screens (may take a few seconds).',
+      'Authorizing unlocks app blocking. After Allow, RepLock shows today\'s Screen Time in a quick sheet — then you continue setup.',
     screenTimePermissionIosSkip: 'Tap Continue below to skip for now — you can authorize later in Apps.',
-    screenTimeIosAuthorized: 'Screen Time authorized — opening today’s total…',
+    screenTimeIosAuthorized: 'Screen Time authorized',
     screenTimeIosError_denied:
       'Screen Time was denied. On iPhone: Settings → Screen Time → allow RepLock (or remove the restriction), then return here and tap Authorize again.',
     screenTimeIosError_notDetermined:

@@ -79,6 +79,9 @@ export interface Translations {
     revealActualUnavailableShort: string
     revealActualUseReport: string
     revealShowScreenTime: string
+    revealSawNative: string
+    revealSawNativeHint: string
+    revealActualSeenShort: string
     yearsPerDay: string
     yearsBasedOnDevice: string
     yearsBasedOnEstimate: string

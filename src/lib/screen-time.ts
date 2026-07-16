@@ -129,10 +129,10 @@ export async function refreshIosScreenTimeAccess(): Promise<IosScreenTimeAuthRes
 }
 
 export async function fetchDailyScreenTimeHours(): Promise<ScreenTimeResult | null> {
-  // iOS: DeviceActivityReport extension writes today's minutes to the App Group;
-  // RepLockControls hosts a probe and returns hours/minutes into JS.
+  // iOS: App Group export is best-effort only (usually blocked on device).
+  // Do not force-host DeviceActivityReport — that flashes raw totals over the WebView.
   if (getScreenTimePlatform() === 'ios') {
-    return fetchIosDailyScreenTimeHours({ force: true })
+    return fetchIosDailyScreenTimeHours({ force: false })
   }
 
   if (getScreenTimePlatform() !== 'android') return null
@@ -145,22 +145,22 @@ export async function fetchDailyScreenTimeHours(): Promise<ScreenTimeResult | nu
   }
 }
 
-/** iOS onboarding: wait/retry for the report extension to populate App Group. */
+/** Android: one read. iOS: one App Group read (no poll / no UI host). */
 export async function fetchDailyScreenTimeHoursWithRetry(): Promise<ScreenTimeResult | null> {
   if (getScreenTimePlatform() === 'ios') {
-    return fetchIosDailyScreenTimeHoursWithRetry({ attempts: 5, delayMs: 1200 })
+    return fetchIosDailyScreenTimeHoursWithRetry()
   }
   return fetchDailyScreenTimeHours()
 }
 
 /**
- * iOS-only: present the system DeviceActivityReport sheet so the user can see
- * today's total (required on device — App Group export from the report extension
- * is blocked by Apple's sandbox).
+ * iOS-only: present the premium DeviceActivityReport sheet once.
+ * Resolves after soft-dismiss (Continue/Done) or a short timeout so onboarding
+ * never hangs on Loading…
  */
 export async function presentDailyScreenTimeReport(): Promise<boolean> {
   if (getScreenTimePlatform() !== 'ios') return false
-  return presentIosDailyScreenTimeReport()
+  return presentIosDailyScreenTimeReport({ timeoutMs: 8_000 })
 }
 
 /** Android UsageStats per-app minutes for today. iOS returns null (opaque tokens). */
