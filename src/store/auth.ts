@@ -105,7 +105,8 @@ export const useAuthStore = create<AuthState>()(
               user: session.user,
               usesFirebase: true,
             })
-            applyAppState(session.appState)
+            // Only apply when Firestore returned a snapshot — never overwrite local with empty defaults.
+            if (session.appState) applyAppState(session.appState)
             await linkMobilePurchases(session.user.id)
           })
         }
@@ -117,7 +118,7 @@ export const useAuthStore = create<AuthState>()(
             user: session.user,
             usesFirebase: true,
           })
-          applyAppState(session.appState)
+          if (session.appState) applyAppState(session.appState)
           await linkMobilePurchases(session.user.id)
         } else {
           set({ token: null, user: null, usesFirebase: true })

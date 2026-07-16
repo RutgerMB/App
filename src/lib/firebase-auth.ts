@@ -104,41 +104,31 @@ export async function firebaseLogin(
     'Sign-in timed out. Check your internet connection and try again.'
   )
 
+  // Never invent an empty appState on load failure — that used to overwrite
+  // Firestore with onboardingComplete:false and force returning users through setup again.
+  const snap = await withTimeout(
+    getDoc(userDocRef(credential.user.uid)),
+    15000,
+    'Could not load your data. Check your internet connection and try again.'
+  )
+
   let appState: AppState
-  try {
-    const snap = await withTimeout(
-      getDoc(userDocRef(credential.user.uid)),
-      15000,
-      'Could not load your data. Check your internet connection and try again.'
-    )
-    if (snap.exists() && snap.data().appState) {
-      appState = snap.data().appState as AppState
-      appState.profile.email = credential.user.email ?? appState.profile.email
-      appState.profile.name =
-        credential.user.displayName ?? snap.data().name ?? appState.profile.name
-    } else {
-      appState = createEmptyAppState(
-        credential.user.displayName ?? email.split('@')[0],
-        credential.user.email ?? email
-      )
-      await setDoc(userDocRef(credential.user.uid), {
-        email: credential.user.email,
-        name: appState.profile.name,
-        appState,
-        updatedAt: serverTimestamp(),
-      })
-    }
-  } catch {
+  if (snap.exists() && snap.data().appState) {
+    appState = snap.data().appState as AppState
+    appState.profile.email = credential.user.email ?? appState.profile.email
+    appState.profile.name =
+      credential.user.displayName ?? snap.data().name ?? appState.profile.name
+  } else {
     appState = createEmptyAppState(
       credential.user.displayName ?? email.split('@')[0],
       credential.user.email ?? email
     )
-    setDoc(userDocRef(credential.user.uid), {
+    await setDoc(userDocRef(credential.user.uid), {
       email: credential.user.email,
       name: appState.profile.name,
       appState,
       updatedAt: serverTimestamp(),
-    }).catch(() => {})
+    })
   }
 
   const idToken = await credential.user.getIdToken()
@@ -198,29 +188,24 @@ export function subscribeToAuthState(
 
 export async function restoreFirebaseSession(): Promise<{
   user: FirebaseAuthUser
-  appState: AppState
+  /** Remote snapshot when loaded; null means keep local Zustand state (load failed or no doc). */
+  appState: AppState | null
   idToken: string
 } | null> {
   const user = getFirebaseAuth().currentUser
   if (!user) return null
 
-  let appState: AppState
+  let appState: AppState | null = null
   try {
-    appState =
-      (await withTimeout(firebaseLoadAppState(user.uid), 10000, 'restore timeout')) ??
-      createEmptyAppState(
-        user.displayName ?? user.email?.split('@')[0] ?? 'User',
-        user.email ?? ''
-      )
+    // On timeout/network error, return null appState so callers keep localStorage —
+    // inventing createEmptyAppState here was resetting onboarding and syncing that wipe to cloud.
+    appState = await withTimeout(firebaseLoadAppState(user.uid), 10000, 'restore timeout')
   } catch {
-    appState = createEmptyAppState(
-      user.displayName ?? user.email?.split('@')[0] ?? 'User',
-      user.email ?? ''
-    )
+    appState = null
   }
 
   return {
-    user: mapFirebaseUser(user, appState.profile.name),
+    user: mapFirebaseUser(user, appState?.profile.name),
     appState,
     idToken: await user.getIdToken(),
   }
