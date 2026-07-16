@@ -620,7 +620,8 @@ export const en: Translations = {
     categorySplit: 'By muscle group',
     minutesEarned: 'Minutes earned',
     unlockInsights: 'Unlock Pro insights',
-    unlockInsightsDesc: 'Charts, trends, today vs yesterday, and weekly reports',
+    unlockInsightsDesc:
+      'Screen time, blocked-app attempts, charts, and weekly workout reports',
     plannedWorkouts: 'Planned workouts',
     bonusLabel: '+{percent}% completion bonus',
     startPlan: 'Start workout',
@@ -630,6 +631,22 @@ export const en: Translations = {
     planned: 'planned',
     bonusEarned: 'Bonus earned',
     baseEarned: 'Base earned',
+    usageToday: 'Usage today',
+    minutesSpent: 'Minutes spent',
+    minutesSpentIosNote:
+      'iPhone Screen Time totals need a Device Activity Report extension — coming later.',
+    unlockedSessionTime: 'Unlocked time used',
+    blockAttempts: 'Block attempts',
+    blockAttemptsIosNote:
+      'Apple shields don’t notify RepLock on each open yet — needs a Shield/Monitor extension.',
+    blockAttemptsCount: '{count} tries',
+    unlockOpenings: 'Unlocks used',
+    byApp: 'By app',
+    byAppUnlockNote: 'Showing unlocked session time tracked by RepLock (not full OS Screen Time).',
+    unlockedOfApp: '{amount} while unlocked',
+    usagePermissionNeeded: 'Usage access needed',
+    grantUsageAccess: 'Grant access',
+    earnedComparisonNote: 'Earned from workouts (not screen time spent)',
   },
   settings: {
     title: 'Settings',

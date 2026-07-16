@@ -7,6 +7,8 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import java.util.Map;
+
 @CapacitorPlugin(name = "AppBlocker")
 public class AppBlockerPlugin extends Plugin {
 
@@ -47,6 +49,28 @@ public class AppBlockerPlugin extends Plugin {
             call.resolve(ret);
         } catch (Exception e) {
             call.reject("Failed to apply blocker rules", e);
+        }
+    }
+
+    /** Today's blocked-app open attempts (accessibility intercepts). */
+    @PluginMethod
+    public void getBlockAttemptsToday(PluginCall call) {
+        try {
+            Map<String, Integer> counts = BlockAttemptStore.getAttemptsToday(getContext());
+            JSArray apps = new JSArray();
+            for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+                JSObject row = new JSObject();
+                row.put("packageName", entry.getKey());
+                row.put("label", BlockerHelper.getAppLabel(getContext(), entry.getKey()));
+                row.put("count", entry.getValue());
+                apps.put(row);
+            }
+            JSObject ret = new JSObject();
+            ret.put("total", BlockAttemptStore.getTotalAttemptsToday(getContext()));
+            ret.put("apps", apps);
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject("Failed to read block attempts", e);
         }
     }
 }

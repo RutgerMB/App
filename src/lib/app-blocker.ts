@@ -21,11 +21,23 @@ export interface BlockerStatus {
   ready: boolean
 }
 
+export interface BlockAttemptRow {
+  packageName: string
+  label: string
+  count: number
+}
+
+export interface BlockAttemptsToday {
+  total: number
+  apps: BlockAttemptRow[]
+}
+
 interface AppBlockerPlugin {
   isSupported(): Promise<{ supported: boolean }>
   getStatus(): Promise<BlockerStatus>
   openAccessibilitySettings(): Promise<void>
   applyRules(options: { rules: BlockerRule[] }): Promise<{ ok: boolean }>
+  getBlockAttemptsToday(): Promise<BlockAttemptsToday>
 }
 
 const AppBlockerNative = registerPlugin<AppBlockerPlugin>('AppBlocker', {
@@ -125,4 +137,14 @@ export async function syncAppBlockingRules(apps: LockedApp[]): Promise<void> {
 
   const rules = buildBlockerRules(apps)
   await AppBlockerNative.applyRules({ rules })
+}
+
+/** Android only — counts accessibility intercepts of locked apps today. */
+export async function fetchBlockAttemptsToday(): Promise<BlockAttemptsToday | null> {
+  if (!isAndroidBlockingAvailable()) return null
+  try {
+    return await AppBlockerNative.getBlockAttemptsToday()
+  } catch {
+    return null
+  }
 }

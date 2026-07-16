@@ -482,7 +482,8 @@ export const nl = {
     categorySplit: 'Per spiergroep',
     minutesEarned: 'Verdiende minuten',
     unlockInsights: 'Ontgrendel Pro-inzichten',
-    unlockInsightsDesc: 'Grafieken, trends, vandaag vs gisteren en weekrapporten',
+    unlockInsightsDesc:
+      'Schermtijd, blokkeerpogingen, grafieken en wekelijkse workout-rapporten',
     plannedWorkouts: 'Geplande workouts',
     bonusLabel: '+{percent}% voltooiingsbonus',
     startPlan: 'Start workout',
@@ -492,6 +493,22 @@ export const nl = {
     planned: 'gepland',
     bonusEarned: 'Bonus verdiend',
     baseEarned: 'Basis verdiend',
+    usageToday: 'Gebruik vandaag',
+    minutesSpent: 'Minuten gebruikt',
+    minutesSpentIosNote:
+      'iPhone Screen Time-totalen vragen een Device Activity Report-extensie — komt later.',
+    unlockedSessionTime: 'Ontgrendelde tijd',
+    blockAttempts: 'Blokkeerpogingen',
+    blockAttemptsIosNote:
+      'Apple-schilden melden RepLock nog niet bij elke openpoging — Shield/Monitor-extensie nodig.',
+    blockAttemptsCount: '{count} pogingen',
+    unlockOpenings: 'Ontgrendelingen',
+    byApp: 'Per app',
+    byAppUnlockNote: 'Toont ontgrendelde sessietijd van RepLock (niet volledige OS-schermtijd).',
+    unlockedOfApp: '{amount} tijdens ontgrendeling',
+    usagePermissionNeeded: 'Gebruikstoegang nodig',
+    grantUsageAccess: 'Toegang geven',
+    earnedComparisonNote: 'Verdiend met workouts (niet schermtijd gebruikt)',
   },
   settings: {
     title: 'Instellingen',

@@ -452,6 +452,20 @@ export interface Translations {
     planned: string
     bonusEarned: string
     baseEarned: string
+    usageToday: string
+    minutesSpent: string
+    minutesSpentIosNote: string
+    unlockedSessionTime: string
+    blockAttempts: string
+    blockAttemptsIosNote: string
+    blockAttemptsCount: string
+    unlockOpenings: string
+    byApp: string
+    byAppUnlockNote: string
+    unlockedOfApp: string
+    usagePermissionNeeded: string
+    grantUsageAccess: string
+    earnedComparisonNote: string
   }
   settings: {
     title: string

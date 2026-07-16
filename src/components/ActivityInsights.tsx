@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
-import { Lock, TrendingUp, TrendingDown, Sparkles } from 'lucide-react'
+import {
+  Lock, TrendingUp, TrendingDown, Sparkles, Smartphone, ShieldAlert, Clock,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { MotionButton } from '@/components/ui/Button'
 import { useStore } from '@/store'
@@ -20,6 +22,11 @@ import { EXERCISES } from '@/types'
 import { formatMinutes } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import { openUpgradeOrFallback } from '@/lib/replock-revenuecat-native'
+import {
+  loadUsageInsights,
+  type UsageInsightsSnapshot,
+} from '@/lib/usage-insights'
+import { requestScreenTimePermission } from '@/lib/screen-time'
 
 const PERIODS: StatsPeriod[] = ['week', 'month', 'year']
 
@@ -45,11 +52,166 @@ function ChartTooltip({
   )
 }
 
+function UsageSection({ usage }: { usage: UsageInsightsSnapshot | null }) {
+  const { t } = useTranslation()
+  if (!usage) return null
+
+  const showOsTotal = usage.platform === 'android'
+  const hasAppRows = usage.apps.some(
+    (a) =>
+      (a.screenMinutes ?? 0) > 0 ||
+      a.unlockedMinutes > 0 ||
+      (a.blockAttempts ?? 0) > 0
+  )
+
+  return (
+    <div className="space-y-4 mb-4">
+      <div className="rounded-2xl p-5 bg-white/[0.03] border border-white/[0.07]">
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <Smartphone size={14} className="text-indigo-300/80" />
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
+            {t('activity.usageToday')}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-center">
+            <p className="text-xs text-indigo-300 mb-1">{t('activity.minutesSpent')}</p>
+            {showOsTotal && usage.totalScreenMinutes != null ? (
+              <p className="text-2xl font-bold tabular-nums">
+                {formatMinutes(usage.totalScreenMinutes)}
+              </p>
+            ) : showOsTotal && usage.screenTimePermissionNeeded ? (
+              <div className="space-y-2">
+                <p className="text-sm text-white/50">{t('activity.usagePermissionNeeded')}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void requestScreenTimePermission()
+                  }}
+                  className="text-xs font-medium text-indigo-300 underline underline-offset-2"
+                >
+                  {t('activity.grantUsageAccess')}
+                </button>
+              </div>
+            ) : (
+              <p className="text-sm text-white/45 leading-snug px-1">
+                {t('activity.minutesSpentIosNote')}
+              </p>
+            )}
+          </div>
+          <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.07] text-center">
+            <p className="text-xs text-white/40 mb-1">{t('activity.unlockedSessionTime')}</p>
+            <p className="text-2xl font-bold text-white/80 tabular-nums">
+              {formatMinutes(usage.totalUnlockedMinutes)}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.07] text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <ShieldAlert size={12} className="text-amber-400/80" />
+              <p className="text-[10px] text-white/40 uppercase tracking-wider">
+                {t('activity.blockAttempts')}
+              </p>
+            </div>
+            {usage.blockAttemptsUnavailable ? (
+              <p className="text-xs text-white/40 leading-snug px-1">
+                {t('activity.blockAttemptsIosNote')}
+              </p>
+            ) : (
+              <p className="text-xl font-bold tabular-nums">
+                {usage.blockAttempts?.total ?? 0}
+              </p>
+            )}
+          </div>
+          <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.07] text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <Clock size={12} className="text-indigo-300/70" />
+              <p className="text-[10px] text-white/40 uppercase tracking-wider">
+                {t('activity.unlockOpenings')}
+              </p>
+            </div>
+            <p className="text-xl font-bold tabular-nums">{usage.unlockOpeningsToday}</p>
+          </div>
+        </div>
+      </div>
+
+      {hasAppRows && (
+        <div className="rounded-2xl p-4 bg-white/[0.03] border border-white/[0.07]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40 mb-3 text-center">
+            {t('activity.byApp')}
+          </p>
+          <div className="space-y-3">
+            {usage.apps
+              .filter(
+                (a) =>
+                  (a.screenMinutes ?? 0) > 0 ||
+                  a.unlockedMinutes > 0 ||
+                  (a.blockAttempts ?? 0) > 0
+              )
+              .slice(0, 8)
+              .map((app) => {
+                const primary =
+                  app.screenMinutes != null ? app.screenMinutes : app.unlockedMinutes
+                const max = Math.max(
+                  ...usage.apps.map((a) =>
+                    a.screenMinutes != null ? a.screenMinutes : a.unlockedMinutes
+                  ),
+                  1
+                )
+                const pct = Math.min(100, (primary / max) * 100)
+                return (
+                  <div key={app.id}>
+                    <div className="flex justify-between text-xs mb-1 gap-2">
+                      <span className="text-white/70 truncate">{app.name}</span>
+                      <span className="text-white/40 tabular-nums shrink-0">
+                        {app.screenMinutes != null
+                          ? formatMinutes(app.screenMinutes)
+                          : formatMinutes(app.unlockedMinutes)}
+                        {app.blockAttempts != null && app.blockAttempts > 0
+                          ? ` · ${t('activity.blockAttemptsCount', { count: app.blockAttempts })}`
+                          : ''}
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${pct}%`,
+                          background: `linear-gradient(90deg, ${app.color}cc, ${app.color}66)`,
+                        }}
+                      />
+                    </div>
+                    {app.screenMinutes != null && app.unlockedMinutes > 0 && (
+                      <p className="text-[10px] text-white/30 mt-1 tabular-nums">
+                        {t('activity.unlockedOfApp', {
+                          amount: formatMinutes(app.unlockedMinutes),
+                        })}
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+          </div>
+          {usage.osUsageUnavailable && usage.platform !== 'android' && (
+            <p className="text-[10px] text-white/35 text-center mt-3 leading-relaxed">
+              {t('activity.byAppUnlockNote')}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function ActivityInsights() {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { sessions, profile } = useStore()
+  const { sessions, profile, apps } = useStore()
   const [period, setPeriod] = useState<StatsPeriod>('week')
+  const [usage, setUsage] = useState<UsageInsightsSnapshot | null>(null)
   const isPro = profile.isPro
 
   const comparison = getTodayVsYesterday(sessions)
@@ -58,6 +220,20 @@ export function ActivityInsights() {
   const categories = getCategoryBreakdown(sessions, (type) =>
     t(`categories.${EXERCISES[type as keyof typeof EXERCISES]?.category ?? 'cardio'}`)
   )
+
+  useEffect(() => {
+    let cancelled = false
+    void loadUsageInsights({
+      apps,
+      openingsUsedToday: profile.openingsUsedToday,
+      openingsDate: profile.openingsDate,
+    }).then((snapshot) => {
+      if (!cancelled) setUsage(snapshot)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [apps, profile.openingsUsedToday, profile.openingsDate])
 
   const periodLabel = {
     week: t('activity.periodWeek'),
@@ -79,6 +255,8 @@ export function ActivityInsights() {
       </div>
 
       <div className={cn('relative', !isPro && 'select-none')}>
+        <UsageSection usage={usage} />
+
         {/* Today vs Yesterday */}
         <div className="rounded-2xl p-5 mb-4 bg-white/[0.03] border border-white/[0.07]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40 mb-4 text-center">
@@ -110,6 +288,9 @@ export function ActivityInsights() {
               ({t('activity.change', { value: comparison.changePercent })})
             </span>
           </div>
+          <p className="text-[10px] text-white/30 text-center mt-3">
+            {t('activity.earnedComparisonNote')}
+          </p>
         </div>
 
         {/* Period selector */}

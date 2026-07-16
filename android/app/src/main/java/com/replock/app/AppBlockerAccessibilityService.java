@@ -27,6 +27,7 @@ public class AppBlockerAccessibilityService extends AccessibilityService {
 
         lastBlockedPackage = packageName;
         lastBlockedAt = now;
+        BlockAttemptStore.recordAttempt(this, packageName);
 
         String appLabel = BlockerHelper.getAppLabel(this, packageName);
         Intent intent = new Intent(this, BlockerOverlayActivity.class);

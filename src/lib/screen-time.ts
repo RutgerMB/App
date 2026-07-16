@@ -15,10 +15,17 @@ export interface ScreenTimeResult {
   minutes: number
 }
 
+export interface AppUsageRow {
+  packageName: string
+  label: string
+  minutes: number
+}
+
 interface ScreenTimePlugin {
   checkPermission(): Promise<{ granted: boolean }>
   requestPermission(): Promise<void>
   getDailyScreenTimeHours(): Promise<ScreenTimeResult>
+  getDailyAppUsage(options?: { packageNames?: string[] }): Promise<{ apps: AppUsageRow[] }>
 }
 
 const ScreenTimeNative = registerPlugin<ScreenTimePlugin>('ScreenTime', {
@@ -28,6 +35,7 @@ const ScreenTimeNative = registerPlugin<ScreenTimePlugin>('ScreenTime', {
     getDailyScreenTimeHours: async () => {
       throw new Error('unavailable')
     },
+    getDailyAppUsage: async () => ({ apps: [] }),
   }),
 })
 
@@ -93,6 +101,23 @@ export async function fetchDailyScreenTimeHours(): Promise<ScreenTimeResult | nu
     const granted = await checkScreenTimePermission()
     if (!granted) return null
     return await ScreenTimeNative.getDailyScreenTimeHours()
+  } catch {
+    return null
+  }
+}
+
+/** Android UsageStats per-app minutes for today. iOS returns null until DeviceActivityReport. */
+export async function fetchDailyAppUsage(
+  packageNames?: string[]
+): Promise<AppUsageRow[] | null> {
+  if (getScreenTimePlatform() !== 'android') return null
+  try {
+    const granted = await checkScreenTimePermission()
+    if (!granted) return null
+    const { apps } = await ScreenTimeNative.getDailyAppUsage(
+      packageNames?.length ? { packageNames } : undefined
+    )
+    return apps ?? []
   } catch {
     return null
   }

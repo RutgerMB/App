@@ -476,7 +476,8 @@ export const de = {
     categorySplit: 'Nach Muskelgruppe',
     minutesEarned: 'Verdiente Minuten',
     unlockInsights: 'Pro-Einblicke freischalten',
-    unlockInsightsDesc: 'Diagramme, Trends, heute vs gestern und Wochenberichte',
+    unlockInsightsDesc:
+      'Bildschirmzeit, Blockierversuche, Diagramme und wöchentliche Workout-Berichte',
     plannedWorkouts: 'Geplante Workouts',
     bonusLabel: '+{percent}% Abschlussbonus',
     startPlan: 'Workout starten',
@@ -486,6 +487,22 @@ export const de = {
     planned: 'geplant',
     bonusEarned: 'Bonus verdient',
     baseEarned: 'Basis verdient',
+    usageToday: 'Nutzung heute',
+    minutesSpent: 'Minuten verbracht',
+    minutesSpentIosNote:
+      'iPhone Screen-Time-Summen brauchen eine Device Activity Report-Erweiterung — kommt später.',
+    unlockedSessionTime: 'Freigeschaltete Zeit',
+    blockAttempts: 'Blockierversuche',
+    blockAttemptsIosNote:
+      'Apple-Schilde melden RepLock noch nicht bei jedem Öffnen — Shield/Monitor-Erweiterung nötig.',
+    blockAttemptsCount: '{count} Versuche',
+    unlockOpenings: 'Freischaltungen',
+    byApp: 'Nach App',
+    byAppUnlockNote: 'Zeigt freigeschaltete Session-Zeit von RepLock (nicht volle OS-Bildschirmzeit).',
+    unlockedOfApp: '{amount} während Freigabe',
+    usagePermissionNeeded: 'Nutzungszugriff nötig',
+    grantUsageAccess: 'Zugriff erteilen',
+    earnedComparisonNote: 'Durch Workouts verdient (nicht Bildschirmzeit)',
   },
   settings: {
     title: 'Einstellungen',
