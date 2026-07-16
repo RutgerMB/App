@@ -46,6 +46,7 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
         transactionUpdatesTask = Task.detached { [weak self] in
             for await result in Transaction.updates {
                 guard !Task.isCancelled else { break }
+                guard let plugin = self else { break }
                 switch result {
                 case .verified(let transaction):
                     let payload = await TransactionHelpers.buildTransactionResponse(
@@ -56,11 +57,11 @@ public class NativePurchasesPlugin: CAPPlugin, CAPBridgedPlugin {
                     await transaction.finish()
                     try? await Task.sleep(nanoseconds: 500_000_000)
                     await MainActor.run {
-                        self?.notifyListeners("transactionUpdated", data: payload)
+                        plugin.notifyListeners("transactionUpdated", data: payload)
                     }
                 case .unverified(let transaction, let error):
                     await MainActor.run {
-                        self?.notifyListeners("transactionVerificationFailed", data: [
+                        plugin.notifyListeners("transactionVerificationFailed", data: [
                             "transactionId": String(transaction.id),
                             "error": error.localizedDescription
                         ])
