@@ -371,6 +371,7 @@ export interface Translations {
     iosViewSystemLabels: string
     iosNativeLabelsDone: string
     iosNamePrivacyNote: string
+    iosNameRequired: string
     renameApp: string
     renameTitle: string
     renameLabel: string

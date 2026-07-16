@@ -9,6 +9,7 @@ import {
   IntroHeading,
   IntroSubtext,
   IntroBrandMark,
+  IntroBackButton,
 } from '@/components/onboarding/IntroShell'
 import {
   RevealComparison,
@@ -264,7 +265,7 @@ export function OnboardingPage() {
             toast(msg !== key ? msg : t('onboarding.screenTimeIosError_failed'), 'error')
           }
         } else if (result.authorized) {
-          toast(t('onboarding.screenTimePermissionGranted'), 'success')
+          toast(t('onboarding.screenTimeIosAuthorized'), 'success')
         }
       } else {
         await requestScreenTimePermission()
@@ -343,6 +344,30 @@ export function OnboardingPage() {
   }
 
   const advance = () => setStep((s) => s + 1)
+
+  const goBack = () => {
+    if (step <= STEP.INTRO) {
+      void logout()
+      return
+    }
+    if (step === STEP.BENEFITS) {
+      setStep(STEP.YEARS)
+      return
+    }
+    if (step === STEP.NAME) {
+      setStep(STEP.DIFFICULTY)
+      return
+    }
+    if (step === STEP.GOAL_CONFIRMED) {
+      setStep(STEP.CREATE_GOAL)
+      return
+    }
+    if (step === STEP.WEEK_ONE) {
+      setStep(STEP.YEARS)
+      return
+    }
+    setStep((s) => s - 1)
+  }
 
   const handleContinue = async () => {
     if (step === STEP.SCREEN_TIME_PERMISSION) {
@@ -720,6 +745,9 @@ export function OnboardingPage() {
         }
       >
         <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
+          {step > STEP.INTRO && (
+            <IntroBackButton onClick={goBack} label={t('common.back')} />
+          )}
           <AnimatePresence mode="wait">
             <motion.div
               key={step}

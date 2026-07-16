@@ -71,9 +71,9 @@ export const en: Translations = {
     revealActualMore: '{pct}% more than you guessed',
     revealFromDevice: 'Based on your device screen time',
     revealEstimateOnly:
-      'iPhone can\'t share OS Screen Time totals yet. Android shows UsageStats when access is on.',
-    revealActualUnavailable: 'Actual screen time isn\'t available on this device yet',
-    revealActualUnavailableShort: 'Unavailable',
+      'Blocking is on after you authorize Screen Time. Total daily hours need a future Screen Time report extension — we use your guess for now. Android can show UsageStats when access is on.',
+    revealActualUnavailable: 'Blocking works; total hours aren\'t readable yet',
+    revealActualUnavailableShort: 'Not yet',
     yearsPerDay: 'per day on your phone.',
     yearsBasedOnDevice: 'Based on your phone\'s measured screen time.',
     yearsBasedOnEstimate: 'Based on your daily guess.',
@@ -94,7 +94,8 @@ export const en: Translations = {
     potentialFormula:
       'Target: cut ~{pct}% of your baseline. Floor: {minutes} min/day from the default earn model (3 openings × 5 min).',
     potentialBasedOnDevice: 'Baseline = your measured screen time today.',
-    potentialBasedOnGuess: 'Baseline = your guess (actual unavailable on this device).',
+    potentialBasedOnGuess:
+      'Baseline = your guess. OS total hours need a future Screen Time report extension.',
     weekOneTitle: 'The first week is crucial for building habits',
     weekOneDesc:
       'RepLock users cut mindless scrolling by up to 32% in their first week — while finishing more workouts.',
@@ -163,9 +164,9 @@ export const en: Translations = {
       'Allow RepLock to use Apple Screen Time so you can pick and block apps. Apple shows a system permission dialog — tap Allow.',
     screenTimePermissionIosAuthorize: 'Authorize Screen Time access',
     screenTimePermissionIosEstimate:
-      'Daily screen time hours on iPhone still use your estimate on the next screen for now. Authorization unlocks real app blocking.',
+      'Authorizing unlocks app blocking (shields). Daily total hours still use your estimate — Apple does not share OS Screen Time totals with RepLock until a report extension ships.',
     screenTimePermissionIosSkip: 'Tap Continue below to skip for now — you can authorize later in Apps.',
-    screenTimeIosAuthorized: 'Screen Time authorized — you can block apps in the next steps.',
+    screenTimeIosAuthorized: 'Screen Time authorized — blocking is ready. Total hours still use your guess for now.',
     screenTimeIosError_denied:
       'Screen Time was denied. On iPhone: Settings → Screen Time → allow RepLock (or remove the restriction), then return here and tap Authorize again.',
     screenTimeIosError_notDetermined:
@@ -178,7 +179,7 @@ export const en: Translations = {
     screenTimePermissionWeb:
       'Screen time cannot be read in the browser. Your estimate on the next screen will personalize your plan.',
     screenTimePermissionOpenSettings: 'Open usage access settings',
-    screenTimePermissionGranted: 'Access granted — we can read your screen time',
+    screenTimePermissionGranted: 'Access granted',
     screenTimePermissionRefresh: 'I turned it on — check again',
     blocklistLoading: 'Loading apps on your phone…',
     blocklistSearch: 'Search apps',
@@ -533,14 +534,15 @@ export const en: Translations = {
     deviceAppsNative: 'Only apps installed on your phone are shown.',
     deviceAppsWeb: 'Browse sample apps for the web demo. On Android, your installed apps appear here.',
     deviceAppsIos: 'Pick apps with Apple\'s Screen Time picker — RepLock cannot list installed apps.',
-    iosPickAppsHint: 'Apple requires you to choose apps in the system Screen Time picker. After picking, you\'ll see real names and icons on a native screen — then type nicknames so they show up in RepLock (Apple blocks apps from reading those names into the web UI).',
+    iosPickAppsHint: 'Apple requires you to choose apps in the system Screen Time picker. After picking, type a nickname for each app so it shows up in RepLock (Apple blocks reading real names into the web UI).',
     iosPickAppsButton: 'Choose apps to block',
     iosPickAppsAgain: 'Change selected apps',
     iosNoAppsPicked: 'No apps selected yet. Tap the button above to pick distractions.',
-    iosViewSystemLabels: 'View real names & icons (system)',
+    iosViewSystemLabels: 'Edit nicknames (system sheet)',
     iosNativeLabelsDone: 'Nicknames synced from system sheet',
     iosNamePrivacyNote:
-      'Apple privacy: RepLock cannot read the real app name into this list. Nickname it yourself (e.g. Instagram), or use View real names & icons to see Apple’s labels.',
+      'Apple privacy: RepLock cannot read the real app name into this list. A nickname is required (e.g. Instagram).',
+    iosNameRequired: 'Enter a display name to continue',
     renameApp: 'Rename app',
     renameTitle: 'Rename app',
     renameLabel: 'Display name',

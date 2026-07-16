@@ -32,7 +32,7 @@ struct RepLockActivityPickerView: View {
 
 /// Shows Apple's privacy-safe `Label(ApplicationToken)` so the user sees the
 /// real app name and icon. The host app still cannot read those strings into
-/// JS — only optional user-typed display names are bridged.
+/// JS — only user-typed display names are bridged (required before Save).
 @available(iOS 16.0, *)
 struct RepLockSelectedAppsConfirmView: View {
     let tokens: [ApplicationToken]
@@ -55,12 +55,19 @@ struct RepLockSelectedAppsConfirmView: View {
         self.onCancel = onCancel
     }
 
+    private var allNamesFilled: Bool {
+        guard !tokens.isEmpty else { return true }
+        return tokenIds.allSatisfy { id in
+            (displayNames[id] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+        }
+    }
+
     var body: some View {
         NavigationStack {
             List {
                 Section {
                     Text(
-                        "Apple shows each app’s real name and icon below. RepLock cannot read those into the app UI — type a nickname so it shows up in the Apps tab."
+                        "Apple shows each app’s real name and icon below. RepLock cannot read those into the app UI — type a nickname for every app so it shows up in the Apps tab."
                     )
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -76,7 +83,7 @@ struct RepLockSelectedAppsConfirmView: View {
                                 .labelStyle(.titleAndIcon)
 
                             TextField(
-                                "Nickname in RepLock (e.g. Instagram)",
+                                "Nickname in RepLock (required)",
                                 text: Binding(
                                     get: { displayNames[id] ?? "" },
                                     set: { displayNames[id] = $0 }
@@ -88,6 +95,15 @@ struct RepLockSelectedAppsConfirmView: View {
                         .padding(.vertical, 4)
                     }
                 }
+
+                if !tokens.isEmpty && !allNamesFilled {
+                    Section {
+                        Text("Enter a nickname for each app to continue.")
+                            .font(.footnote)
+                            .foregroundStyle(.orange)
+                            .listRowBackground(Color.clear)
+                    }
+                }
             }
             .navigationTitle("Confirm apps")
             .navigationBarTitleDisplayMode(.inline)
@@ -97,12 +113,22 @@ struct RepLockSelectedAppsConfirmView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        onConfirm(displayNames)
+                        onConfirm(trimmedNames())
                     }
                     .fontWeight(.semibold)
+                    .disabled(!allNamesFilled)
                 }
             }
         }
+    }
+
+    private func trimmedNames() -> [String: String] {
+        var cleaned: [String: String] = [:]
+        for id in tokenIds {
+            let value = (displayNames[id] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            if !value.isEmpty { cleaned[id] = value }
+        }
+        return cleaned
     }
 }
 
@@ -129,6 +155,13 @@ struct RepLockSelectedAppsReviewView: View {
         self.onDismiss = onDismiss
     }
 
+    private var allNamesFilled: Bool {
+        guard !tokens.isEmpty else { return true }
+        return tokenIds.allSatisfy { id in
+            (displayNames[id] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+        }
+    }
+
     var body: some View {
         NavigationStack {
             Group {
@@ -150,7 +183,7 @@ struct RepLockSelectedAppsReviewView: View {
                     List {
                         Section {
                             Text(
-                                "Icons and titles below are rendered by iOS. Nicknames are stored only on this device for the RepLock Apps list."
+                                "Icons and titles below are rendered by iOS. Nicknames are required so apps appear by name in the RepLock Apps list."
                             )
                             .font(.footnote)
                             .foregroundStyle(.secondary)
@@ -164,7 +197,7 @@ struct RepLockSelectedAppsReviewView: View {
                                     Label(token)
                                         .labelStyle(.titleAndIcon)
                                     TextField(
-                                        "Nickname in RepLock",
+                                        "Nickname in RepLock (required)",
                                         text: Binding(
                                             get: { displayNames[id] ?? "" },
                                             set: { displayNames[id] = $0 }
@@ -174,6 +207,15 @@ struct RepLockSelectedAppsReviewView: View {
                                     .autocorrectionDisabled()
                                 }
                                 .padding(.vertical, 4)
+                            }
+                        }
+
+                        if !allNamesFilled {
+                            Section {
+                                Text("Enter a nickname for each app to save.")
+                                    .font(.footnote)
+                                    .foregroundStyle(.orange)
+                                    .listRowBackground(Color.clear)
                             }
                         }
                     }
@@ -188,13 +230,23 @@ struct RepLockSelectedAppsReviewView: View {
                 if !tokens.isEmpty {
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Save") {
-                            onSave(displayNames)
+                            onSave(trimmedNames())
                         }
                         .fontWeight(.semibold)
+                        .disabled(!allNamesFilled)
                     }
                 }
             }
         }
+    }
+
+    private func trimmedNames() -> [String: String] {
+        var cleaned: [String: String] = [:]
+        for id in tokenIds {
+            let value = (displayNames[id] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            if !value.isEmpty { cleaned[id] = value }
+        }
+        return cleaned
     }
 }
 

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, useCallback } from 'react'
 import { Search, Check, Smartphone, Loader2, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTranslation } from '@/i18n/context'
-import { AppIcon } from '@/components/AppBrandIcon'
 import {
   getDeviceApps,
   canPickInstalledApps,
@@ -11,15 +10,6 @@ import {
 } from '@/lib/device-apps'
 import { groupAppsByCategory, DEVICE_APPS, type DeviceAppDefinition } from '@/data/device-apps'
 import { useToast } from '@/components/ui/Toast'
-
-const CATEGORY_EMOJI: Record<string, string> = {
-  social: '💬',
-  entertainment: '🍿',
-  games: '🎮',
-  productivity: '📱',
-  shopping: '🛍️',
-  other: '📦',
-}
 
 export function BlocklistPicker({
   selected,
@@ -125,7 +115,6 @@ export function BlocklistPicker({
                 key={app.id}
                 className="flex items-center gap-3 px-4 py-3 border-b border-border/60 last:border-0"
               >
-                <AppIcon brand={app.brand} name={app.name} color={app.color} icon="" size="sm" />
                 <span className="flex-1 text-sm font-medium truncate">{app.name}</span>
                 <Check size={16} className="text-emerald-400 shrink-0" />
               </div>
@@ -188,8 +177,6 @@ export function BlocklistPicker({
                   >
                     {isSelected && <Check size={12} className="text-white" strokeWidth={3} />}
                   </span>
-                  <span className="text-lg w-7 text-center shrink-0">{CATEGORY_EMOJI[app.category] ?? '📱'}</span>
-                  <AppIcon brand={app.brand} name={app.name} color={app.color} icon="" size="sm" />
                   <span className="flex-1 text-sm font-medium truncate">{app.name}</span>
                 </button>
               )

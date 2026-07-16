@@ -69,9 +69,9 @@ export const de = {
     revealActualMore: '{pct}% mehr als geschätzt',
     revealFromDevice: 'Basierend auf der Bildschirmzeit deines Geräts',
     revealEstimateOnly:
-      'iPhone teilt OS-Bildschirmzeit noch nicht. Android zeigt UsageStats bei Zugriff.',
-    revealActualUnavailable: 'Tatsächliche Bildschirmzeit ist auf diesem Gerät noch nicht verfügbar',
-    revealActualUnavailableShort: 'Nicht verfügbar',
+      'Blocking works after Screen Time authorization. Total hours need a future Screen Time report extension — we use your guess. Android shows UsageStats when access is on.',
+    revealActualUnavailable: 'Blocking works; total hours aren\'t readable yet',
+    revealActualUnavailableShort: 'Not yet',
     yearsPerDay: 'pro Tag am Handy.',
     yearsBasedOnDevice: 'Basierend auf der gemessenen Bildschirmzeit deines Handys.',
     yearsBasedOnEstimate: 'Basierend auf deiner täglichen Schätzung.',
@@ -92,7 +92,8 @@ export const de = {
     potentialFormula:
       'Ziel: ~{pct}% deiner Baseline. Untergrenze: {minutes} Min./Tag aus dem Earn-Modell (3 Öffnungen × 5 Min.).',
     potentialBasedOnDevice: 'Baseline = deine gemessene Bildschirmzeit heute.',
-    potentialBasedOnGuess: 'Baseline = deine Schätzung (tatsächlich hier nicht verfügbar).',
+    potentialBasedOnGuess:
+      'Baseline = deine Schätzung. OS-Stunden brauchen eine künftige Screen Time Report Extension.',
     weekOneTitle: 'Die erste Woche ist entscheidend für neue Gewohnheiten',
     weekOneDesc:
       'RepLock-Nutzer reduzieren sinnloses Scrollen in Woche eins um bis zu 32% — und trainieren mehr.',
@@ -402,6 +403,7 @@ export const de = {
     iosNativeLabelsDone: 'Spitznamen synchronisiert',
     iosNamePrivacyNote:
       'Apple-Datenschutz: RepLock kann den echten Namen nicht lesen. Gib einen Spitznamen (z. B. Instagram).',
+    iosNameRequired: 'Gib einen Anzeigenamen ein, um fortzufahren',
     renameApp: 'Umbenennen',
     renameTitle: 'App umbenennen',
     renameLabel: 'Anzeigename',

@@ -68,9 +68,9 @@ export const es = {
     revealActualMore: '{pct}% más de lo que estimaste',
     revealFromDevice: 'Basado en el tiempo de pantalla de tu dispositivo',
     revealEstimateOnly:
-      'iPhone aún no comparte totales del SO. Android muestra UsageStats con acceso activado.',
-    revealActualUnavailable: 'El tiempo de pantalla real aún no está disponible en este dispositivo',
-    revealActualUnavailableShort: 'No disponible',
+      'El bloqueo funciona tras autorizar Screen Time. Las horas totales necesitan una extensión de informe futura — usamos tu estimación. Android muestra UsageStats con acceso activado.',
+    revealActualUnavailable: 'El bloqueo funciona; las horas totales aún no se pueden leer',
+    revealActualUnavailableShort: 'Aún no',
     yearsPerDay: 'al día en tu teléfono.',
     yearsBasedOnDevice: 'Basado en el tiempo de pantalla medido en tu teléfono.',
     yearsBasedOnEstimate: 'Basado en tu estimación diaria.',
@@ -91,7 +91,8 @@ export const es = {
     potentialFormula:
       'Meta: cortar ~{pct}% de tu base. Suelo: {minutes} min/día del modelo de earn (3 aperturas × 5 min).',
     potentialBasedOnDevice: 'Base = tu tiempo de pantalla medido hoy.',
-    potentialBasedOnGuess: 'Base = tu estimación (real no disponible en este dispositivo).',
+    potentialBasedOnGuess:
+      'Base = tu estimación. Los totales del SO necesitan una extensión de informe Screen Time futura.',
     weekOneTitle: 'La primera semana es clave para nuevos hábitos',
     weekOneDesc:
       'Los usuarios de RepLock reducen el scroll sin sentido hasta un 32% en la primera semana — y entrenan más.',
@@ -401,6 +402,7 @@ export const es = {
     iosNativeLabelsDone: 'Apodos sincronizados',
     iosNamePrivacyNote:
       'Privacidad de Apple: RepLock no puede leer el nombre real. Pon un apodo (p. ej. Instagram).',
+    iosNameRequired: 'Introduce un nombre para continuar',
     renameApp: 'Renombrar',
     renameTitle: 'Renombrar app',
     renameLabel: 'Nombre visible',

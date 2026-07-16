@@ -68,9 +68,9 @@ export const fr = {
     revealActualMore: '{pct}% de plus que ton estimation',
     revealFromDevice: 'Basé sur le temps d\'écran de ton appareil',
     revealEstimateOnly:
-      'iPhone ne partage pas encore les totaux OS. Android affiche UsageStats si l\'accès est activé.',
-    revealActualUnavailable: 'Le temps d\'écran réel n\'est pas encore disponible sur cet appareil',
-    revealActualUnavailableShort: 'Indisponible',
+      'Le blocage fonctionne après autorisation Screen Time. Les totaux nécessitent une future extension de rapport — on utilise ton estimation. Android affiche UsageStats si l\'accès est activé.',
+    revealActualUnavailable: 'Le blocage marche ; les heures totales ne sont pas encore lisibles',
+    revealActualUnavailableShort: 'Pas encore',
     yearsPerDay: 'par jour sur ton téléphone.',
     yearsBasedOnDevice: 'Basé sur le temps d\'écran mesuré sur ton téléphone.',
     yearsBasedOnEstimate: 'Basé sur ton estimation quotidienne.',
@@ -91,7 +91,8 @@ export const fr = {
     potentialFormula:
       'Objectif : couper ~{pct}% de ta base. Plancher : {minutes} min/jour du modèle d\'earn (3 ouvertures × 5 min).',
     potentialBasedOnDevice: 'Base = ton temps d\'écran mesuré aujourd\'hui.',
-    potentialBasedOnGuess: 'Base = ton estimation (réel indisponible sur cet appareil).',
+    potentialBasedOnGuess:
+      'Base = ton estimation. Les totaux OS nécessitent une future extension de rapport Screen Time.',
     weekOneTitle: 'La première semaine est cruciale pour de nouvelles habitudes',
     weekOneDesc:
       'Les utilisateurs RepLock réduisent le scroll inutile jusqu\'à 32% la première semaine — tout en s\'entraînant plus.',
@@ -401,6 +402,7 @@ export const fr = {
     iosNativeLabelsDone: 'Surnoms synchronisés',
     iosNamePrivacyNote:
       'Confidentialité Apple : RepLock ne peut pas lire le vrai nom. Donne un surnom (ex. Instagram).',
+    iosNameRequired: 'Entre un nom affiché pour continuer',
     renameApp: 'Renommer',
     renameTitle: 'Renommer l’app',
     renameLabel: 'Nom affiché',

@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { Bell, Check, Dumbbell, Flame, Sparkles, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTranslation } from '@/i18n/context'
-import { AppIcon } from '@/components/AppBrandIcon'
 import { Progress } from '@/components/ui/Progress'
 import { Slider } from '@/components/ui/Slider'
 import { DEVICE_APPS } from '@/data/device-apps'
@@ -35,7 +34,7 @@ export function DistractorAppsGrid({
   }
 
   return (
-    <div className="grid grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 gap-2">
       {DISTRACTOR_APPS.map((app) => {
         const isSelected = selected.has(app.id)
         return (
@@ -44,7 +43,7 @@ export function DistractorAppsGrid({
             type="button"
             onClick={() => toggle(app.id)}
             className={cn(
-              'relative flex flex-col items-center gap-2 p-2 rounded-2xl border transition-all',
+              'relative flex items-center gap-2 px-3 py-3 rounded-2xl border transition-all text-left',
               isSelected
                 ? 'bg-indigo-500/15 border-indigo-500/40'
                 : 'bg-surface-2 border-border hover:border-border-hover'
@@ -56,12 +55,11 @@ export function DistractorAppsGrid({
                 <Check size={12} className="text-white" strokeWidth={3} />
               </span>
             )}
-            <AppIcon brand={app.brand} name={app.name} color={app.color} size="md" />
-            <span className="text-[10px] font-medium text-white/70 truncate w-full text-center">{app.name}</span>
+            <span className="text-sm font-medium text-white/85 truncate pr-5">{app.name}</span>
           </button>
         )
       })}
-      <p className="col-span-4 text-xs text-white/35 text-center mt-1">{t('onboarding.selectAppsHint')}</p>
+      <p className="col-span-2 text-xs text-white/35 text-center mt-1">{t('onboarding.selectAppsHint')}</p>
     </div>
   )
 }

@@ -16,7 +16,6 @@ import { getAppLimitLabel, getTrialStatus } from '@/lib/trial'
 import { formatMinutes, formatTimeRemaining, cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/Toast'
 import { useNavigate } from 'react-router-dom'
-import { AppIcon } from '@/components/AppBrandIcon'
 import { TrialBanner } from '@/components/TrialBanner'
 import { ProPromo } from '@/components/ProPromo'
 import { BlockerSetupCard } from '@/components/BlockerSetupCard'
@@ -26,8 +25,6 @@ import { canPickInstalledApps, usesIosActivityPicker } from '@/lib/device-apps'
 import { presentIosSelectedAppsSheet } from '@/lib/replock-controls'
 import type { DeviceAppDefinition } from '@/data/device-apps'
 import { openUpgradeOrFallback } from '@/lib/replock-revenuecat-native'
-
-const IOS_ICON_PRESETS = ['📱', '💬', '📸', '🎵', '🎮', '📺', '🛒', '📰', '✉️', '🌐'] as const
 
 export function AppsPage() {
   const navigate = useNavigate()
@@ -53,14 +50,12 @@ export function AppsPage() {
   const [pendingApp, setPendingApp] = useState<DeviceAppDefinition | null>(null)
   const [dailyLimit, setDailyLimit] = useState(30)
   const [pendingName, setPendingName] = useState('')
-  const [pendingIcon, setPendingIcon] = useState('')
   const [showUnlock, setShowUnlock] = useState<string | null>(null)
   const [unlockMinutes, setUnlockMinutes] = useState(15)
   const [editLimitApp, setEditLimitApp] = useState<string | null>(null)
   const [editLimitValue, setEditLimitValue] = useState(30)
   const [renameTarget, setRenameTarget] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
-  const [renameIcon, setRenameIcon] = useState('')
   const [nativeSheetLoading, setNativeSheetLoading] = useState(false)
 
   const existingIds = apps.flatMap((a) => [
@@ -91,16 +86,20 @@ export function AppsPage() {
   const handleSelectApp = (app: DeviceAppDefinition) => {
     setPendingApp(app)
     setPendingName(app.name.startsWith('App ') ? '' : app.name)
-    setPendingIcon('')
     setDailyLimit(30)
   }
 
   const handleConfirmAdd = () => {
     if (!pendingApp) return
+    const needsName = onIos || Boolean(pendingApp.iosTokenId)
+    if (needsName && !pendingName.trim()) {
+      toast(t('apps.iosNameRequired'), 'error')
+      return
+    }
     const displayName = pendingName.trim() || pendingApp.name
     const success = addApp({
       name: displayName,
-      icon: pendingIcon,
+      icon: '',
       brand: pendingApp.brand,
       packageName: pendingApp.packageName,
       iosTokenId: pendingApp.iosTokenId,
@@ -144,12 +143,14 @@ export function AppsPage() {
     if (!app) return
     setRenameTarget(appId)
     setRenameValue(app.name)
-    setRenameIcon(app.icon || '')
   }
 
   const handleSaveRename = () => {
-    if (!renameTarget || !renameValue.trim()) return
-    renameApp(renameTarget, renameValue.trim(), renameIcon)
+    if (!renameTarget || !renameValue.trim()) {
+      toast(t('apps.iosNameRequired'), 'error')
+      return
+    }
+    renameApp(renameTarget, renameValue.trim(), '')
     toast(t('apps.renameSaved'), 'success')
     setRenameTarget(null)
   }
@@ -223,14 +224,6 @@ export function AppsPage() {
                   )}
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <AppIcon
-                      brand={app.brand}
-                      name={app.name}
-                      icon={app.icon}
-                      color={app.color}
-                      size="lg"
-                      grayscale={!isUnlocked}
-                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 min-w-0">
                         <h3 className="font-semibold text-[15px] tracking-tight truncate">
@@ -365,18 +358,9 @@ export function AppsPage() {
       >
         {pendingApp && (
           <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.07]">
-              <AppIcon
-                brand={pendingApp.brand}
-                name={pendingName || pendingApp.name}
-                icon={pendingIcon}
-                color={pendingApp.color}
-                size="lg"
-              />
-              <div className="min-w-0">
-                <p className="font-semibold text-sm truncate">{pendingName || pendingApp.name}</p>
-                <p className="text-xs text-white/40">{t('apps.setDailyLimit')}</p>
-              </div>
+            <div className="rounded-xl bg-white/[0.03] border border-white/[0.07] px-4 py-3">
+              <p className="font-semibold text-sm truncate">{pendingName || pendingApp.name}</p>
+              <p className="text-xs text-white/40 mt-0.5">{t('apps.setDailyLimit')}</p>
             </div>
 
             {(onIos || pendingApp.iosTokenId) && (
@@ -389,26 +373,6 @@ export function AppsPage() {
                   onChange={(e) => setPendingName(e.target.value)}
                 />
                 <p className="text-xs text-white/35 -mt-2">{t('apps.iosNamePrivacyNote')}</p>
-                <div>
-                  <p className="text-xs text-white/45 mb-2">{t('apps.iconPresetLabel')}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {IOS_ICON_PRESETS.map((emoji) => (
-                      <button
-                        key={emoji}
-                        type="button"
-                        onClick={() => setPendingIcon(pendingIcon === emoji ? '' : emoji)}
-                        className={cn(
-                          'w-10 h-10 rounded-xl text-lg border transition-colors',
-                          pendingIcon === emoji
-                            ? 'border-indigo-500/50 bg-indigo-500/20'
-                            : 'border-white/10 bg-white/[0.03]'
-                        )}
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </>
             )}
 
@@ -422,7 +386,12 @@ export function AppsPage() {
               onChange={(e) => setDailyLimit(Number(e.target.value))}
             />
 
-            <MotionButton fullWidth size="lg" onClick={handleConfirmAdd}>
+            <MotionButton
+              fullWidth
+              size="lg"
+              onClick={handleConfirmAdd}
+              disabled={(onIos || Boolean(pendingApp.iosTokenId)) && !pendingName.trim()}
+            >
               {t('apps.addApp')}
             </MotionButton>
           </div>
@@ -444,29 +413,7 @@ export function AppsPage() {
             onChange={(e) => setRenameValue(e.target.value)}
           />
           {onIos && (
-            <>
-              <p className="text-xs text-white/35 -mt-2">{t('apps.iosNamePrivacyNote')}</p>
-              <div>
-                <p className="text-xs text-white/45 mb-2">{t('apps.iconPresetLabel')}</p>
-                <div className="flex flex-wrap gap-2">
-                  {IOS_ICON_PRESETS.map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      onClick={() => setRenameIcon(renameIcon === emoji ? '' : emoji)}
-                      className={cn(
-                        'w-10 h-10 rounded-xl text-lg border transition-colors',
-                        renameIcon === emoji
-                          ? 'border-indigo-500/50 bg-indigo-500/20'
-                          : 'border-white/10 bg-white/[0.03]'
-                      )}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
+            <p className="text-xs text-white/35 -mt-2">{t('apps.iosNamePrivacyNote')}</p>
           )}
           <MotionButton fullWidth size="lg" onClick={handleSaveRename} disabled={!renameValue.trim()}>
             {t('apps.renameSave')}

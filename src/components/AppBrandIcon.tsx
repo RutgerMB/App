@@ -1,37 +1,11 @@
 import type { AppBrand } from '@/types'
 import { cn } from '@/lib/utils'
 
-const BRAND_COLORS: Record<AppBrand, string> = {
+const BRAND_COLORS: Partial<Record<AppBrand, string>> = {
   instagram: 'bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400',
   tiktok: 'bg-black',
   x: 'bg-black',
-  facebook: 'bg-[#1877F2]',
-  snapchat: 'bg-[#FFFC00] text-black',
-  whatsapp: 'bg-[#25D366]',
-  discord: 'bg-[#5865F2]',
-  reddit: 'bg-[#FF4500]',
   youtube: 'bg-[#FF0000]',
-  netflix: 'bg-[#E50914]',
-  spotify: 'bg-[#1DB954]',
-  twitch: 'bg-[#9146FF]',
-  pinterest: 'bg-[#E60023]',
-  telegram: 'bg-[#26A5E4]',
-  linkedin: 'bg-[#0A66C2]',
-  roblox: 'bg-[#E2231A]',
-  minecraft: 'bg-[#62B47A]',
-  candy_crush: 'bg-[#FF69B4]',
-  gmail: 'bg-[#EA4335]',
-  chrome: 'bg-[#4285F4]',
-  amazon: 'bg-[#FF9900]',
-  shein: 'bg-zinc-900',
-}
-
-const BRAND_LETTERS: Partial<Record<AppBrand, string>> = {
-  instagram: 'IG', tiktok: 'TT', x: 'X', facebook: 'f', snapchat: '👻',
-  whatsapp: 'WA', discord: 'D', reddit: 'R', youtube: '▶', netflix: 'N',
-  spotify: '♫', twitch: 'Tw', pinterest: 'P', telegram: 'T', linkedin: 'in',
-  roblox: 'R', minecraft: 'M', candy_crush: 'C', gmail: 'M', chrome: 'C',
-  amazon: 'a', shein: 'S',
 }
 
 function InstagramIcon({ className }: { className?: string }) {
@@ -111,29 +85,13 @@ export function AppBrandIcon({
     )
   }
 
-  const bg = brand ? BRAND_COLORS[brand] : ''
-  const letter = brand ? BRAND_LETTERS[brand] : name?.charAt(0).toUpperCase() ?? '?'
-  const isSnapchat = brand === 'snapchat'
-
-  return (
-    <div
-      className={cn(
-        'rounded-2xl flex items-center justify-center shrink-0 font-bold',
-        sizes[size],
-        bg || '',
-        isSnapchat ? 'text-black' : 'text-white',
-        className
-      )}
-      style={!brand && color ? { backgroundColor: color } : undefined}
-    >
-      {letter}
-    </div>
-  )
+  // No letter/emoji placeholders — Apple blocks real icons into WebView, so prefer names.
+  return null
 }
 
 export function AppIcon({
   brand,
-  icon = '',
+  icon: _icon = '',
   name,
   color,
   size = 'md',
@@ -146,42 +104,15 @@ export function AppIcon({
   size?: 'sm' | 'md' | 'lg'
   grayscale?: boolean
 }) {
-  // Prefer an explicit emoji/icon the user chose (common for iOS nicknamed apps).
-  if (icon && !brand) {
-    const sizes = { sm: 'w-8 h-8 text-base', md: 'w-10 h-10 text-xl', lg: 'w-12 h-12 text-2xl' }
-    return (
-      <div
-        className={cn(
-          'rounded-2xl flex items-center justify-center shrink-0',
-          sizes[size],
-          grayscale && 'grayscale opacity-50'
-        )}
-        style={{ backgroundColor: `${color}20` }}
-      >
-        {icon}
-      </div>
-    )
-  }
-
-  if (brand || !icon) {
-    return (
-      <AppBrandIcon
-        brand={brand}
-        name={name}
-        color={color}
-        size={size}
-        className={grayscale ? 'grayscale opacity-50' : ''}
-      />
-    )
-  }
-
-  const sizes = { sm: 'w-8 h-8 text-base', md: 'w-10 h-10 text-xl', lg: 'w-12 h-12 text-2xl' }
+  void _icon
+  if (!brand) return null
   return (
-    <div
-      className={cn('rounded-2xl flex items-center justify-center shrink-0', sizes[size], grayscale && 'grayscale opacity-50')}
-      style={{ backgroundColor: `${color}20` }}
-    >
-      {icon}
-    </div>
+    <AppBrandIcon
+      brand={brand}
+      name={name}
+      color={color}
+      size={size}
+      className={grayscale ? 'grayscale opacity-50' : ''}
+    />
   )
 }
