@@ -77,6 +77,8 @@ export async function getRevenueCatPackages(): Promise<{
   yearly: PurchasesPackage | null
 }> {
   const offerings = await Purchases.getOfferings()
+  // Prefer Current, then App Store `defaults`, then legacy Test Store `default` via the
+  // already-fetched `all` map only (never call getOffering("default") — RC warns if missing).
   const fromAll = offerings.all
   const currentHasPackages =
     !!offerings.current && offerings.current.availablePackages.length > 0

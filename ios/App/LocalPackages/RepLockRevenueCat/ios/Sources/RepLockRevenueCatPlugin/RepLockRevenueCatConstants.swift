@@ -12,10 +12,11 @@ public enum RepLockRevenueCatConstants {
     public static let productYearly = "replock_pro_yearly"
 
     /// RevenueCat offering identifier — App Store Current offering is `defaults`
-    /// (also ofrnga896d35397). Test Store historically used `default`.
+    /// (also ofrnga896d35397). Prefer `offerings.current`, then this id via silent `all[]`.
     public static let defaultOfferingIdentifier = "defaults"
 
-    /// Legacy Test Store offering id — kept as fallback lookup only.
+    /// Legacy Test Store offering id. Do **not** pass to `offering(identifier:)` — that API
+    /// logs a WARN when the id is absent. Only use silent `offerings.all[…]` as last resort.
     public static let legacyOfferingIdentifier = "default"
 
     private static let logger = Logger(

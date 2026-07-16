@@ -112,15 +112,17 @@ public final class RevenueCatManager: NSObject, ObservableObject {
             return current
         }
 
-        // Explicit App Store offering id (`defaults`), then legacy Test Store (`default`).
-        let candidates = [
-            RepLockRevenueCatConstants.defaultOfferingIdentifier,
-            RepLockRevenueCatConstants.legacyOfferingIdentifier,
-        ]
-        for id in candidates {
-            if let named = offerings.offering(identifier: id), !named.availablePackages.isEmpty {
-                return named
-            }
+        // Silent dictionary lookup only — `offering(identifier:)` logs a WARN when the id
+        // is missing (e.g. legacy Test Store id `default` on App Store projects).
+        if let named = offerings.all[RepLockRevenueCatConstants.defaultOfferingIdentifier],
+           !named.availablePackages.isEmpty {
+            return named
+        }
+
+        // Legacy Test Store id — last named fallback, still via silent `all[]` (never request).
+        if let legacy = offerings.all[RepLockRevenueCatConstants.legacyOfferingIdentifier],
+           !legacy.availablePackages.isEmpty {
+            return legacy
         }
 
         // Last resort: first offering that actually has packages.

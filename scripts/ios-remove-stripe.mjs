@@ -90,16 +90,21 @@ function ensureLocalPackagesAndProducts(pkg) {
 
 const PLUGIN_FORCE_LINK_MARKER = '// CAP_PLUGIN_FORCE_LINK'
 
-const CAP_APP_SPM_FORCE_LINK_BLOCK = `public let isCapacitorApp: Bool = {
-    CapAppLocalPlugins.touch()
-    return true
-}
+// No IIFE (`}()`) — earlier templates stripped the closure but left stray `()` / `}()`,
+// which Xcode reports as top-level expression / consecutive-statement errors.
+const CAP_APP_SPM_FORCE_LINK_BLOCK = `public let isCapacitorApp: Bool = CapAppLocalPlugins.linkAndReturnTrue()
+
 ${PLUGIN_FORCE_LINK_MARKER}
 enum CapAppLocalPlugins {
     static func touch() {
         _ = RepLockControlsPlugin.self
         _ = NativePurchasesPlugin.self
         _ = RepLockRevenueCatPlugin.self
+    }
+
+    static func linkAndReturnTrue() -> Bool {
+        touch()
+        return true
     }
 }
 `
@@ -129,9 +134,15 @@ function ensureCapAppSpmImports() {
   }
 
   // Strip any previous isCapacitorApp / force-link definitions so re-runs stay idempotent.
+  // Handles: `= true`, `= CapAppLocalPlugins…()`, IIFE `{ … }()`, and orphaned `()` / `}()` lines
+  // left by older strip regexes that matched only through `}` and dropped the trailing `()`.
   content = content
     .replace(/\r\n/g, '\n')
-    .replace(/\n*public let isCapacitorApp(?:: Bool)?\s*=\s*(?:true|\{[\s\S]*?\n\})\s*/g, '\n')
+    .replace(
+      /\n*public let isCapacitorApp(?:: Bool)?\s*=\s*(?:true|CapAppLocalPlugins\.[A-Za-z0-9_]+\(\)|\{[\s\S]*?\n\}(?:\(\))?)\s*/g,
+      '\n'
+    )
+    .replace(/^\s*(?:\}\(\)|\(\))\s*$/gm, '')
     .replace(
       new RegExp(
         `\\n*${PLUGIN_FORCE_LINK_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\nenum CapAppLocalPlugins \\{[\\s\\S]*?\\n\\}\\s*`,
@@ -139,7 +150,7 @@ function ensureCapAppSpmImports() {
       ),
       '\n'
     )
-    .replace(/\n*@objc public enum CapAppLocalPlugins[\\s\\S]*?\\n\\}\\s*/g, '\n')
+    .replace(/\n*(?:@objc\s+)?(?:public\s+)?enum CapAppLocalPlugins\s*\{[\s\S]*?\n\}\s*/g, '\n')
     .trimEnd()
 
   // Preserve trailing helpers (e.g. configureRepLockRevenueCat) after the force-link block.

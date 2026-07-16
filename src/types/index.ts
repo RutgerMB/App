@@ -262,8 +262,9 @@ export const GOOGLE_SUBSCRIPTION_ID = 'replock_pro'
 export const GOOGLE_PLAN_MONTHLY = 'monthly-plan'
 export const GOOGLE_PLAN_YEARLY = 'yearly-plan'
 export const REVENUECAT_ENTITLEMENT = 'pro'
-/** App Store Current offering id (`defaults`). Test Store historically used `default`. */
+/** App Store Current offering id (`defaults`). Prefer `offerings.current`, then this key. */
 export const REVENUECAT_OFFERING = 'defaults'
+/** Legacy Test Store offering id — silent `all` map fallback only; never request via getOffering. */
 export const REVENUECAT_OFFERING_LEGACY = 'default'
 
 export function getExercisesByCategory(category: ExerciseCategory): ExerciseType[] {

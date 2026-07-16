@@ -3,16 +3,19 @@ import NativePurchasesPlugin
 import RepLockControlsPlugin
 import RepLockRevenueCatPlugin
 
-public let isCapacitorApp: Bool = {
-    CapAppLocalPlugins.touch()
-    return true
-}()
+public let isCapacitorApp: Bool = CapAppLocalPlugins.linkAndReturnTrue()
+
 // CAP_PLUGIN_FORCE_LINK
 enum CapAppLocalPlugins {
     static func touch() {
         _ = RepLockControlsPlugin.self
         _ = NativePurchasesPlugin.self
         _ = RepLockRevenueCatPlugin.self
+    }
+
+    static func linkAndReturnTrue() -> Bool {
+        touch()
+        return true
     }
 }
 
