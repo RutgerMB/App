@@ -4,34 +4,34 @@ Swift sources + entitlements for the **Device Activity Report** app extension.
 
 ## Bundle ID
 
-`app.replock.bleeker.DeviceActivityReport`
+`app.replock.bleeker.RepLockDeviceActivityReport` (must match Xcode + Apple Developer App ID)
 
 ## Why this exists
 
-Apple does not expose OS Screen Time totals to the main app process. A Device Activity Report extension receives `DeviceActivityResults`, sums today's duration, and writes:
+Apple does not expose OS Screen Time totals to the main app process as readable numbers. A Device Activity Report extension receives `DeviceActivityResults`, sums today's duration, and **renders** the total in its SwiftUI view (`TotalActivityView`).
 
-| Key | Suite |
-|-----|--------|
-| `replock.dailyScreenTime.totalMinutes` | `group.com.replock.fitness` |
-| `replock.dailyScreenTime.day` | `group.com.replock.fitness` |
-| `replock.dailyScreenTime.updatedAt` | `group.com.replock.fitness` |
+| Key | Suite | Notes |
+|-----|--------|--------|
+| `replock.dailyScreenTime.totalMinutes` | `group.com.replock.fitness` | Best-effort; **silently dropped on device** by DAR sandbox |
+| `replock.dailyScreenTime.day` | `group.com.replock.fitness` | Same |
+| `replock.dailyScreenTime.updatedAt` | `group.com.replock.fitness` | Same |
 
-`RepLockControls.getDailyScreenTimeHours` hosts a tiny `DeviceActivityReport` view, then reads those keys.
+`RepLockControls.getDailyScreenTimeHours` hosts an on-screen `DeviceActivityReport` and tries to read those keys (often works on Simulator only).
 
-## Add the target in Xcode (required on Mac)
+`RepLockControls.presentDailyScreenTimeReport` presents a sheet so the user can see today's total on a physical iPhone (supported path).
 
-This folder is **not** wired into `project.pbxproj` from Windows. Follow **IOS_SETUP.md → DeviceActivityReport extension**.
+Context string (host + extension): **`RepLock.TotalActivity`**
 
-Summary:
+## Mac checks
 
-1. File → New → Target → **Device Activity Report Extension**
-2. Product Name: `RepLockDeviceActivityReport`
-3. Bundle ID: `app.replock.bleeker.DeviceActivityReport`
-4. Replace template files with the Swift sources in this folder (or point the target at this folder)
-5. Signing: same Team as App; entitlements = this folder’s `.entitlements`
-6. Capabilities: Family Controls + App Group `group.com.replock.fitness`
-7. Embed in App target (Embed Foundation Extensions / PlugIns)
+1. Target embedded: App → Build Phases → **Embed ExtensionKit Extensions** → `RepLockDeviceActivityReport.appex`
+2. App Group `group.com.replock.fitness` on **App** and **RepLockDeviceActivityReport**
+3. Family Controls on both
+4. Run **App** scheme on a physical iPhone (not the appex alone)
+5. Clean rebuild after pulling latest `TotalActivityReport` / host presentation fixes
+
+See **IOS_SETUP.md → DeviceActivityReport extension**.
 
 ## DeviceActivityMonitor
 
-Not required for reading daily totals. Add later when enforcing schedules / thresholds (shields on schedule).
+Not required for displaying daily totals. Add later when enforcing schedules / thresholds (shields on schedule).

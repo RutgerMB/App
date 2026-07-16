@@ -5,6 +5,7 @@ import {
   getIosControlsStatus,
   isIosControlsAvailable,
   isRepLockControlsPluginReady,
+  presentIosDailyScreenTimeReport,
   requestIosControlsAuthorizationDetailed,
   refreshIosControlsAuthorization,
 } from '@/lib/replock-controls'
@@ -150,6 +151,16 @@ export async function fetchDailyScreenTimeHoursWithRetry(): Promise<ScreenTimeRe
     return fetchIosDailyScreenTimeHoursWithRetry({ attempts: 5, delayMs: 1200 })
   }
   return fetchDailyScreenTimeHours()
+}
+
+/**
+ * iOS-only: present the system DeviceActivityReport sheet so the user can see
+ * today's total (required on device — App Group export from the report extension
+ * is blocked by Apple's sandbox).
+ */
+export async function presentDailyScreenTimeReport(): Promise<boolean> {
+  if (getScreenTimePlatform() !== 'ios') return false
+  return presentIosDailyScreenTimeReport()
 }
 
 /** Android UsageStats per-app minutes for today. iOS returns null (opaque tokens). */

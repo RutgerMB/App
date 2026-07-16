@@ -74,6 +74,9 @@ export const en: Translations = {
       'We could not read today\'s Screen Time total yet. Your guess is used below — authorize Screen Time and wait a moment, or continue and try again later.',
     revealActualUnavailable: 'Still loading Screen Time…',
     revealActualUnavailableShort: 'Loading…',
+    revealActualUseReport:
+      'Apple only shows Screen Time inside a system report. Open it to see today\'s total.',
+    revealShowScreenTime: 'Show today\'s Screen Time',
     yearsPerDay: 'per day on your phone.',
     yearsBasedOnDevice: 'Based on your phone\'s measured screen time.',
     yearsBasedOnEstimate: 'Based on your daily guess.',
@@ -166,7 +169,7 @@ export const en: Translations = {
     screenTimePermissionIosEstimate:
       'Authorizing unlocks app blocking. After Allow, RepLock reads today\'s Screen Time total for the next screens (may take a few seconds).',
     screenTimePermissionIosSkip: 'Tap Continue below to skip for now — you can authorize later in Apps.',
-    screenTimeIosAuthorized: 'Screen Time authorized — fetching today\'s hours…',
+    screenTimeIosAuthorized: 'Screen Time authorized — opening today’s total…',
     screenTimeIosError_denied:
       'Screen Time was denied. On iPhone: Settings → Screen Time → allow RepLock (or remove the restriction), then return here and tap Authorize again.',
     screenTimeIosError_notDetermined:

@@ -72,6 +72,9 @@ export const de = {
       'Blocking works after Screen Time authorization. Total hours need a future Screen Time report extension — we use your guess. Android shows UsageStats when access is on.',
     revealActualUnavailable: 'Blocking works; total hours aren\'t readable yet',
     revealActualUnavailableShort: 'Not yet',
+    revealActualUseReport:
+      'Apple shows Screen Time only inside a system report. Open it to see today\'s total.',
+    revealShowScreenTime: 'Show today\'s Screen Time',
     yearsPerDay: 'pro Tag am Handy.',
     yearsBasedOnDevice: 'Basierend auf der gemessenen Bildschirmzeit deines Handys.',
     yearsBasedOnEstimate: 'Basierend auf deiner täglichen Schätzung.',

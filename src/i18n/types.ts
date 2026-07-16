@@ -77,6 +77,8 @@ export interface Translations {
     revealEstimateOnly: string
     revealActualUnavailable: string
     revealActualUnavailableShort: string
+    revealActualUseReport: string
+    revealShowScreenTime: string
     yearsPerDay: string
     yearsBasedOnDevice: string
     yearsBasedOnEstimate: string

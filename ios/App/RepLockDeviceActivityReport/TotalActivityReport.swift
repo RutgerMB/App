@@ -28,6 +28,9 @@ struct TotalActivityReport: DeviceActivityReportScene {
             }
 
         let totalMinutes = Int((totalDuration / 60.0).rounded())
+        // Best-effort only: on physical devices the DeviceActivityReport sandbox
+        // silently drops App Group / shared UserDefaults writes (Apple privacy).
+        // Simulator often allows the write — host UI still shows this string.
         ScreenTimeSharedStore.writeTodayTotalMinutes(totalMinutes)
 
         let hours = totalMinutes / 60

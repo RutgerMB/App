@@ -74,6 +74,9 @@ export const nl = {
       'We konden de schermtijd van vandaag nog niet lezen. Je schatting wordt gebruikt — autoriseer Screen Time en wacht even, of ga door en probeer later opnieuw.',
     revealActualUnavailable: 'Schermtijd laden…',
     revealActualUnavailableShort: 'Laden…',
+    revealActualUseReport:
+      'Apple toont schermtijd alleen in een systeemrapport. Open het om het totaal van vandaag te zien.',
+    revealShowScreenTime: 'Toon schermtijd van vandaag',
     yearsPerDay: 'per dag op je telefoon.',
     yearsBasedOnDevice: 'Gebaseerd op de gemeten schermtijd van je telefoon.',
     yearsBasedOnEstimate: 'Gebaseerd op je dagelijkse schatting.',

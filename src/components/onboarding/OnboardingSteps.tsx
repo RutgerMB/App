@@ -28,9 +28,12 @@ export function projectedDailyHours(estimateHours: number): number {
 export function RevealComparison({
   estimateHours,
   actualHours,
+  onShowDeviceReport,
 }: {
   estimateHours: number
   actualHours: number | null
+  /** iOS: open DeviceActivityReport sheet when numeric export is unavailable. */
+  onShowDeviceReport?: () => void
 }) {
   const { t } = useTranslation()
   const fromDevice = actualHours != null
@@ -62,8 +65,22 @@ export function RevealComparison({
           <p className="text-4xl sm:text-5xl font-bold tabular-nums text-white/25 mb-2 tracking-tight">
             —
           </p>
-          <p className="text-sm text-white/45 mb-2">{t('intro.revealActualUnavailable')}</p>
-          <p className="text-xs text-white/30 mb-8">{t('intro.revealEstimateOnly')}</p>
+          <p className="text-sm text-white/45 mb-2">
+            {onShowDeviceReport
+              ? t('intro.revealActualUseReport')
+              : t('intro.revealActualUnavailable')}
+          </p>
+          {onShowDeviceReport ? (
+            <button
+              type="button"
+              onClick={onShowDeviceReport}
+              className="mb-8 text-sm font-semibold text-indigo-300 underline underline-offset-4"
+            >
+              {t('intro.revealShowScreenTime')}
+            </button>
+          ) : (
+            <p className="text-xs text-white/30 mb-8">{t('intro.revealEstimateOnly')}</p>
+          )}
         </>
       )}
 

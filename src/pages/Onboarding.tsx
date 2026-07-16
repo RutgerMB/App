@@ -38,6 +38,7 @@ import {
   requestIosScreenTimeAccess,
   fetchDailyScreenTimeHours,
   fetchDailyScreenTimeHoursWithRetry,
+  presentDailyScreenTimeReport,
   getScreenTimePlatform,
 } from '@/lib/screen-time'
 import { useToast } from '@/components/ui/Toast'
@@ -276,6 +277,11 @@ export function OnboardingPage() {
             setScreenTimeGranted(true)
             return
           }
+          // On device, App Group export from DeviceActivityReport is usually blocked.
+          // Show the system-rendered report so the user still sees today's total.
+          setScreenTimeGranted(true)
+          await presentDailyScreenTimeReport()
+          return
         }
       } else {
         await requestScreenTimePermission()
@@ -298,9 +304,15 @@ export function OnboardingPage() {
     let cancelled = false
     void (async () => {
       const data = await fetchDailyScreenTimeHoursWithRetry()
-      if (!cancelled && data) {
+      if (cancelled) return
+      if (data) {
         setActualScreenHours(Math.max(0.5, Math.round(data.hours * 10) / 10))
         setScreenTimeGranted(true)
+        return
+      }
+      // iOS: numeric export often unavailable — present the on-screen report once.
+      if (screenTimePlatform === 'ios' && screenTimeGranted && step === STEP.REVEAL) {
+        await presentDailyScreenTimeReport()
       }
     })()
     return () => {
@@ -612,7 +624,17 @@ export function OnboardingPage() {
             <IntroBrandMark />
             <IntroHeading className="mb-2">{t('intro.revealTitle')}</IntroHeading>
             <IntroSubtext className="mb-6">{t('intro.revealSubtitle')}</IntroSubtext>
-            <RevealComparison estimateHours={screenHours} actualHours={actualScreenHours} />
+            <RevealComparison
+              estimateHours={screenHours}
+              actualHours={actualScreenHours}
+              onShowDeviceReport={
+                screenTimePlatform === 'ios' && screenTimeGranted
+                  ? () => {
+                      void presentDailyScreenTimeReport()
+                    }
+                  : undefined
+              }
+            />
           </>
         )
 

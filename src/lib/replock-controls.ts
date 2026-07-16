@@ -44,14 +44,18 @@ interface RepLockControlsPlugin {
   getDailyScreenTimeHours(options?: {
     force?: boolean
   }): Promise<{
-    hours: number
-    minutes: number
+    available?: boolean
+    code?: string
+    message?: string
+    hours: number | null
+    minutes?: number
     totalMinutes?: number
     hoursWhole?: number
     day?: string
     updatedAt?: number
     source?: string
   }>
+  presentDailyScreenTimeReport(): Promise<{ ok: boolean; presented?: boolean }>
 }
 
 const RepLockControlsNative = registerPlugin<RepLockControlsPlugin>('RepLockControls')
@@ -282,6 +286,8 @@ export async function clearIosShields(): Promise<void> {
 /**
  * Today's OS Screen Time from the DeviceActivityReport extension via App Group.
  * Returns null if unauthorized, extension missing, or no report written yet.
+ * On device, Apple's DAR sandbox usually blocks App Group export — use
+ * `presentIosDailyScreenTimeReport` to show the system-rendered total.
  * Onboarding should poll — the first probe after authorize can take several seconds.
  */
 export async function fetchIosDailyScreenTimeHours(options?: {
@@ -296,6 +302,14 @@ export async function fetchIosDailyScreenTimeHours(options?: {
     const result = await RepLockControlsNative.getDailyScreenTimeHours(
       options?.force !== false ? { force: true } : undefined
     )
+    if (result?.available === false || result?.code === 'NO_DATA') {
+      // Soft: expected while waiting / when App Group export is sandboxed.
+      console.debug('[RepLockControls] screen time report not ready', {
+        code: result.code ?? 'NO_DATA',
+        message: result.message,
+      })
+      return null
+    }
     if (typeof result?.hours !== 'number') return null
     return {
       hours: result.hours,
@@ -303,8 +317,29 @@ export async function fetchIosDailyScreenTimeHours(options?: {
       totalMinutes: result.totalMinutes,
     }
   } catch (err) {
-    console.warn('[RepLockControls] getDailyScreenTimeHours failed', pluginErrorMeta(err))
+    const meta = pluginErrorMeta(err)
+    if (meta.code === 'NO_DATA') {
+      console.debug('[RepLockControls] screen time report not ready', meta)
+    } else {
+      console.warn('[RepLockControls] getDailyScreenTimeHours failed', meta)
+    }
     return null
+  }
+}
+
+/** Show today's Screen Time in a native DeviceActivityReport sheet (supported path). */
+export async function presentIosDailyScreenTimeReport(): Promise<boolean> {
+  if (!isIosControlsAvailable()) return false
+  try {
+    const ready = await isRepLockControlsPluginReady()
+    if (!ready) return false
+    const status = await getIosControlsStatus()
+    if (!status.authorized) return false
+    const result = await RepLockControlsNative.presentDailyScreenTimeReport()
+    return result?.ok === true || result?.presented === true
+  } catch (err) {
+    console.warn('[RepLockControls] presentDailyScreenTimeReport failed', pluginErrorMeta(err))
+    return false
   }
 }
 

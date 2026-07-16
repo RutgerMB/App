@@ -43,14 +43,14 @@ Without Apple’s Family Controls approval on the App ID, Authorize and the app 
 
 ### 4b. DeviceActivityReport extension (daily Screen Time totals)
 
-Sources live under `ios/App/RepLockDeviceActivityReport/`. You must **once** add the Xcode target (Windows cannot reliably create `.appex` targets).
+Sources live under `ios/App/RepLockDeviceActivityReport/`. Target is already in `App.xcodeproj`.
 
-1. Apple Developer → new App ID **`app.replock.bleeker.DeviceActivityReport`** with **Family Controls** + App Group **`group.com.replock.fitness`**.
-2. Xcode → **File → New → Target → Device Activity Report Extension** → bundle ID above → embed in **App**.
-3. Replace/add the Swift sources from the repo folder; use the folder’s entitlements.
+1. Apple Developer → App ID **`app.replock.bleeker.RepLockDeviceActivityReport`** with **Family Controls** + App Group **`group.com.replock.fitness`** (must match Xcode).
+2. Xcode → confirm appex is embedded (**Embed ExtensionKit Extensions**) and both targets have the App Group.
+3. On device, numeric JS export via App Group is usually blocked by Apple’s DAR sandbox — onboarding uses **`presentDailyScreenTimeReport`** so the user still sees today’s total. Soft `NO_DATA` in JS is expected.
 4. Full click-path: **`IOS_SETUP.md` → DeviceActivityReport extension**.
 
-Until the `.appex` is embedded and you rebuild on a physical iPhone, onboarding “actual” hours stay on the estimate path (`getDailyScreenTimeHours` → no data).
+Until the `.appex` is embedded and you rebuild on a physical iPhone, onboarding falls back to the estimate path for projections.
 
 ### 5. Set production API URL (release build)
 

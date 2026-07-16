@@ -71,6 +71,9 @@ export const es = {
       'El bloqueo funciona tras autorizar Screen Time. Las horas totales necesitan una extensión de informe futura — usamos tu estimación. Android muestra UsageStats con acceso activado.',
     revealActualUnavailable: 'El bloqueo funciona; las horas totales aún no se pueden leer',
     revealActualUnavailableShort: 'Aún no',
+    revealActualUseReport:
+      'Apple solo muestra el tiempo de pantalla en un informe del sistema. Ábrelo para ver el total de hoy.',
+    revealShowScreenTime: 'Mostrar tiempo de pantalla de hoy',
     yearsPerDay: 'al día en tu teléfono.',
     yearsBasedOnDevice: 'Basado en el tiempo de pantalla medido en tu teléfono.',
     yearsBasedOnEstimate: 'Basado en tu estimación diaria.',
