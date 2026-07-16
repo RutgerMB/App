@@ -99,21 +99,38 @@ export const useStore = create<AppState & StoreActions>()(
 
       setOnboardingApps: (selectedApps, dailyLimitMinutes) => {
         if (selectedApps.length === 0) return
-        const newApps: LockedApp[] = selectedApps.map((appData) => ({
-          id: generateId(),
-          name: appData.name,
-          icon: '',
-          brand: appData.brand,
-          packageName: appData.packageName,
-          iosTokenId: appData.iosTokenId,
-          color: appData.color,
-          dailyLimitMinutes,
-          usedMinutes: 0,
-          isLocked: true,
-          unlockedUntil: null,
-        }))
+        const newApps: LockedApp[] = selectedApps.map((appData) => {
+          const rawName = (appData.name || '').trim()
+          const isPlaceholder = /^App \d+$/i.test(rawName)
+          return {
+            id: generateId(),
+            // Never persist opaque placeholders when a real label was provided.
+            name: isPlaceholder ? rawName : rawName || 'App',
+            icon: '',
+            brand: appData.brand,
+            packageName: appData.packageName,
+            iosTokenId: appData.iosTokenId,
+            color: appData.color,
+            dailyLimitMinutes,
+            usedMinutes: 0,
+            isLocked: true,
+            unlockedUntil: null,
+          }
+        })
         set({ apps: newApps })
         scheduleBlockingSync()
+        // Persist nicknames into native App Group for tokens we just onboarded.
+        const names: Record<string, string> = {}
+        for (const app of newApps) {
+          if (app.iosTokenId && app.name && !/^App \d+$/i.test(app.name)) {
+            names[app.iosTokenId] = app.name
+          }
+        }
+        if (Object.keys(names).length > 0) {
+          void import('@/lib/replock-controls').then(({ setIosDisplayNames }) =>
+            setIosDisplayNames(names)
+          )
+        }
       },
 
       setBlockingGoal: (openings, minutesPerOpening = 5) =>

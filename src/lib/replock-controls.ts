@@ -35,7 +35,7 @@ interface RepLockControlsPlugin {
   isSupported(): Promise<{ supported: boolean }>
   checkAuthorization(): Promise<{ authorized: boolean; status: string }>
   requestAuthorization(): Promise<{ authorized: boolean; status: string }>
-  presentActivityPicker(): Promise<{ count: number }>
+  presentActivityPicker(): Promise<{ count: number; apps?: IosSelectedApp[] }>
   presentSelectedAppsSheet(): Promise<{ count: number; apps: IosSelectedApp[] }>
   getSelectedApps(): Promise<{ apps: IosSelectedApp[] }>
   setDisplayNames(options: { names: Record<string, string> }): Promise<{ ok: boolean }>
@@ -188,11 +188,15 @@ export async function requestIosControlsAuthorization(): Promise<boolean> {
   return result.ok && result.authorized
 }
 
-export async function presentIosActivityPicker(): Promise<number> {
-  if (!isIosControlsAvailable()) return 0
+export async function presentIosActivityPicker(): Promise<IosSelectedApp[]> {
+  if (!isIosControlsAvailable()) return []
   try {
-    const { count } = await RepLockControlsNative.presentActivityPicker()
-    return count
+    const result = await RepLockControlsNative.presentActivityPicker()
+    if (Array.isArray(result.apps) && result.apps.length > 0) {
+      return result.apps
+    }
+    // Fallback if native build predates apps payload.
+    return getIosSelectedApps()
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     if (msg.includes('not implemented')) {
@@ -278,6 +282,7 @@ export async function clearIosShields(): Promise<void> {
 /**
  * Today's OS Screen Time from the DeviceActivityReport extension via App Group.
  * Returns null if unauthorized, extension missing, or no report written yet.
+ * Onboarding should poll — the first probe after authorize can take several seconds.
  */
 export async function fetchIosDailyScreenTimeHours(options?: {
   force?: boolean
@@ -289,7 +294,7 @@ export async function fetchIosDailyScreenTimeHours(options?: {
     const status = await getIosControlsStatus()
     if (!status.authorized) return null
     const result = await RepLockControlsNative.getDailyScreenTimeHours(
-      options?.force ? { force: true } : undefined
+      options?.force !== false ? { force: true } : undefined
     )
     if (typeof result?.hours !== 'number') return null
     return {
@@ -301,4 +306,21 @@ export async function fetchIosDailyScreenTimeHours(options?: {
     console.warn('[RepLockControls] getDailyScreenTimeHours failed', pluginErrorMeta(err))
     return null
   }
+}
+
+/** Poll the report probe until data appears or attempts are exhausted. */
+export async function fetchIosDailyScreenTimeHoursWithRetry(options?: {
+  attempts?: number
+  delayMs?: number
+}): Promise<{ hours: number; minutes: number; totalMinutes?: number } | null> {
+  const attempts = options?.attempts ?? 4
+  const delayMs = options?.delayMs ?? 1500
+  for (let i = 0; i < attempts; i++) {
+    const data = await fetchIosDailyScreenTimeHours({ force: true })
+    if (data) return data
+    if (i < attempts - 1) {
+      await new Promise((r) => setTimeout(r, delayMs))
+    }
+  }
+  return null
 }

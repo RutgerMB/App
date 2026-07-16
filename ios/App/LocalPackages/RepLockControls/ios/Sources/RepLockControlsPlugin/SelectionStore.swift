@@ -68,17 +68,25 @@ final class SelectionStore {
             }
         }
         defaults?.set(cleaned, forKey: RepLockControlsConstants.displayNamesKey)
+        defaults?.synchronize()
+    }
+
+    /// Merge nicknames into the existing map (confirmation / rename path).
+    func mergeDisplayNames(_ names: [String: String]) {
+        var merged = loadDisplayNames()
+        for (id, raw) in names {
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty {
+                merged.removeValue(forKey: id)
+            } else {
+                merged[id] = trimmed
+            }
+        }
+        saveDisplayNames(merged)
     }
 
     func setDisplayName(_ name: String, forTokenId tokenId: String) {
-        var names = loadDisplayNames()
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty {
-            names.removeValue(forKey: tokenId)
-        } else {
-            names[tokenId] = trimmed
-        }
-        saveDisplayNames(names)
+        mergeDisplayNames([tokenId: name])
     }
 
     private func pruneDisplayNames(to selection: FamilyActivitySelection) {

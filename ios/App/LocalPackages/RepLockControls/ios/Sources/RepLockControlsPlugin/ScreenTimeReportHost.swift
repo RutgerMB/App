@@ -30,8 +30,9 @@ private struct ScreenTimeReportProbeView: View {
 /// Hosts a tiny `DeviceActivityReport` so the report extension can run and write App Group totals.
 @available(iOS 16.0, *)
 enum ScreenTimeReportHost {
-    private static let pollIntervalNs: UInt64 = 200_000_000
-    private static let timeout: TimeInterval = 4.0
+    private static let pollIntervalNs: UInt64 = 250_000_000
+    /// First report after authorize can take several seconds on device.
+    private static let timeout: TimeInterval = 12.0
 
     @MainActor
     static func refresh(from presenter: UIViewController?, force: Bool = false) async -> ScreenTimeSharedStore.Snapshot? {
@@ -42,7 +43,8 @@ enum ScreenTimeReportHost {
         let baselineUpdatedAt = ScreenTimeSharedStore.readSnapshot()?.updatedAt ?? .distantPast
 
         guard let parent = presenter else {
-            return ScreenTimeSharedStore.readTodaySnapshot()
+            // Still allow a short wait for an extension write that may already be in flight.
+            return await pollForSnapshot(baselineUpdatedAt: baselineUpdatedAt, force: force, timeout: 3.0)
         }
 
         let host = UIHostingController(rootView: ScreenTimeReportProbeView())
@@ -55,22 +57,39 @@ enum ScreenTimeReportHost {
         parent.view.addSubview(host.view)
         host.didMove(toParent: parent)
 
-        let deadline = Date().addingTimeInterval(timeout)
-        var latest = ScreenTimeSharedStore.readTodaySnapshot()
-
-        while Date() < deadline {
-            if let snap = ScreenTimeSharedStore.readTodaySnapshot(),
-               snap.updatedAt > baselineUpdatedAt || (force == false && snap.isFresh()) {
-                latest = snap
-                break
-            }
-            try? await Task.sleep(nanoseconds: pollIntervalNs)
-            latest = ScreenTimeSharedStore.readTodaySnapshot() ?? latest
-        }
+        let latest = await pollForSnapshot(
+            baselineUpdatedAt: baselineUpdatedAt,
+            force: force,
+            timeout: timeout
+        )
 
         host.willMove(toParent: nil)
         host.view.removeFromSuperview()
         host.removeFromParent()
+
+        return latest ?? ScreenTimeSharedStore.readTodaySnapshot()
+    }
+
+    @MainActor
+    private static func pollForSnapshot(
+        baselineUpdatedAt: Date,
+        force: Bool,
+        timeout: TimeInterval
+    ) async -> ScreenTimeSharedStore.Snapshot? {
+        let deadline = Date().addingTimeInterval(timeout)
+        var latest = ScreenTimeSharedStore.readTodaySnapshot()
+
+        while Date() < deadline {
+            if let snap = ScreenTimeSharedStore.readTodaySnapshot() {
+                let isNew = snap.updatedAt > baselineUpdatedAt
+                let usable = force ? isNew || snap.isFresh(maxAge: 300) : (isNew || snap.isFresh())
+                if usable {
+                    return snap
+                }
+                latest = snap
+            }
+            try? await Task.sleep(nanoseconds: pollIntervalNs)
+        }
 
         return latest ?? ScreenTimeSharedStore.readTodaySnapshot()
     }

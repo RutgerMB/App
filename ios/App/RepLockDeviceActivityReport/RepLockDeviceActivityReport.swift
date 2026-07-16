@@ -12,6 +12,8 @@ import SwiftUI
 struct RepLockDeviceActivityReport: DeviceActivityReportExtension {
     var body: some DeviceActivityReportScene {
         // Create a report for each DeviceActivityReport.Context that your app supports.
+        // Context string must match ScreenTimeSharedKeys.reportContextRawValue
+        // ("RepLock.TotalActivity") used by RepLockControls ScreenTimeReportHost.
         TotalActivityReport { totalActivity in
             TotalActivityView(totalActivity: totalActivity)
         }

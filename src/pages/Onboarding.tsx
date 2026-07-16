@@ -37,6 +37,7 @@ import {
   requestScreenTimePermission,
   requestIosScreenTimeAccess,
   fetchDailyScreenTimeHours,
+  fetchDailyScreenTimeHoursWithRetry,
   getScreenTimePlatform,
 } from '@/lib/screen-time'
 import { useToast } from '@/components/ui/Toast'
@@ -235,13 +236,15 @@ export function OnboardingPage() {
     setLocale(selectedLocale)
   }, [selectedLocale, setLocale])
 
-  const refreshScreenTimeAccess = async () => {
+  const refreshScreenTimeAccess = async (opts?: { retry?: boolean }) => {
     setScreenTimeChecking(true)
     try {
       const granted = await checkScreenTimePermission()
       setScreenTimeGranted(granted)
       if (granted) {
-        const data = await fetchDailyScreenTimeHours()
+        const data = opts?.retry
+          ? await fetchDailyScreenTimeHoursWithRetry()
+          : await fetchDailyScreenTimeHours()
         if (data) setActualScreenHours(Math.max(0.5, Math.round(data.hours * 10) / 10))
       }
     } finally {
@@ -266,19 +269,44 @@ export function OnboardingPage() {
           }
         } else if (result.authorized) {
           toast(t('onboarding.screenTimeIosAuthorized'), 'success')
+          // Force report probe + retries before guess-vs-actual.
+          const data = await fetchDailyScreenTimeHoursWithRetry()
+          if (data) {
+            setActualScreenHours(Math.max(0.5, Math.round(data.hours * 10) / 10))
+            setScreenTimeGranted(true)
+            return
+          }
         }
       } else {
         await requestScreenTimePermission()
       }
-      await refreshScreenTimeAccess()
+      await refreshScreenTimeAccess({ retry: true })
     } finally {
       setScreenTimeChecking(false)
     }
   }
 
   useEffect(() => {
-    if (step === STEP.SCREEN_TIME_PERMISSION) void refreshScreenTimeAccess()
+    if (step === STEP.SCREEN_TIME_PERMISSION) void refreshScreenTimeAccess({ retry: true })
   }, [step])
+
+  // Before reveal: one more forced refresh so actual hours aren't stuck on "unavailable".
+  useEffect(() => {
+    if (step !== STEP.SCREEN_TIME_GUESS && step !== STEP.REVEAL) return
+    if (actualScreenHours != null) return
+    if (!screenTimeGranted && screenTimePlatform === 'ios') return
+    let cancelled = false
+    void (async () => {
+      const data = await fetchDailyScreenTimeHoursWithRetry()
+      if (!cancelled && data) {
+        setActualScreenHours(Math.max(0.5, Math.round(data.hours * 10) / 10))
+        setScreenTimeGranted(true)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [step, actualScreenHours, screenTimeGranted, screenTimePlatform])
 
   useEffect(() => {
     if (step !== STEP.SELECT_APPS) return
@@ -374,13 +402,18 @@ export function OnboardingPage() {
       // Android: Continue opens usage-access settings until granted
       if (screenTimePlatform === 'android' && !screenTimeGranted) {
         await requestScreenTimePermission()
-        await refreshScreenTimeAccess()
+        await refreshScreenTimeAccess({ retry: true })
         return
       }
-      if (screenTimePlatform === 'android') {
-        await refreshScreenTimeAccess()
+      // Refresh totals (with retries on iOS) before guess / reveal.
+      await refreshScreenTimeAccess({ retry: true })
+      advance()
+      return
+    }
+    if (step === STEP.SCREEN_TIME_GUESS) {
+      if (actualScreenHours == null) {
+        await refreshScreenTimeAccess({ retry: true })
       }
-      // iOS: Continue always advances — authorize is a separate button; daily hours still use estimate
       advance()
       return
     }
@@ -393,9 +426,12 @@ export function OnboardingPage() {
       return
     }
     if (step === STEP.CREATE_GOAL) {
-      const catalog = appCatalog.length > 0 ? appCatalog : await getDeviceApps()
-      const fallbackCatalog = catalog.length > 0 ? catalog : DEVICE_APPS
-      const resolved = resolveSelectedApps(selectedApps, fallbackCatalog)
+      // Always re-read iOS selection so nicknames from the native sheet stick.
+      const fresh = await getDeviceApps()
+      const catalog =
+        fresh.length > 0 ? fresh : appCatalog.length > 0 ? appCatalog : DEVICE_APPS
+      if (fresh.length > 0) setAppCatalog(fresh)
+      const resolved = resolveSelectedApps(selectedApps, catalog)
       if (resolved.length === 0) {
         toast(t('onboarding.selectAppsRequired'), 'error')
         return
@@ -645,7 +681,11 @@ export function OnboardingPage() {
             <IntroBrandMark />
             <IntroHeading className="mb-2">{t('onboarding.selectAppsTitle')}</IntroHeading>
             <IntroSubtext className="mb-6">{t('onboarding.selectAppsDesc')}</IntroSubtext>
-            <BlocklistPicker selected={selectedApps} onChange={setSelectedApps} />
+            <BlocklistPicker
+              selected={selectedApps}
+              onChange={setSelectedApps}
+              onAppsChange={setAppCatalog}
+            />
           </>
         )
 

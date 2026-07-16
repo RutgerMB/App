@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Trash2, Unlock, Clock, Grid3X3, Pencil, Eye } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
@@ -58,6 +58,33 @@ export function AppsPage() {
   const [renameValue, setRenameValue] = useState('')
   const [nativeSheetLoading, setNativeSheetLoading] = useState(false)
 
+  // Pull nicknames from native App Group so Home/Apps never stay on "App 1".
+  useEffect(() => {
+    if (!onIos) return
+    let cancelled = false
+    void (async () => {
+      try {
+        const { getIosSelectedApps } = await import('@/lib/replock-controls')
+        const rows = await getIosSelectedApps()
+        if (cancelled) return
+        for (const row of rows) {
+          if (!row.hasCustomName) continue
+          const match = apps.find((a) => a.iosTokenId === row.id)
+          if (match && match.name !== row.name) {
+            renameApp(match.id, row.name)
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+    // Only on mount / when ios token set changes size — avoid rename loops.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onIos, apps.length])
+
   const existingIds = apps.flatMap((a) => [
     a.brand ?? '',
     a.packageName ?? '',
@@ -85,7 +112,9 @@ export function AppsPage() {
 
   const handleSelectApp = (app: DeviceAppDefinition) => {
     setPendingApp(app)
-    setPendingName(app.name.startsWith('App ') ? '' : app.name)
+    // Prefer bridged nickname; never prefill opaque "App N" placeholders.
+    const looksLikePlaceholder = /^App \d+$/i.test(app.name.trim())
+    setPendingName(looksLikePlaceholder ? '' : app.name)
     setDailyLimit(30)
   }
 

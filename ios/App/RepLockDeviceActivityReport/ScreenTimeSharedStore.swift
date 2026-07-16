@@ -31,6 +31,8 @@ enum ScreenTimeSharedStore {
         defaults.set(clamped, forKey: ScreenTimeSharedKeys.totalMinutesKey)
         defaults.set(dayString(for: date), forKey: ScreenTimeSharedKeys.dayKey)
         defaults.set(date.timeIntervalSince1970, forKey: ScreenTimeSharedKeys.updatedAtKey)
+        // Ensure the host process can observe the write promptly across processes.
+        defaults.synchronize()
     }
 
     struct Snapshot {

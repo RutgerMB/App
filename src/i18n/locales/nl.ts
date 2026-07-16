@@ -71,9 +71,9 @@ export const nl = {
     revealActualMore: '{pct}% meer dan je schatte',
     revealFromDevice: 'Gebaseerd op schermtijd van je apparaat',
     revealEstimateOnly:
-      'Blokkeren werkt na Screen Time-autorisatie. Totale uren vragen een toekomstige Screen Time-rapport-extensie — we gebruiken je schatting. Android toont UsageStats als toegang aan staat.',
-    revealActualUnavailable: 'Blokkeren werkt; totale uren zijn nog niet leesbaar',
-    revealActualUnavailableShort: 'Nog niet',
+      'We konden de schermtijd van vandaag nog niet lezen. Je schatting wordt gebruikt — autoriseer Screen Time en wacht even, of ga door en probeer later opnieuw.',
+    revealActualUnavailable: 'Schermtijd laden…',
+    revealActualUnavailableShort: 'Laden…',
     yearsPerDay: 'per dag op je telefoon.',
     yearsBasedOnDevice: 'Gebaseerd op de gemeten schermtijd van je telefoon.',
     yearsBasedOnEstimate: 'Gebaseerd op je dagelijkse schatting.',
@@ -95,7 +95,7 @@ export const nl = {
       'Doel: ~{pct}% van je basislijn. Vloer: {minutes} min/dag uit het verdienmodel (3 openings × 5 min).',
     potentialBasedOnDevice: 'Basislijn = je gemeten schermtijd vandaag.',
     potentialBasedOnGuess:
-      'Basislijn = je schatting. OS-totalen vragen een toekomstige Screen Time-rapport-extensie.',
+      'Basislijn = je schatting. Gemeten uren verschijnen na Screen Time-autorisatie en laden van het rapport.',
     weekOneTitle: 'De eerste week is cruciaal voor nieuwe gewoontes',
     weekOneDesc:
       'RepLock-gebruikers verminderen doelloos scrollen met tot 32% in week één — en doen meer workouts.',
@@ -164,9 +164,9 @@ export const nl = {
       'Sta RepLock toe Apple Screen Time te gebruiken om apps te kiezen en te blokkeren. Apple toont een systeemdialoog — tik op Sta toe.',
     screenTimePermissionIosAuthorize: 'Screen Time-toegang autoriseren',
     screenTimePermissionIosEstimate:
-      'Autoriseren ontgrendelt app-blokkering. Totale uren gebruiken nog je schatting — Apple deelt OS-Screen Time-totalen pas met een rapport-extensie.',
+      'Autoriseren ontgrendelt app-blokkering. Na Toestaan leest RepLock de schermtijd van vandaag voor de volgende schermen (kan een paar seconden duren).',
     screenTimePermissionIosSkip: 'Tik op Doorgaan om over te slaan — je kunt later autoriseren via Apps.',
-    screenTimeIosAuthorized: 'Screen Time geautoriseerd — blokkeren is klaar. Totale uren gebruiken nog je schatting.',
+    screenTimeIosAuthorized: 'Screen Time geautoriseerd — schermtijd van vandaag ophalen…',
     screenTimeIosError_denied:
       'Screen Time geweigerd. Op iPhone: Instellingen → Schermtijd → sta RepLock toe, kom terug en tik opnieuw op Autoriseren.',
     screenTimeIosError_notDetermined:

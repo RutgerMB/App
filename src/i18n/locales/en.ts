@@ -71,9 +71,9 @@ export const en: Translations = {
     revealActualMore: '{pct}% more than you guessed',
     revealFromDevice: 'Based on your device screen time',
     revealEstimateOnly:
-      'Blocking is on after you authorize Screen Time. Total daily hours need a future Screen Time report extension — we use your guess for now. Android can show UsageStats when access is on.',
-    revealActualUnavailable: 'Blocking works; total hours aren\'t readable yet',
-    revealActualUnavailableShort: 'Not yet',
+      'We could not read today\'s Screen Time total yet. Your guess is used below — authorize Screen Time and wait a moment, or continue and try again later.',
+    revealActualUnavailable: 'Still loading Screen Time…',
+    revealActualUnavailableShort: 'Loading…',
     yearsPerDay: 'per day on your phone.',
     yearsBasedOnDevice: 'Based on your phone\'s measured screen time.',
     yearsBasedOnEstimate: 'Based on your daily guess.',
@@ -95,7 +95,7 @@ export const en: Translations = {
       'Target: cut ~{pct}% of your baseline. Floor: {minutes} min/day from the default earn model (3 openings × 5 min).',
     potentialBasedOnDevice: 'Baseline = your measured screen time today.',
     potentialBasedOnGuess:
-      'Baseline = your guess. OS total hours need a future Screen Time report extension.',
+      'Baseline = your guess. Measured hours appear after Screen Time authorizes and the report loads.',
     weekOneTitle: 'The first week is crucial for building habits',
     weekOneDesc:
       'RepLock users cut mindless scrolling by up to 32% in their first week — while finishing more workouts.',
@@ -164,9 +164,9 @@ export const en: Translations = {
       'Allow RepLock to use Apple Screen Time so you can pick and block apps. Apple shows a system permission dialog — tap Allow.',
     screenTimePermissionIosAuthorize: 'Authorize Screen Time access',
     screenTimePermissionIosEstimate:
-      'Authorizing unlocks app blocking (shields). Daily total hours still use your estimate — Apple does not share OS Screen Time totals with RepLock until a report extension ships.',
+      'Authorizing unlocks app blocking. After Allow, RepLock reads today\'s Screen Time total for the next screens (may take a few seconds).',
     screenTimePermissionIosSkip: 'Tap Continue below to skip for now — you can authorize later in Apps.',
-    screenTimeIosAuthorized: 'Screen Time authorized — blocking is ready. Total hours still use your guess for now.',
+    screenTimeIosAuthorized: 'Screen Time authorized — fetching today\'s hours…',
     screenTimeIosError_denied:
       'Screen Time was denied. On iPhone: Settings → Screen Time → allow RepLock (or remove the restriction), then return here and tap Authorize again.',
     screenTimeIosError_notDetermined:

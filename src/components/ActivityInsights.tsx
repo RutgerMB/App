@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
@@ -214,14 +213,8 @@ export function ActivityInsights() {
   const [usage, setUsage] = useState<UsageInsightsSnapshot | null>(null)
   const isPro = profile.isPro
 
-  const comparison = getTodayVsYesterday(sessions)
-  const periodStats = getPeriodStats(sessions, period)
-  const totals = getPeriodTotals(periodStats)
-  const categories = getCategoryBreakdown(sessions, (type) =>
-    t(`categories.${EXERCISES[type as keyof typeof EXERCISES]?.category ?? 'cardio'}`)
-  )
-
   useEffect(() => {
+    if (!isPro) return
     let cancelled = false
     void loadUsageInsights({
       apps,
@@ -233,7 +226,46 @@ export function ActivityInsights() {
     return () => {
       cancelled = true
     }
-  }, [apps, profile.openingsUsedToday, profile.openingsDate])
+  }, [isPro, apps, profile.openingsUsedToday, profile.openingsDate])
+
+  // Free: never mount Pro charts (avoids one-frame flash of locked content).
+  if (!isPro) {
+    return (
+      <div className="relative">
+        <div className="flex items-center justify-center gap-2 mb-5">
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+            {t('activity.insights')}
+          </h2>
+          <Badge variant="default">{t('common.free')}</Badge>
+        </div>
+        <div className="rounded-2xl px-6 py-8 bg-white/[0.03] border border-indigo-500/20 text-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+            <Lock size={22} className="text-indigo-400" />
+          </div>
+          <h3 className="font-semibold mb-2">{t('activity.unlockInsights')}</h3>
+          <p className="text-sm text-white/45 mb-5 leading-relaxed max-w-sm mx-auto">
+            {t('activity.unlockInsightsDesc')}
+          </p>
+          <MotionButton
+            fullWidth
+            onClick={() => {
+              void openUpgradeOrFallback(() => navigate('/pricing'))
+            }}
+          >
+            <Sparkles size={16} />
+            {t('common.upgrade')}
+          </MotionButton>
+        </div>
+      </div>
+    )
+  }
+
+  const comparison = getTodayVsYesterday(sessions)
+  const periodStats = getPeriodStats(sessions, period)
+  const totals = getPeriodTotals(periodStats)
+  const categories = getCategoryBreakdown(sessions, (type) =>
+    t(`categories.${EXERCISES[type as keyof typeof EXERCISES]?.category ?? 'cardio'}`)
+  )
 
   const periodLabel = {
     week: t('activity.periodWeek'),
@@ -247,14 +279,10 @@ export function ActivityInsights() {
         <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
           {t('activity.insights')}
         </h2>
-        {isPro ? (
-          <Badge variant="pro">{t('common.pro')}</Badge>
-        ) : (
-          <Badge variant="default">{t('common.free')}</Badge>
-        )}
+        <Badge variant="pro">{t('common.pro')}</Badge>
       </div>
 
-      <div className={cn('relative', !isPro && 'select-none')}>
+      <div className="relative">
         <UsageSection usage={usage} />
 
         {/* Today vs Yesterday */}
@@ -404,35 +432,6 @@ export function ActivityInsights() {
                 )
               })}
             </div>
-          </div>
-        )}
-
-        {/* Free user overlay */}
-        {!isPro && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl overflow-hidden">
-            <div className="absolute inset-0 backdrop-blur-md bg-surface-0/60" />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="relative z-10 mx-6 p-6 rounded-2xl bg-surface-2 border border-indigo-500/30 text-center max-w-sm"
-            >
-              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-indigo-500/20 flex items-center justify-center">
-                <Lock size={22} className="text-indigo-400" />
-              </div>
-              <h3 className="font-semibold mb-2">{t('activity.unlockInsights')}</h3>
-              <p className="text-sm text-white/45 mb-5 leading-relaxed">
-                {t('activity.unlockInsightsDesc')}
-              </p>
-              <MotionButton
-                fullWidth
-                onClick={() => {
-                  void openUpgradeOrFallback(() => navigate('/pricing'))
-                }}
-              >
-                <Sparkles size={16} />
-                {t('common.upgrade')}
-              </MotionButton>
-            </motion.div>
           </div>
         )}
       </div>

@@ -9,7 +9,6 @@ import { SectionLabel } from '@/components/layout/PageHeader'
 import { MotionButton } from '@/components/ui/Button'
 import { CircularProgress } from '@/components/ui/Progress'
 import { TrialBanner } from '@/components/TrialBanner'
-import { AppBrandIcon } from '@/components/AppBrandIcon'
 import { DifficultyHomeModal } from '@/components/DifficultyHomeModal'
 import { DIFFICULTY_META } from '@/components/DifficultyPicker'
 import { ProPromo } from '@/components/ProPromo'
@@ -176,7 +175,7 @@ export function HomePage() {
             </button>
           ) : (
             <>
-              <div className="flex flex-wrap justify-center gap-2.5">
+              <div className="space-y-2">
                 {apps.slice(0, 6).map((app, i) => (
                   <motion.button
                     key={app.id}
@@ -186,26 +185,24 @@ export function HomePage() {
                     transition={{ delay: i * 0.04, duration: 0.35 }}
                     onClick={() => navigate('/apps')}
                     className={cn(
-                      'w-[calc(33.333%-0.5rem)] max-w-[6.5rem]',
-                      'flex flex-col items-center text-center px-2 py-3.5 rounded-2xl',
+                      'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left',
                       'bg-white/[0.03] border border-white/[0.07]',
                       'hover:bg-white/[0.055] hover:border-white/[0.12]',
-                      'active:scale-[0.97] transition-all duration-200'
+                      'active:scale-[0.99] transition-all duration-200'
                     )}
                   >
-                    <div className="w-10 h-10 mb-2 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden">
-                      <AppBrandIcon brand={app.brand} name={app.name} color={app.color} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate text-white/85">{app.name}</p>
                     </div>
-                    <p className="text-[11px] font-medium truncate w-full text-white/75">{app.name}</p>
-                    <p
+                    <span
                       className={cn(
-                        'text-[9px] mt-1 flex items-center justify-center gap-0.5',
+                        'text-[10px] flex items-center gap-1 shrink-0',
                         app.isLocked ? 'text-amber-400/90' : 'text-emerald-400/90'
                       )}
                     >
-                      {app.isLocked ? <Lock size={9} /> : <Unlock size={9} />}
+                      {app.isLocked ? <Lock size={11} /> : <Unlock size={11} />}
                       {app.isLocked ? t('home.locked') : t('home.unlocked')}
-                    </p>
+                    </span>
                   </motion.button>
                 ))}
               </div>

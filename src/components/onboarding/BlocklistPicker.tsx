@@ -14,10 +14,13 @@ import { useToast } from '@/components/ui/Toast'
 export function BlocklistPicker({
   selected,
   onChange,
+  onAppsChange,
   onIosPickedCountChange,
 }: {
   selected: Set<string>
   onChange: (next: Set<string>) => void
+  /** Full catalog after iOS picker (includes nicknames from the confirmation sheet). */
+  onAppsChange?: (apps: DeviceAppDefinition[]) => void
   onIosPickedCountChange?: (count: number) => void
 }) {
   const { t } = useTranslation()
@@ -32,12 +35,13 @@ export function BlocklistPicker({
     setLoading(true)
     const list = await getDeviceApps()
     setApps(list)
+    onAppsChange?.(list)
     onIosPickedCountChange?.(list.length)
     setLoading(false)
     if (onIos && list.length > 0) {
       onChange(new Set(list.map((a) => a.id)))
     }
-  }, [onChange, onIos, onIosPickedCountChange])
+  }, [onChange, onAppsChange, onIos, onIosPickedCountChange])
 
   useEffect(() => {
     void refreshApps()
@@ -54,6 +58,7 @@ export function BlocklistPicker({
         return
       }
       setApps(result.apps)
+      onAppsChange?.(result.apps)
       onIosPickedCountChange?.(result.apps.length)
       if (result.apps.length > 0) {
         onChange(new Set(result.apps.map((a) => a.id)))

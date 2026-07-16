@@ -1,6 +1,7 @@
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import {
   fetchIosDailyScreenTimeHours,
+  fetchIosDailyScreenTimeHoursWithRetry,
   getIosControlsStatus,
   isIosControlsAvailable,
   isRepLockControlsPluginReady,
@@ -141,6 +142,14 @@ export async function fetchDailyScreenTimeHours(): Promise<ScreenTimeResult | nu
   } catch {
     return null
   }
+}
+
+/** iOS onboarding: wait/retry for the report extension to populate App Group. */
+export async function fetchDailyScreenTimeHoursWithRetry(): Promise<ScreenTimeResult | null> {
+  if (getScreenTimePlatform() === 'ios') {
+    return fetchIosDailyScreenTimeHoursWithRetry({ attempts: 5, delayMs: 1200 })
+  }
+  return fetchDailyScreenTimeHours()
 }
 
 /** Android UsageStats per-app minutes for today. iOS returns null (opaque tokens). */

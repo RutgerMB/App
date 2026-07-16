@@ -176,10 +176,13 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
                 from: presenter,
                 initialSelection: initial
             ) { selection, displayNames in
-                store.saveDisplayNames(displayNames)
+                // Selection first (prunes stale name keys), then merge nicknames so
+                // confirmation labels always win over placeholders.
                 store.saveSelection(selection)
+                store.mergeDisplayNames(displayNames)
                 call.resolve([
                     "count": selection.applicationTokens.count,
+                    "apps": store.selectedAppsPayload(from: selection),
                 ])
             }
         }
@@ -209,7 +212,7 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
                 from: presenter,
                 selection: selection
             ) { displayNames in
-                store.saveDisplayNames(displayNames)
+                store.mergeDisplayNames(displayNames)
                 call.resolve([
                     "count": selection.applicationTokens.count,
                     "apps": store.selectedAppsPayload(from: selection),

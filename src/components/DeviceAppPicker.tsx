@@ -97,7 +97,7 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
           ) : filtered.length === 0 ? (
             <p className="text-center text-white/40 py-8 text-sm">{t('apps.iosNoAppsPicked')}</p>
           ) : (
-            <div className="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto pb-2">
+            <div className="space-y-2 max-h-64 overflow-y-auto pb-2">
               {filtered.map((app) => (
                 <button
                   key={app.id}
@@ -106,12 +106,10 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
                     onSelect(app)
                     onClose()
                   }}
-                  className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-surface-2 border border-border hover:border-indigo-500/40 hover:bg-surface-3 transition-all touch-manipulation"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-2 border border-border hover:border-indigo-500/40 hover:bg-surface-3 transition-all touch-manipulation text-left"
                 >
-                  <AppBrandIcon brand={app.brand} name={app.name} color={app.color} size="md" />
-                  <span className="text-[11px] font-medium text-white/70 text-center line-clamp-2 leading-tight">
-                    {app.name}
-                  </span>
+                  <span className="flex-1 text-sm font-medium text-white/80 truncate">{app.name}</span>
+                  <Plus size={16} className="text-indigo-300 shrink-0" />
                 </button>
               ))}
             </div>

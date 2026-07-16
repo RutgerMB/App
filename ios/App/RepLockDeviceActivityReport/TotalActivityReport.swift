@@ -2,37 +2,39 @@
 //  TotalActivityReport.swift
 //  RepLockDeviceActivityReport
 //
-//  Created by Rutger Bleeker on 16/07/2026.
+//  DeviceActivityReport scene that sums today's activity and writes minutes
+//  into the App Group for the main app (RepLockControls probe) to read.
 //
 
 import DeviceActivity
 import SwiftUI
 
 extension DeviceActivityReport.Context {
-    // If your app initializes a DeviceActivityReport with this context, then the system will use
-    // your extension's corresponding DeviceActivityReportScene to render the contents of the
-    // report.
-    static let totalActivity = Self("Total Activity")
+    /// Must match `ScreenTimeSharedKeys.reportContextRawValue` in the host app.
+    static let repLockTotalActivity = Self(ScreenTimeSharedKeys.reportContextRawValue)
 }
 
 struct TotalActivityReport: DeviceActivityReportScene {
-    // Define which context your scene will represent.
-    let context: DeviceActivityReport.Context = .totalActivity
-    
-    // Define the custom configuration and the resulting view for this report.
+    let context: DeviceActivityReport.Context = .repLockTotalActivity
     let content: (String) -> TotalActivityView
-    
-    func makeConfiguration(representing data: DeviceActivityResults<DeviceActivityData>) async -> String {
-        // Reformat the data into a configuration that can be used to create
-        // the report's view.
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.day, .hour, .minute, .second]
-        formatter.unitsStyle = .abbreviated
-        formatter.zeroFormattingBehavior = .dropAll
-        
-        let totalActivityDuration = await data.flatMap { $0.activitySegments }.reduce(0, {
-            $0 + $1.totalActivityDuration
-        })
-        return formatter.string(from: totalActivityDuration) ?? "No activity data"
+
+    func makeConfiguration(
+        representing data: DeviceActivityResults<DeviceActivityData>
+    ) async -> String {
+        let totalDuration = await data
+            .flatMap { $0.activitySegments }
+            .reduce(0.0) { partial, segment in
+                partial + segment.totalActivityDuration
+            }
+
+        let totalMinutes = Int((totalDuration / 60.0).rounded())
+        ScreenTimeSharedStore.writeTodayTotalMinutes(totalMinutes)
+
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        }
+        return "\(minutes)m"
     }
 }

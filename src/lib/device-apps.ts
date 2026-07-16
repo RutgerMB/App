@@ -44,10 +44,18 @@ function mapIosSelectedApp(app: {
   name: string
   hasCustomName?: boolean
 }): DeviceAppDefinition {
+  const raw = (app.name || '').trim()
+  const placeholder = /^App \d+$/i.test(raw)
+  // Prefer user nickname; keep placeholder only when no custom name was saved.
+  const name =
+    app.hasCustomName && raw
+      ? raw
+      : placeholder && !app.hasCustomName
+        ? raw || 'App'
+        : raw || 'App'
   return enrichDeviceApp({
     id: app.id,
-    // User nickname when set; otherwise opaque placeholder (Apple blocks real names).
-    name: app.name,
+    name,
     color: '#6366F1',
     iosTokenId: app.id,
     category: 'other',
@@ -101,8 +109,8 @@ export async function ensureIosAuthorization(): Promise<boolean> {
 
 export async function openIosActivityPicker(): Promise<DeviceAppDefinition[]> {
   if (!isNativeIos()) return []
-  await presentIosActivityPicker()
-  return getDeviceApps()
+  const rows = await presentIosActivityPicker()
+  return rows.map(mapIosSelectedApp)
 }
 
 /** Authorize (if needed) and open Apple's app picker — with explicit error reasons. */
@@ -128,8 +136,8 @@ export async function pickIosAppsWithAuth(): Promise<IosPickAppsResult> {
       }
     }
 
-    await presentIosActivityPicker()
-    const apps = (await getIosSelectedApps()).map(mapIosSelectedApp)
+    const rows = await presentIosActivityPicker()
+    const apps = rows.map(mapIosSelectedApp)
     return { ok: true, apps }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
