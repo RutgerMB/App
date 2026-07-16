@@ -17,6 +17,8 @@ export interface EntitlementSyncResult {
   /** False when the backend was unreachable or returned no entitlement. */
   serverSynced: boolean
   source: 'server' | 'revenuecat' | 'none'
+  /** Present when server auth failed (caller may show a soft message). */
+  authError?: string
 }
 
 /**
@@ -28,14 +30,43 @@ export interface EntitlementSyncResult {
  * - After IAP: grant Pro from RevenueCat even if backend sync fails (webhook / next sync will catch up).
  */
 
-export async function fetchServerEntitlement(refresh = false): Promise<ServerEntitlement | null> {
+async function refreshAuthToken(): Promise<void> {
+  const { useAuthStore } = await import('@/store/auth')
+  await useAuthStore.getState().refreshToken().catch(() => {})
+}
+
+async function fetchServerEntitlementOnce(refresh: boolean): Promise<{
+  entitlement: ServerEntitlement | null
+  authError?: string
+}> {
   const headers = await getBearerHeaders()
-  if (!headers.Authorization) return null
+  if (!headers.Authorization) return { entitlement: null }
 
   const url = refresh ? '/api/subscription/status?refresh=1' : '/api/subscription/status'
   const res = await apiFetch(url, { headers })
-  if (!res.ok) return null
-  return res.json() as Promise<ServerEntitlement>
+  if (res.ok) {
+    return { entitlement: (await res.json()) as ServerEntitlement }
+  }
+
+  if (res.status === 401) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string; code?: string }
+    return {
+      entitlement: null,
+      authError: body.error ?? 'Session expired — sign in again to sync Pro to your account.',
+    }
+  }
+
+  return { entitlement: null }
+}
+
+export async function fetchServerEntitlement(refresh = false): Promise<ServerEntitlement | null> {
+  // Retry once with a forced token refresh (covers paywall / background expiry).
+  let result = await fetchServerEntitlementOnce(refresh)
+  if (!result.entitlement && result.authError) {
+    await refreshAuthToken()
+    result = await fetchServerEntitlementOnce(refresh)
+  }
+  return result.entitlement
 }
 
 /** Apply server entitlement to local store (server wins over client). */
@@ -50,16 +81,17 @@ export function applyServerEntitlement(entitlement: ServerEntitlement): void {
 }
 
 async function readStoreProEntitlement(): Promise<boolean> {
+  // Prefer native plugin first on iOS — it shares the SDK with the SwiftUI paywall.
+  if (isNativeRevenueCatAvailable()) {
+    try {
+      if (await hasNativeProEntitlement()) return true
+    } catch {
+      // fall through
+    }
+  }
   if (isRevenueCatConfigured()) {
     try {
       if (await hasRevenueCatProEntitlement()) return true
-    } catch {
-      // fall through to native plugin
-    }
-  }
-  if (isNativeRevenueCatAvailable()) {
-    try {
-      return await hasNativeProEntitlement()
     } catch {
       return false
     }
@@ -86,9 +118,18 @@ export async function syncEntitlementPreferringStore(options?: {
 
   let serverEntitlement: ServerEntitlement | null = null
   let serverSynced = false
+  let authError: string | undefined
   try {
-    serverEntitlement = await fetchServerEntitlement(refreshStripe)
-    serverSynced = serverEntitlement !== null
+    // Force-refresh auth before post-purchase sync (native paywall can outlive token TTL).
+    await refreshAuthToken()
+    let once = await fetchServerEntitlementOnce(refreshStripe)
+    if (!once.entitlement && once.authError) {
+      await refreshAuthToken()
+      once = await fetchServerEntitlementOnce(refreshStripe)
+    }
+    serverEntitlement = once.entitlement
+    serverSynced = once.entitlement !== null
+    authError = once.authError
   } catch {
     serverSynced = false
   }
@@ -106,7 +147,12 @@ export async function syncEntitlementPreferringStore(options?: {
       subscriptionStatus: 'active',
       source: 'revenuecat',
     })
-    return { isPro: true, serverSynced, source: 'revenuecat' }
+    return { isPro: true, serverSynced, source: 'revenuecat', authError }
+  }
+
+  // Capgo / local grant may already have set isPro before sync ran.
+  if (useStore.getState().profile.isPro) {
+    return { isPro: true, serverSynced, source: 'revenuecat', authError }
   }
 
   if (serverEntitlement) {
@@ -114,7 +160,7 @@ export async function syncEntitlementPreferringStore(options?: {
     return { isPro: false, serverSynced: true, source: 'server' }
   }
 
-  return { isPro: false, serverSynced, source: 'none' }
+  return { isPro: false, serverSynced, source: 'none', authError }
 }
 
 /** Sync server + RevenueCat SDK entitlement on app launch (after purchases SDK init). */

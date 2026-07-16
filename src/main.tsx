@@ -15,7 +15,7 @@ initBlockingSync()
 
 void subscribeNativeCustomerInfoUpdates((info) => {
   if (info.isPro) {
-    void syncEntitlementAfterPurchase()
+    void syncEntitlementAfterPurchase().catch(() => {})
   }
 })
 

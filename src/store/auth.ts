@@ -219,13 +219,16 @@ export const useAuthStore = create<AuthState>()(
       },
 
       refreshToken: async () => {
-        const { usesFirebase } = get()
+        const { usesFirebase, token } = get()
         if (usesFirebase && isFirebaseConfigured()) {
-          const idToken = await firebaseGetIdToken()
+          // Force refresh after long native sheets (IAP paywall) so the server
+          // does not reject a stale ID token.
+          let idToken = await firebaseGetIdToken(true)
+          if (!idToken) idToken = await firebaseGetIdToken(false)
           if (idToken) set({ token: idToken })
           return idToken
         }
-        return get().token
+        return token
       },
 
       syncNow: async () => {

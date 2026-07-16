@@ -9,7 +9,11 @@ import {
   deleteUser,
   getEntitlement,
 } from './db.js'
-import { verifyFirebaseIdToken } from './firebase-admin.js'
+import {
+  isFirebaseAdminConfigured,
+  looksLikeFirebaseIdToken,
+  verifyFirebaseIdToken,
+} from './firebase-admin.js'
 import {
   entitlementFromAppState,
   mergeEntitlementIntoAppState,
@@ -61,8 +65,26 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     return next()
   }
 
+  // Firebase clients send ID tokens; without Admin credentials jwt.verify fails with a
+  // misleading "Invalid or expired token". Surface a clearer, actionable error.
+  if (looksLikeFirebaseIdToken(token) && !isFirebaseAdminConfigured()) {
+    return res.status(401).json({
+      error:
+        'Server cannot verify Firebase login. Add firebase-service-account.json (or FIREBASE_SERVICE_ACCOUNT_JSON) on the API host, then restart.',
+      code: 'FIREBASE_ADMIN_MISSING',
+    })
+  }
+
   const payload = verifyToken(token)
-  if (!payload) return res.status(401).json({ error: 'Invalid or expired token' })
+  if (!payload) {
+    if (looksLikeFirebaseIdToken(token)) {
+      return res.status(401).json({
+        error: 'Firebase session expired. Sign out and sign in again.',
+        code: 'FIREBASE_TOKEN_INVALID',
+      })
+    }
+    return res.status(401).json({ error: 'Invalid or expired token', code: 'TOKEN_INVALID' })
+  }
   ;(req as Request & { auth: AuthPayload }).auth = payload
   next()
 }

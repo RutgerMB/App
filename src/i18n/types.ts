@@ -565,6 +565,7 @@ export interface Translations {
     restored: string
     noRestore: string
     checkoutFailed: string
+    proUnlockedOffline: string
     appleTerms: string
     stripeTerms: string
   }

@@ -123,7 +123,23 @@ export function PricingPage() {
         toast(t('pricing.checkoutFailed'), 'error')
       }
     } catch (err) {
-      toast(err instanceof Error ? err.message : t('pricing.checkoutFailed'), 'error')
+      const message = err instanceof Error ? err.message : ''
+      if (/cancel/i.test(message)) {
+        // User dismissed StoreKit / RevenueCat sheet — not an error.
+        return
+      }
+      // Never surface raw server auth strings after a store charge may have succeeded.
+      if (/invalid or expired token|firebase session|cannot verify firebase/i.test(message)) {
+        const sync = await syncEntitlementAfterPurchase().catch(() => null)
+        if (sync?.isPro) {
+          toast(t('pricing.proUnlockedOffline'), 'info')
+          navigate('/success?native=1', { replace: true, state: successNavigateState })
+          return
+        }
+        toast(t('pricing.proUnlockedOffline'), 'info')
+        return
+      }
+      toast(message || t('pricing.checkoutFailed'), 'error')
     } finally {
       setLoading(false)
     }

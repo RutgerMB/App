@@ -152,10 +152,10 @@ export async function firebaseLogout(): Promise<void> {
   await signOut(getFirebaseAuth())
 }
 
-export async function firebaseGetIdToken(): Promise<string | null> {
+export async function firebaseGetIdToken(forceRefresh = false): Promise<string | null> {
   const user = getFirebaseAuth().currentUser
   if (!user) return null
-  return user.getIdToken()
+  return user.getIdToken(forceRefresh)
 }
 
 export async function firebaseLoadAppState(uid: string): Promise<AppState | null> {

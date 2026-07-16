@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor
 public enum PaywallPresenter {
     private static weak var presentedController: UIViewController?
+    private static var dismissContinuations: [CheckedContinuation<Void, Never>] = []
 
     public static func topViewController() -> UIViewController? {
         let scenes = UIApplication.shared.connectedScenes
@@ -15,7 +16,31 @@ public enum PaywallPresenter {
         return root
     }
 
-    /// Returns `true` when a paywall sheet is shown (or already visible).
+    /// Present paywall and wait until it is dismissed (purchase, close, or swipe).
+    public static func presentPaywallAndWait(from viewController: UIViewController? = nil) async -> Bool {
+        if presentedController != nil {
+            await waitUntilDismissed()
+            return true
+        }
+        guard let host = viewController ?? topViewController() else { return false }
+
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            dismissContinuations.append(continuation)
+
+            let paywall = UIHostingController(rootView: RepLockPaywallView())
+            paywall.modalPresentationStyle = .pageSheet
+            if let sheet = paywall.sheetPresentationController {
+                sheet.detents = [.large()]
+                sheet.prefersGrabberVisible = true
+            }
+            presentedController = paywall
+            paywall.presentationController?.delegate = PresentationDelegate.shared
+            host.present(paywall, animated: true)
+        }
+        return true
+    }
+
+    /// Returns `true` when a paywall sheet is shown (or already visible). Non-blocking.
     @discardableResult
     public static func presentPaywall(from viewController: UIViewController? = nil) -> Bool {
         if presentedController != nil { return true }
@@ -54,6 +79,18 @@ public enum PaywallPresenter {
     /// Clears the presented sheet reference (e.g. after programmatic dismiss).
     public static func clearPresentedReference() {
         presentedController = nil
+        let pending = dismissContinuations
+        dismissContinuations = []
+        for continuation in pending {
+            continuation.resume()
+        }
+    }
+
+    private static func waitUntilDismissed() async {
+        guard presentedController != nil else { return }
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            dismissContinuations.append(continuation)
+        }
     }
 }
 

@@ -17,9 +17,11 @@ export interface RepLockRevenueCatPlugin {
   logIn(options: { appUserID: string }): Promise<RepLockRevenueCatCustomerInfo>
   hasProEntitlement(): Promise<{ isPro: boolean; entitlementId: string }>
   getCustomerInfo(): Promise<RepLockRevenueCatCustomerInfo>
-  purchase(options: { period: 'monthly' | 'yearly' }): Promise<RepLockRevenueCatCustomerInfo>
+  purchase(options: {
+    period: 'monthly' | 'yearly'
+  }): Promise<RepLockRevenueCatCustomerInfo & { cancelled?: boolean }>
   restorePurchases(): Promise<RepLockRevenueCatCustomerInfo>
-  presentPaywall(): Promise<{ presented: boolean }>
+  presentPaywall(): Promise<{ presented: boolean; isPro?: boolean }>
   presentCustomerCenter(): Promise<{ presented: boolean }>
   addListener(
     eventName: 'customerInfoUpdated',
@@ -48,12 +50,15 @@ export async function isNativeRevenueCatPluginReady(): Promise<boolean> {
   }
 }
 
-/** Present the native RevenueCat Paywall (server-driven SwiftUI). */
-export async function presentNativePaywall(): Promise<{ presented: boolean }> {
-  if (!isNativeRevenueCatPlatform()) return { presented: false }
+/** Present the native RevenueCat Paywall (server-driven SwiftUI). Resolves when dismissed. */
+export async function presentNativePaywall(): Promise<{ presented: boolean; isPro: boolean }> {
+  if (!isNativeRevenueCatPlatform()) return { presented: false, isPro: false }
   try {
     const result = await RepLockRevenueCatNative.presentPaywall()
-    return { presented: Boolean(result?.presented) }
+    return {
+      presented: Boolean(result?.presented),
+      isPro: Boolean(result?.isPro),
+    }
   } catch (error) {
     throw error instanceof Error ? error : new Error('Failed to present paywall')
   }
@@ -72,7 +77,7 @@ export async function presentNativeCustomerCenter(): Promise<{ presented: boolea
 
 /**
  * Open native paywall when the plugin is ready; otherwise call `fallback` (e.g. navigate to /pricing).
- * Returns true when the native sheet was presented.
+ * Returns true when the native sheet was presented. Syncs Pro after dismiss when entitled.
  */
 export async function openUpgradeOrFallback(fallback: () => void): Promise<boolean> {
   if (!isNativeRevenueCatPlatform()) {
@@ -85,10 +90,14 @@ export async function openUpgradeOrFallback(fallback: () => void): Promise<boole
     return false
   }
   try {
-    const { presented } = await presentNativePaywall()
+    const { presented, isPro } = await presentNativePaywall()
     if (!presented) {
       fallback()
       return false
+    }
+    if (isPro) {
+      const { syncEntitlementAfterPurchase } = await import('@/lib/entitlement')
+      await syncEntitlementAfterPurchase().catch(() => {})
     }
     return true
   } catch {

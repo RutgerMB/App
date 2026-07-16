@@ -128,9 +128,14 @@ public class RepLockRevenueCatPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func presentPaywall(_ call: CAPPluginCall) {
         Task { @MainActor [self] in
-            let presented = PaywallPresenter.presentPaywall(from: repLockPresenter(for: self))
-            if presented {
-                call.resolve(["presented": true])
+            let shown = await PaywallPresenter.presentPaywallAndWait(from: repLockPresenter(for: self))
+            if shown {
+                // Refresh in case purchase completed while the sheet was open.
+                _ = try? await RevenueCatManager.shared.refreshCustomerInfo()
+                call.resolve([
+                    "presented": true,
+                    "isPro": RevenueCatManager.shared.hasProEntitlement(),
+                ])
             } else {
                 repLockReject(call, "Could not present paywall — no host view controller", code: "NO_HOST")
             }
