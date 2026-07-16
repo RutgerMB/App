@@ -247,9 +247,15 @@ export function OnboardingPage() {
       if (screenTimePlatform === 'ios') {
         const result = await requestIosScreenTimeAccess()
         if (!result.ok) {
-          const key = `onboarding.screenTimeIosError_${result.reason}` as const
-          const msg = t(key as 'onboarding.screenTimeIosError_denied')
-          toast(msg !== key ? msg : t('onboarding.screenTimeIosError_failed'), 'error')
+          if (result.reason === 'denied') {
+            toast(t('onboarding.screenTimeIosError_denied'), 'error')
+          } else if (result.reason === 'notDetermined') {
+            toast(t('onboarding.screenTimeIosError_notDetermined'), 'error')
+          } else {
+            const key = `onboarding.screenTimeIosError_${result.reason}` as const
+            const msg = t(key as 'onboarding.screenTimeIosError_failed')
+            toast(msg !== key ? msg : t('onboarding.screenTimeIosError_failed'), 'error')
+          }
         } else if (result.authorized) {
           toast(t('onboarding.screenTimePermissionGranted'), 'success')
         }

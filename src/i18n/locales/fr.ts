@@ -152,7 +152,10 @@ export const fr = {
     screenTimePermissionIosEstimate: 'Daily hours still use your estimate on the next screen.',
     screenTimePermissionIosSkip: 'Tap Continue to skip — authorize later in Apps.',
     screenTimeIosAuthorized: 'Screen Time authorized.',
-    screenTimeIosError_denied: 'Screen Time was denied.',
+    screenTimeIosError_denied:
+      'Screen Time was denied. On iPhone: Settings → Screen Time → allow RepLock, then return and tap Authorize again.',
+    screenTimeIosError_notDetermined:
+      'Screen Time is not fully set yet. Tap Authorize again, or open Settings → Screen Time.',
     screenTimeIosError_plugin_missing: 'Blocking plugin not loaded. On your Mac run npm run cap:ios:sync, then Run ▶ in Xcode again.',
     screenTimeIosError_failed: 'Could not show permission dialog.',
     screenTimeIosError_unsupported: 'Only available on iPhone.',
@@ -383,7 +386,8 @@ export const fr = {
     iosPickAppsButton: 'Choose apps to block',
     iosPickAppsAgain: 'Change selected apps',
     iosNoAppsPicked: 'No apps selected yet.',
-    iosPickError_denied: 'Screen Time access was denied.',
+    iosPickError_denied: 'Screen Time access was denied. Open Settings → Screen Time, allow RepLock, then Authorize again.',
+    iosPickError_notDetermined: 'Screen Time not authorized yet. Tap Authorize Screen Time first, then pick apps.',
     iosPickError_plugin_missing: 'Blocking plugin not loaded. On your Mac run npm run cap:ios:sync, then Run ▶ in Xcode again.',
     iosPickError_auth_required: 'Authorize Screen Time first.',
     iosPickError_failed: 'Could not open app picker.',

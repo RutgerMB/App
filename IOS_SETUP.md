@@ -192,6 +192,23 @@ That’s expected if you didn’t run `cap:ios:sync` — browser uses `localhost
 
 If it still fails: **File → Packages → Reset Package Caches**, Clean Build Folder, Run again. Confirm `ios/App/App/capacitor.config.json` includes `"RepLockControlsPlugin"` in `packageClassList`.
 
+**"Screen Time was denied" after you tapped Allow**
+
+Family Controls authorization is **not** the same toggle as Screen Time preferences. RepLock reads `AuthorizationCenter.shared.authorizationStatus` (`.approved` / `.denied` / `.notDetermined`).
+
+1. Tap **Authorize Screen Time** in the app again (onboarding or Apps → blocking card). Apple’s dialog should appear once; after Allow, status should be **approved**.
+2. If the toast still says denied: on the iPhone open **Settings → Screen Time** and ensure Screen Time is on. Look for RepLock / Family Controls restrictions and allow the app.
+3. Return to RepLock (app re-checks on focus) and tap **Authorize Screen Time** again.
+4. Approved ≠ apps picked: after authorization you still need Apple’s **app picker** to choose which apps to shield. That is normal and is **not** a denial.
+
+**Mac rebuild after this fix**
+
+```bash
+git pull
+npm run cap:ios:sync
+# Xcode: Clean Build Folder (⇧⌘K), then Run ▶ on a physical iPhone
+```
+
 **Swift compile errors (`NativePurchases`, StoreKit, or Capacitor plugin errors)**
 
 1. Run `npm run cap:ios:sync` (pull latest first).

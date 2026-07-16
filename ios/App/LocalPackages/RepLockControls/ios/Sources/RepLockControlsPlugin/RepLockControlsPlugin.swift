@@ -66,10 +66,14 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
             call.resolve(["authorized": false, "status": "unsupported"])
             return
         }
-        call.resolve([
-            "authorized": AuthorizationManager.isAuthorized(),
-            "status": AuthorizationManager.statusLabel(),
-        ])
+        // FamilyControls AuthorizationCenter must be read on the main actor.
+        Task { @MainActor in
+            let refreshed = AuthorizationManager.refreshStatus()
+            call.resolve([
+                "authorized": refreshed.authorized,
+                "status": refreshed.status,
+            ])
+        }
     }
 
     @objc func requestAuthorization(_ call: CAPPluginCall) {
@@ -80,13 +84,28 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
 
         Task { @MainActor in
             do {
-                try await AuthorizationManager.requestAuthorization()
+                let result = try await AuthorizationManager.requestAuthorization()
                 call.resolve([
-                    "authorized": AuthorizationManager.isAuthorized(),
-                    "status": AuthorizationManager.statusLabel(),
+                    "authorized": result.authorized,
+                    "status": result.status,
                 ])
             } catch {
-                repLockReject(call, "Authorization failed: \(error.localizedDescription)")
+                // Dialog may error while Settings already shows approved — re-check first.
+                let refreshed = AuthorizationManager.refreshStatus()
+                if refreshed.authorized {
+                    call.resolve([
+                        "authorized": true,
+                        "status": refreshed.status,
+                    ])
+                    return
+                }
+                let status = refreshed.status
+                let code = status == "denied" ? "DENIED" : (status == "notDetermined" ? "NOT_DETERMINED" : "FAILED")
+                repLockReject(
+                    call,
+                    "Authorization failed: \(error.localizedDescription) (status=\(status))",
+                    code: code
+                )
             }
         }
     }
@@ -97,19 +116,14 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        guard AuthorizationManager.isAuthorized() else {
-            repLockReject(call, "Screen Time authorization required")
-            return
-        }
-
-        let store = SelectionStore.shared
-        let initial = store.loadSelection()
-
-        DispatchQueue.main.async { [weak self] in
-            guard let self else {
-                repLockReject(call, "Plugin unavailable")
+        Task { @MainActor in
+            guard AuthorizationManager.isAuthorized() else {
+                repLockReject(call, "Screen Time authorization required")
                 return
             }
+
+            let store = SelectionStore.shared
+            let initial = store.loadSelection()
 
             guard let presenter = repLockPresenter(for: self) else {
                 repLockReject(call, "Unable to present app picker")
@@ -145,19 +159,21 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        guard AuthorizationManager.isAuthorized() else {
-            repLockReject(call, "Screen Time authorization required")
-            return
-        }
+        Task { @MainActor in
+            guard AuthorizationManager.isAuthorized() else {
+                repLockReject(call, "Screen Time authorization required")
+                return
+            }
 
-        guard let rules = repLockRules(from: call) else {
-            repLockReject(call, "rules array required")
-            return
-        }
+            guard let rules = repLockRules(from: call) else {
+                repLockReject(call, "rules array required")
+                return
+            }
 
-        let selection = SelectionStore.shared.loadSelection()
-        ShieldManager.applyRules(rules, selection: selection)
-        call.resolve(["ok": true])
+            let selection = SelectionStore.shared.loadSelection()
+            ShieldManager.applyRules(rules, selection: selection)
+            call.resolve(["ok": true])
+        }
     }
 
     @objc func clearShields(_ call: CAPPluginCall) {

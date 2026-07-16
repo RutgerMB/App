@@ -37,6 +37,7 @@ open ios/App/App.xcodeproj
 2. In Xcode → Signing & Capabilities: **Family Controls** + App Group `group.com.replock.fitness` must be present (see `App.entitlements`).
 3. Always sync with `npm run cap:ios:sync` (not bare `npx cap sync`) so `RepLockControls` stays linked **and** `RepLockControlsPlugin` is injected into `capacitor.config.json` → `packageClassList` (required for Capacitor to load it).
 4. Test on a **physical iPhone** (Simulator cannot authorize Screen Time).
+5. If you tapped **Allow** but the app still says denied: return to RepLock and tap **Authorize** again; or **Settings → Screen Time** → allow RepLock, then Authorize in-app. After approval you still must use the **app picker** (that is not a denial).
 
 Without Apple’s Family Controls approval on the App ID, Authorize and the app picker will appear to do nothing or fail immediately.
 

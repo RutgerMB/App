@@ -182,6 +182,7 @@ export interface Translations {
     screenTimePermissionIosSkip: string
     screenTimeIosAuthorized: string
     screenTimeIosError_denied: string
+    screenTimeIosError_notDetermined: string
     screenTimeIosError_plugin_missing: string
     screenTimeIosError_failed: string
     screenTimeIosError_unsupported: string
@@ -360,6 +361,7 @@ export interface Translations {
     iosPickAppsAgain: string
     iosNoAppsPicked: string
     iosPickError_denied: string
+    iosPickError_notDetermined: string
     iosPickError_plugin_missing: string
     iosPickError_auth_required: string
     iosPickError_failed: string

@@ -7,12 +7,16 @@ import {
   isRepLockControlsPluginReady,
   presentIosActivityPicker,
   requestIosControlsAuthorization,
+  requestIosControlsAuthorizationDetailed,
   getIosControlsStatus,
 } from '@/lib/replock-controls'
 
 export type IosPickAppsResult =
   | { ok: true; apps: DeviceAppDefinition[] }
-  | { ok: false; reason: 'unsupported' | 'denied' | 'plugin_missing' | 'auth_required' | 'failed' }
+  | {
+      ok: false
+      reason: 'unsupported' | 'denied' | 'notDetermined' | 'plugin_missing' | 'auth_required' | 'failed'
+    }
 
 export interface NativeInstalledApp {
   packageName: string
@@ -104,12 +108,15 @@ export async function pickIosAppsWithAuth(): Promise<IosPickAppsResult> {
   if (!ready) return { ok: false, reason: 'plugin_missing' }
 
   try {
-    let status = await getIosControlsStatus()
+    const status = await getIosControlsStatus()
     if (!status.authorized) {
-      const authorized = await requestIosControlsAuthorization()
-      if (!authorized) return { ok: false, reason: 'denied' }
-      status = await getIosControlsStatus()
-      if (!status.authorized) return { ok: false, reason: 'denied' }
+      const auth = await requestIosControlsAuthorizationDetailed()
+      if (!auth.ok) {
+        if (auth.reason === 'denied') return { ok: false, reason: 'denied' }
+        if (auth.reason === 'notDetermined') return { ok: false, reason: 'notDetermined' }
+        return { ok: false, reason: 'failed' }
+      }
+      // Successful request = user allowed; do not fail on a lagging follow-up check.
     }
 
     await presentIosActivityPicker()

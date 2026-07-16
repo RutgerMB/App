@@ -156,10 +156,14 @@ export const en: Translations = {
       'Daily screen time hours on iPhone still use your estimate on the next screen for now. Authorization unlocks real app blocking.',
     screenTimePermissionIosSkip: 'Tap Continue below to skip for now — you can authorize later in Apps.',
     screenTimeIosAuthorized: 'Screen Time authorized — you can block apps in the next steps.',
-    screenTimeIosError_denied: 'Screen Time was denied. You can allow it later in Settings → Screen Time.',
+    screenTimeIosError_denied:
+      'Screen Time was denied. On iPhone: Settings → Screen Time → allow RepLock (or remove the restriction), then return here and tap Authorize again.',
+    screenTimeIosError_notDetermined:
+      'Screen Time is not fully set yet. Tap Authorize again, or open Settings → Screen Time and allow RepLock, then come back.',
     screenTimeIosError_plugin_missing:
       'Blocking plugin not loaded. On your Mac run npm run cap:ios:sync, then Run ▶ in Xcode again.',
-    screenTimeIosError_failed: 'Could not show Apple\'s permission dialog. Rebuild the app from Xcode after cap:ios:sync.',
+    screenTimeIosError_failed:
+      'Could not show Apple\'s permission dialog. Rebuild the app from Xcode after cap:ios:sync.',
     screenTimeIosError_unsupported: 'Screen Time authorization is only available on iPhone.',
     screenTimePermissionWeb:
       'Screen time cannot be read in the browser. Your estimate on the next screen will personalize your plan.',
@@ -524,7 +528,9 @@ export const en: Translations = {
     iosPickAppsAgain: 'Change selected apps',
     iosNoAppsPicked: 'No apps selected yet. Tap the button above to pick distractions.',
     iosPickError_denied:
-      'Screen Time access was denied. Open Settings → Screen Time and allow RepLock, or tap Authorize in the blocking card first.',
+      'Screen Time access was denied. Open Settings → Screen Time and allow RepLock, then tap Authorize in the blocking card and try again.',
+    iosPickError_notDetermined:
+      'Screen Time is not authorized yet. Tap Authorize Screen Time first, then pick apps.',
     iosPickError_plugin_missing:
       'Blocking plugin not loaded. On your Mac run npm run cap:ios:sync, then Run ▶ in Xcode again.',
     iosPickError_auth_required: 'Authorize Screen Time first (Apps page → blocking card, or onboarding).',

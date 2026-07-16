@@ -17,6 +17,10 @@ export interface IosControlsStatus {
   status: string
 }
 
+export type IosAuthRequestResult =
+  | { ok: true; authorized: true; status: string }
+  | { ok: false; authorized: false; status: string; reason: 'denied' | 'notDetermined' | 'failed' }
+
 interface RepLockControlsPlugin {
   isSupported(): Promise<{ supported: boolean }>
   checkAuthorization(): Promise<{ authorized: boolean; status: string }>
@@ -29,6 +33,13 @@ interface RepLockControlsPlugin {
 }
 
 const RepLockControlsNative = registerPlugin<RepLockControlsPlugin>('RepLockControls')
+
+function pluginErrorMeta(err: unknown): { message: string; code: string } {
+  const anyErr = err as { message?: string; code?: string }
+  const message = err instanceof Error ? err.message : String(anyErr?.message ?? err)
+  const code = typeof anyErr?.code === 'string' ? anyErr.code : ''
+  return { message, code }
+}
 
 export function isIosControlsAvailable(): boolean {
   return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios'
@@ -45,7 +56,7 @@ export async function getIosControlsStatus(): Promise<IosControlsStatus> {
     ])
     return {
       supported: supported,
-      authorized: auth.authorized,
+      authorized: auth.authorized === true || auth.status === 'approved',
       status: auth.status,
     }
   } catch {
@@ -53,14 +64,59 @@ export async function getIosControlsStatus(): Promise<IosControlsStatus> {
   }
 }
 
-export async function requestIosControlsAuthorization(): Promise<boolean> {
-  if (!isIosControlsAvailable()) return false
-  try {
-    const { authorized } = await RepLockControlsNative.requestAuthorization()
-    return authorized
-  } catch {
-    return false
+/** Re-check Family Controls after returning from Settings. */
+export async function refreshIosControlsAuthorization(): Promise<IosControlsStatus> {
+  return getIosControlsStatus()
+}
+
+/**
+ * Request Family Controls. Apple: non-throwing request = user allowed.
+ * Never map `notDetermined` / lag to "denied".
+ */
+export async function requestIosControlsAuthorizationDetailed(): Promise<IosAuthRequestResult> {
+  if (!isIosControlsAvailable()) {
+    return { ok: false, authorized: false, status: 'unsupported', reason: 'failed' }
   }
+  try {
+    const result = await RepLockControlsNative.requestAuthorization()
+    const status = result.status || (result.authorized ? 'approved' : 'unknown')
+    // Native reports authorized after a successful (non-throwing) request even if
+    // AuthorizationCenter briefly lags on `.notDetermined`.
+    if (result.authorized || status === 'approved') {
+      return { ok: true, authorized: true, status: status === 'notDetermined' ? 'approved' : status }
+    }
+    if (status === 'denied') {
+      return { ok: false, authorized: false, status, reason: 'denied' }
+    }
+    if (status === 'notDetermined') {
+      // Stale intermediate — re-check once before treating as failure.
+      const again = await getIosControlsStatus()
+      if (again.authorized || again.status === 'approved') {
+        return { ok: true, authorized: true, status: 'approved' }
+      }
+      return { ok: false, authorized: false, status: again.status, reason: 'notDetermined' }
+    }
+    return { ok: false, authorized: false, status, reason: 'failed' }
+  } catch (err) {
+    const { message, code } = pluginErrorMeta(err)
+    // User may have allowed in Settings while the dialog errored — refresh.
+    const again = await getIosControlsStatus()
+    if (again.authorized || again.status === 'approved') {
+      return { ok: true, authorized: true, status: 'approved' }
+    }
+    if (code === 'DENIED' || again.status === 'denied' || /denied/i.test(message)) {
+      return { ok: false, authorized: false, status: again.status || 'denied', reason: 'denied' }
+    }
+    if (code === 'NOT_DETERMINED' || again.status === 'notDetermined') {
+      return { ok: false, authorized: false, status: 'notDetermined', reason: 'notDetermined' }
+    }
+    return { ok: false, authorized: false, status: again.status || 'error', reason: 'failed' }
+  }
+}
+
+export async function requestIosControlsAuthorization(): Promise<boolean> {
+  const result = await requestIosControlsAuthorizationDetailed()
+  return result.ok && result.authorized
 }
 
 export async function presentIosActivityPicker(): Promise<number> {

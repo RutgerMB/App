@@ -3,12 +3,17 @@ import {
   getIosControlsStatus,
   isIosControlsAvailable,
   isRepLockControlsPluginReady,
-  requestIosControlsAuthorization,
+  requestIosControlsAuthorizationDetailed,
+  refreshIosControlsAuthorization,
 } from '@/lib/replock-controls'
 
 export type IosScreenTimeAuthResult =
-  | { ok: true; authorized: boolean }
-  | { ok: false; reason: 'unsupported' | 'plugin_missing' | 'denied' | 'failed' }
+  | { ok: true; authorized: boolean; status: string }
+  | {
+      ok: false
+      reason: 'unsupported' | 'plugin_missing' | 'denied' | 'notDetermined' | 'failed'
+      status?: string
+    }
 
 export interface ScreenTimeResult {
   hours: number
@@ -81,13 +86,34 @@ export async function requestIosScreenTimeAccess(): Promise<IosScreenTimeAuthRes
   if (!ready) return { ok: false, reason: 'plugin_missing' }
 
   try {
-    const authorized = await requestIosControlsAuthorization()
-    if (!authorized) return { ok: false, reason: 'denied' }
-    const status = await getIosControlsStatus()
-    return { ok: true, authorized: status.authorized }
+    const result = await requestIosControlsAuthorizationDetailed()
+    if (result.ok) {
+      return { ok: true, authorized: true, status: result.status }
+    }
+    // Do not collapse notDetermined into denied — user may still be able to retry.
+    return { ok: false, reason: result.reason, status: result.status }
   } catch {
     return { ok: false, reason: 'failed' }
   }
+}
+
+/** Re-check after user returns from Settings → Screen Time. */
+export async function refreshIosScreenTimeAccess(): Promise<IosScreenTimeAuthResult> {
+  if (!isIosControlsAvailable()) return { ok: false, reason: 'unsupported' }
+  const ready = await isRepLockControlsPluginReady()
+  if (!ready) return { ok: false, reason: 'plugin_missing' }
+
+  const status = await refreshIosControlsAuthorization()
+  if (status.authorized || status.status === 'approved') {
+    return { ok: true, authorized: true, status: status.status }
+  }
+  if (status.status === 'denied') {
+    return { ok: false, reason: 'denied', status: status.status }
+  }
+  if (status.status === 'notDetermined') {
+    return { ok: false, reason: 'notDetermined', status: status.status }
+  }
+  return { ok: false, reason: 'failed', status: status.status }
 }
 
 export async function fetchDailyScreenTimeHours(): Promise<ScreenTimeResult | null> {

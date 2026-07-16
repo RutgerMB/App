@@ -156,7 +156,10 @@ export const nl = {
       'Dagelijkse schermtijd op iPhone gebruikt voorlopig je schatting op het volgende scherm. Autorisatie maakt echt blokkeren mogelijk.',
     screenTimePermissionIosSkip: 'Tik op Doorgaan om over te slaan — je kunt later autoriseren via Apps.',
     screenTimeIosAuthorized: 'Screen Time geautoriseerd — je kunt apps blokkeren in de volgende stappen.',
-    screenTimeIosError_denied: 'Screen Time geweigerd. Sta het later toe via Instellingen → Schermtijd.',
+    screenTimeIosError_denied:
+      'Screen Time geweigerd. Op iPhone: Instellingen → Schermtijd → sta RepLock toe, kom terug en tik opnieuw op Autoriseren.',
+    screenTimeIosError_notDetermined:
+      'Screen Time is nog niet volledig ingesteld. Tik opnieuw op Autoriseren, of open Instellingen → Schermtijd.',
     screenTimeIosError_plugin_missing: 'Blokkeer-plugin niet geladen. Run op je Mac: npm run cap:ios:sync, daarna Run ▶ in Xcode.',
     screenTimeIosError_failed: 'Kon Apple\'s dialoog niet tonen. Rebuild vanuit Xcode na cap:ios:sync.',
     screenTimeIosError_unsupported: 'Screen Time-autorisatie werkt alleen op iPhone.',
@@ -387,7 +390,8 @@ export const nl = {
     iosPickAppsButton: 'Kies apps om te blokkeren',
     iosPickAppsAgain: 'Geselecteerde apps wijzigen',
     iosNoAppsPicked: 'Nog geen apps gekozen. Tik op de knop hierboven.',
-    iosPickError_denied: 'Screen Time-toegang geweigerd. Sta RepLock toe via Instellingen → Schermtijd.',
+    iosPickError_denied: 'Screen Time-toegang geweigerd. Sta RepLock toe via Instellingen → Schermtijd, daarna opnieuw Autoriseren.',
+    iosPickError_notDetermined: 'Screen Time nog niet geautoriseerd. Tik eerst op Screen Time autoriseren, daarna apps kiezen.',
     iosPickError_plugin_missing: 'Blokkeer-plugin niet geladen. Run op je Mac: npm run cap:ios:sync, daarna opnieuw Run ▶ in Xcode.',
     iosPickError_auth_required: 'Autoriseer eerst Screen Time (blokkeer-kaart op Apps-pagina).',
     iosPickError_failed: 'Kon Apple\'s app-kiezer niet openen. Probeer opnieuw.',
