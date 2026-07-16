@@ -50,10 +50,13 @@ public enum PaywallPresenter {
     }
 }
 
+@MainActor
 private final class PresentationDelegate: NSObject, UIAdaptivePresentationControllerDelegate {
     static let shared = PresentationDelegate()
 
-    func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
-        PaywallPresenter.clearPresentedReference()
+    nonisolated func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+        Task { @MainActor in
+            PaywallPresenter.clearPresentedReference()
+        }
     }
 }

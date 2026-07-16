@@ -8,6 +8,7 @@ private func repLockReject(_ call: CAPPluginCall, _ message: String, code: Strin
     RepLockRejectPluginCall(call, message, code)
 }
 
+@MainActor
 private func repLockPresenter(for plugin: CAPPlugin) -> UIViewController? {
     if let bridgeObject = plugin.bridge as? NSObject,
        let vc = bridgeObject.value(forKey: "viewController") as? UIViewController {
