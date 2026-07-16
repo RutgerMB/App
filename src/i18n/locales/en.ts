@@ -342,6 +342,7 @@ export const en: Translations = {
     totalReps: 'Total reps',
     totalSeconds: 'Total seconds',
     numberOfSets: 'Number of sets',
+    setsRequired: 'Enter how many sets you want (at least 1).',
     perSetPreview: '≈ {amount} {unit} per set',
     estimatedEarn: 'Screen time you’ll earn',
     reps: 'reps',

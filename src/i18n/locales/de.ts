@@ -322,6 +322,7 @@ export const de = {
     totalReps: 'Gesamtwiederholungen',
     totalSeconds: 'Gesamtsekunden',
     numberOfSets: 'Anzahl Sätze',
+    setsRequired: 'Gib an, wie viele Sätze du willst (mindestens 1).',
     perSetPreview: '≈ {amount} {unit} pro Satz',
     estimatedEarn: 'Verdiente Bildschirmzeit',
     reps: 'Wiederholungen',

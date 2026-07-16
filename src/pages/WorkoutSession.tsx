@@ -23,7 +23,7 @@ interface ExerciseResult {
   durationSeconds: number
 }
 
-const DEFAULT_SET_COUNT = 3
+const DEFAULT_SET_COUNT = 0
 
 export function WorkoutSessionPage() {
   const [searchParams] = useSearchParams()
@@ -38,6 +38,7 @@ export function WorkoutSessionPage() {
   const [phase, setPhase] = useState<Phase>('intro')
   const [totalAmount, setTotalAmount] = useState(0)
   const [setCount, setSetCount] = useState(DEFAULT_SET_COUNT)
+  const [setsTouched, setSetsTouched] = useState(false)
   const [currentSet, setCurrentSet] = useState(1)
   const [setPlan, setSetPlan] = useState<number[]>([])
   const [elapsed, setElapsed] = useState(0)
@@ -69,11 +70,15 @@ export function WorkoutSessionPage() {
     }, 1000)
   }
 
+  const setsValid = setCount >= 1 && setCount <= 20
+  const setsError = setsTouched && !setsValid ? t('exercise.setsRequired') : undefined
+
   const resetForStep = (nextStep: number, target: number) => {
     clearTimer()
     setStep(nextStep)
     setTotalAmount(target)
     setSetCount(DEFAULT_SET_COUNT)
+    setSetsTouched(false)
     setCurrentSet(1)
     setSetPlan([])
     setElapsed(0)
@@ -81,6 +86,8 @@ export function WorkoutSessionPage() {
   }
 
   const beginExercise = () => {
+    setSetsTouched(true)
+    if (!setsValid) return
     const planSets = distributeAcrossSets(totalAmount, setCount)
     setSetPlan(planSets)
     setCurrentSet(1)
@@ -181,8 +188,8 @@ export function WorkoutSessionPage() {
   const bonusTotal = Math.round(baseTotal * (plan.bonusPercent / 100) * 10) / 10
 
   return (
-    <div className="min-h-dvh bg-surface-0 noise flex flex-col safe-top safe-bottom">
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+    <div className="min-h-dvh w-full max-w-full overflow-x-hidden bg-surface-0 noise flex flex-col safe-top safe-bottom">
+      <div className="pointer-events-none fixed inset-0 overflow-hidden bg-surface-0">
         <div className={`absolute top-1/3 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full blur-3xl opacity-20 bg-gradient-to-br ${exercise.gradient}`} />
       </div>
 
@@ -239,22 +246,39 @@ export function WorkoutSessionPage() {
                 <Input
                   id="set-count"
                   type="number"
-                  min={1}
+                  inputMode="numeric"
+                  min={0}
                   max={20}
                   label={t('exercise.numberOfSets')}
-                  value={setCount}
-                  onChange={(e) => setSetCount(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+                  value={setCount === 0 ? '' : setCount}
+                  placeholder="0"
+                  error={setsError}
+                  onChange={(e) => {
+                    setSetsTouched(true)
+                    const raw = e.target.value
+                    if (raw === '') {
+                      setSetCount(0)
+                      return
+                    }
+                    setSetCount(Math.max(0, Math.min(20, Number(raw) || 0)))
+                  }}
                   className="h-14 text-lg"
                 />
               </div>
-              <div className="mt-6 p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 text-center">
-                <p className="text-sm text-white/55">
-                  {t('exercise.perSetPreview', {
-                    amount: distributeAcrossSets(totalAmount, setCount)[0],
-                    unit: unitLabel,
-                  })}
+              {setsValid ? (
+                <div className="mt-6 p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 text-center">
+                  <p className="text-sm text-white/55">
+                    {t('exercise.perSetPreview', {
+                      amount: distributeAcrossSets(totalAmount, setCount)[0],
+                      unit: unitLabel,
+                    })}
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-4 text-center text-sm text-amber-300/90">
+                  {t('exercise.setsRequired')}
                 </p>
-              </div>
+              )}
             </motion.div>
           )}
 
@@ -305,14 +329,14 @@ export function WorkoutSessionPage() {
         </AnimatePresence>
       </div>
 
-      <div className="relative z-10 px-6 pb-6 space-y-3 shrink-0">
+      <div className="relative z-10 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-3 shrink-0">
         {phase === 'intro' && (
           <MotionButton fullWidth size="xl" onClick={() => setPhase('plan')}>
             {t('exercise.startExercise')}
           </MotionButton>
         )}
         {phase === 'plan' && (
-          <MotionButton fullWidth size="xl" onClick={beginExercise}>
+          <MotionButton fullWidth size="xl" disabled={!setsValid} onClick={beginExercise}>
             {t('exercise.startSet', { number: 1 })}
           </MotionButton>
         )}

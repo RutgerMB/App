@@ -321,6 +321,7 @@ export const fr = {
     totalReps: 'Répétitions totales',
     totalSeconds: 'Secondes totales',
     numberOfSets: 'Nombre de séries',
+    setsRequired: 'Indique le nombre de séries souhaité (au moins 1).',
     perSetPreview: '≈ {amount} {unit} par série',
     estimatedEarn: 'Temps d\'écran que tu gagneras',
     reps: 'répétitions',

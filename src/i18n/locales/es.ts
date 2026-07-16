@@ -321,6 +321,7 @@ export const es = {
     totalReps: 'Repeticiones totales',
     totalSeconds: 'Segundos totales',
     numberOfSets: 'Número de series',
+    setsRequired: 'Indica cuántas series quieres (mínimo 1).',
     perSetPreview: '≈ {amount} {unit} por serie',
     estimatedEarn: 'Tiempo de pantalla que ganarás',
     reps: 'repeticiones',

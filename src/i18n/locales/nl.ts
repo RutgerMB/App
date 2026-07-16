@@ -325,6 +325,7 @@ export const nl = {
     totalReps: 'Totaal herhalingen',
     totalSeconds: 'Totaal seconden',
     numberOfSets: 'Aantal sets',
+    setsRequired: 'Vul in hoeveel sets je wilt (minstens 1).',
     perSetPreview: '≈ {amount} {unit} per set',
     estimatedEarn: 'Schermtijd die je verdient',
     reps: 'herhalingen',

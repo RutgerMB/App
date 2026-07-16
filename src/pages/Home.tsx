@@ -57,7 +57,8 @@ export function HomePage() {
           className="relative pt-4 pb-2 text-center"
         >
           <div
-            className="absolute -inset-x-6 -top-8 bottom-0 bg-gradient-to-b from-indigo-500/[0.14] via-violet-500/[0.05] to-transparent rounded-[2.5rem] pointer-events-none"
+            className="absolute -inset-x-5 bottom-0 pointer-events-none rounded-b-[2.5rem] bg-gradient-to-b from-indigo-500/[0.16] via-violet-500/[0.06] to-transparent"
+            style={{ top: 'calc(-1 * (env(safe-area-inset-top, 0px) + 1.25rem))' }}
             aria-hidden
           />
           <div className="relative space-y-5">
@@ -166,7 +167,7 @@ export function HomePage() {
                 {t('home.viewAllApps')}
               </button>
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+            <div className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1 -mx-1 px-1 max-w-full scrollbar-none">
               {apps.slice(0, 6).map((app) => (
                 <button
                   key={app.id}

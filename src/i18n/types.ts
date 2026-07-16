@@ -305,6 +305,7 @@ export interface Translations {
     totalReps: string
     totalSeconds: string
     numberOfSets: string
+    setsRequired: string
     perSetPreview: string
     estimatedEarn: string
     reps: string
