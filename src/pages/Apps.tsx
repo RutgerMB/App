@@ -25,6 +25,7 @@ import { QuickBlockCard, ActiveScheduleCard } from '@/components/apps/AppsHubCar
 import { useTranslation } from '@/i18n/context'
 import { canPickInstalledApps, usesIosActivityPicker } from '@/lib/device-apps'
 import type { DeviceAppDefinition } from '@/data/device-apps'
+import { openUpgradeOrFallback } from '@/lib/replock-revenuecat-native'
 
 export function AppsPage() {
   const navigate = useNavigate()
@@ -96,7 +97,7 @@ export function AppsPage() {
           : t('apps.limitReached')
       toast(msg, 'error')
       setPendingApp(null)
-      navigate('/pricing')
+      void openUpgradeOrFallback(() => navigate('/pricing'))
     }
   }
 

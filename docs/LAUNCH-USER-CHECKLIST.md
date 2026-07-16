@@ -31,9 +31,33 @@ open ios/App/App.xcodeproj
 - Bundle ID: `app.replock.bleeker`  
 - Capabilities: **Family Controls**, App Group `group.com.replock.fitness`
 
+**Screen Time / “Authorize Screen Time” / app picker:**
+
+1. In [Apple Developer](https://developer.apple.com) → Identifiers → your App ID → enable **Family Controls** (request approval from Apple if prompted; wellbeing / parental-controls style justification).
+2. In Xcode → Signing & Capabilities: **Family Controls** + App Group `group.com.replock.fitness` must be present (see `App.entitlements`).
+3. Always sync with `npm run cap:ios:sync` (not bare `npx cap sync`) so `RepLockControls` stays linked.
+4. Test on a **physical iPhone** (Simulator cannot authorize Screen Time).
+
+Without Apple’s Family Controls approval on the App ID, Authorize and the app picker will appear to do nothing or fail immediately.
+
 ### 5. Set production API URL (release build)
 
-Ensure `.env` or Xcode build settings use your deployed API — not `127.0.0.1`.
+**Do you need a local server on the PC/Mac?**
+
+| Build type | Need local `npm run dev`? |
+|------------|---------------------------|
+| **Release / production** with `VITE_API_URL=https://YOUR-DEPLOYED-API` baked in | **No** — phone talks to the deployed API |
+| **Dev** (`npm run cap:ios:sync` / LAN IP in `.env.iphone-dev`) | **Yes** — Mac/PC must run the API on port 3001, same Wi‑Fi |
+
+For App Store / TestFlight / production device builds, set in `.env` (or CI secrets) before `vite build` / `npm run build:mobile`:
+
+```env
+VITE_API_URL=https://YOUR-API-DOMAIN
+```
+
+Do **not** ship builds that only have `VITE_API_URL_NATIVE=http://127.0.0.1:3001` or a LAN IP — those require your computer to be online.
+
+Webhook URL (RevenueCat): `https://YOUR-API-DOMAIN/api/webhooks/revenuecat`
 
 ### 6. Run on physical iPhone (smoke test)
 

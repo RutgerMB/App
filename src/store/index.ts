@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { AppState, ExerciseSession, ExerciseType, LockedApp, WorkoutPlanSession } from '@/types'
 import { DEFAULT_APPS, DEFAULT_DAILY_OPENINGS, WORKOUT_PLANS } from '@/types'
 import { localDateString } from '@/lib/dates'
-import { updateStreak } from '@/lib/streaks'
+import { reconcileStreak, updateStreak } from '@/lib/streaks'
 import { canAddMoreApps, getAppLimit } from '@/lib/trial'
 import { detectLocale } from '@/i18n'
 import { computeEarnedMinutes, FREE_DIFFICULTY } from '@/lib/earning'
@@ -384,17 +384,32 @@ export const useStore = create<AppState & StoreActions>()(
           if (trimmed.length !== state.apps.length) {
             state.apps = trimmed
           }
+          const { streak, longest } = reconcileStreak(
+            state.lastExerciseDate,
+            state.currentStreak,
+            state.longestStreak,
+          )
+          state.currentStreak = streak
+          state.longestStreak = longest
         }
       },
     }
   )
 )
 
-// Check unlock expiry every 30 seconds
+// Check unlock expiry every 30 seconds; also reconcile streak if a day was missed
 if (typeof window !== 'undefined') {
   setInterval(() => {
     const state = useStore.getState()
     const now = Date.now()
+    const { streak, longest } = reconcileStreak(
+      state.lastExerciseDate,
+      state.currentStreak,
+      state.longestStreak,
+    )
+    if (streak !== state.currentStreak || longest !== state.longestStreak) {
+      useStore.setState({ currentStreak: streak, longestStreak: longest })
+    }
     const needsUpdate = state.apps.some((a) => {
       if (!a.isLocked || !a.unlockedUntil) return false
       if (a.unlockedUntil < now) return true

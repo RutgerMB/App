@@ -5,17 +5,19 @@ import { MotionButton } from '@/components/ui/Button'
 import {
   getBlockerStatus,
   openAccessibilitySettings,
-  requestBlockingAuthorization,
   syncAppBlockingRules,
   isNativeBlockingAvailable,
   isIosBlockingAvailable,
   type BlockerStatus,
 } from '@/lib/app-blocker'
+import { requestIosScreenTimeAccess } from '@/lib/screen-time'
 import { useStore } from '@/store'
 import { useTranslation } from '@/i18n/context'
+import { useToast } from '@/components/ui/Toast'
 
 export function BlockerSetupCard({ compact }: { compact?: boolean }) {
   const { t } = useTranslation()
+  const { toast } = useToast()
   const apps = useStore((s) => s.apps)
   const [status, setStatus] = useState<BlockerStatus | null>(null)
   const [loading, setLoading] = useState(false)
@@ -57,7 +59,16 @@ export function BlockerSetupCard({ compact }: { compact?: boolean }) {
     setLoading(true)
     try {
       if (onIos) {
-        await requestBlockingAuthorization()
+        const result = await requestIosScreenTimeAccess()
+        if (!result.ok) {
+          const key = `onboarding.screenTimeIosError_${result.reason}` as const
+          const msg = t(key as 'onboarding.screenTimeIosError_denied')
+          toast(msg !== key ? msg : t('onboarding.screenTimeIosError_failed'), 'error')
+        } else if (!result.authorized) {
+          toast(t('onboarding.screenTimeIosError_denied'), 'error')
+        } else {
+          toast(t('onboarding.screenTimeIosAuthorized'), 'success')
+        }
         await refresh()
       } else {
         await openAccessibilitySettings()

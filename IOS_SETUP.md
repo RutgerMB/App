@@ -171,6 +171,11 @@ You skipped Step 5 or ran Xcode without syncing. Run `npm run cap:ios:sync` agai
 
 That’s expected if you didn’t run `cap:ios:sync` — browser uses `localhost`, iPhone needs LAN IP.
 
+### Do I need a local server?
+
+- **Dev device builds** (`cap:ios:sync`): **Yes** — keep `npm run dev` running; the app uses your Mac’s LAN IP (`VITE_API_URL_NATIVE`).
+- **Production / TestFlight builds** with `VITE_API_URL=https://YOUR-DEPLOYED-API` baked in at build time: **No** — the phone talks to the deployed API only. Production builds no longer fall back to `127.0.0.1`.
+
 **"Blocking plugin not loaded" (Screen Time / app blocking)**
 
 `npx cap sync ios` resets `ios/App/CapApp-SPM/Package.swift` to Capacitor-only and drops local SPM plugins. The post-sync script (`scripts/ios-remove-stripe.mjs`, run automatically by `npm run cap:ios:sync`) re-adds **RepLockControls** and **CapgoNativePurchases**.

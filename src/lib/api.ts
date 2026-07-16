@@ -21,6 +21,15 @@ function lanHostFromWindow(): string | null {
   return null
 }
 
+/** Dev / LAN device builds may fall back to localhost; production must bake VITE_API_URL. */
+function allowLocalApiFallbacks(): boolean {
+  return (
+    import.meta.env.DEV ||
+    import.meta.env.MODE === 'iphone-dev' ||
+    import.meta.env.MODE === 'development'
+  )
+}
+
 /** Ordered API base URLs to try (first success is cached). */
 export function getApiBases(): string[] {
   if (resolvedApiBase) return [resolvedApiBase]
@@ -36,23 +45,25 @@ export function getApiBases(): string[] {
       bases.push(trimBase(import.meta.env.VITE_API_URL_NATIVE))
     }
 
-    const lanHost = lanHostFromWindow()
-    if (lanHost) {
-      bases.push(`http://${lanHost}:${API_PORT}`)
-    }
+    if (allowLocalApiFallbacks()) {
+      const lanHost = lanHostFromWindow()
+      if (lanHost) {
+        bases.push(`http://${lanHost}:${API_PORT}`)
+      }
 
-    // Android emulator: 10.0.2.2 = host PC localhost
-    if (Capacitor.getPlatform() === 'android') {
-      bases.push(`http://10.0.2.2:${API_PORT}`)
-    }
+      // Android emulator: 10.0.2.2 = host PC localhost
+      if (Capacitor.getPlatform() === 'android') {
+        bases.push(`http://10.0.2.2:${API_PORT}`)
+      }
 
-    if (Capacitor.getPlatform() === 'ios') {
-      // localhost on a physical iPhone is the phone itself — only useful on simulator
-      bases.push(`http://127.0.0.1:${API_PORT}`)
-    } else if (Capacitor.getPlatform() === 'android') {
-      bases.push(`http://127.0.0.1:${API_PORT}`)
-    } else {
-      bases.push(`http://localhost:${API_PORT}`)
+      if (Capacitor.getPlatform() === 'ios') {
+        // localhost on a physical iPhone is the phone itself — only useful on simulator
+        bases.push(`http://127.0.0.1:${API_PORT}`)
+      } else if (Capacitor.getPlatform() === 'android') {
+        bases.push(`http://127.0.0.1:${API_PORT}`)
+      } else {
+        bases.push(`http://localhost:${API_PORT}`)
+      }
     }
   } else if (import.meta.env.DEV) {
     bases.push(`http://localhost:${API_PORT}`)
@@ -107,15 +118,21 @@ export async function apiFetch(path: string, init?: RequestInit): Promise<Respon
     (lastError instanceof Error && lastError.name === 'AbortError')
   ) {
     const triedList = [...new Set(tried)].join(', ')
-    const iosHint =
-      Capacitor.getPlatform() === 'ios'
-        ? ' On a real iPhone, set VITE_API_URL_NATIVE=http://YOUR_MAC_LAN_IP:3001 in .env (same Wi‑Fi), run npm run dev on the Mac, then rebuild the app.'
-        : ' Emulator uses http://10.0.2.2:3001'
-    throw new TypeError(
-      Capacitor.isNativePlatform()
-        ? `Cannot reach server (tried: ${triedList}). Keep "npm run dev" running on your dev machine, then rebuild the app.${iosHint}`
-        : 'Cannot reach server. Run npm run dev in the project folder.'
-    )
+    if (Capacitor.isNativePlatform()) {
+      if (allowLocalApiFallbacks()) {
+        const iosHint =
+          Capacitor.getPlatform() === 'ios'
+            ? ' On a real iPhone, run `npm run cap:ios:sync` so the LAN API URL is baked in, keep `npm run dev` running on your Mac (same Wi‑Fi), then rebuild.'
+            : ' Emulator uses http://10.0.2.2:3001'
+        throw new TypeError(
+          `Cannot reach server (tried: ${triedList}). Keep the API running on your computer.${iosHint}`
+        )
+      }
+      throw new TypeError(
+        `Cannot reach server (tried: ${triedList || 'none'}). Set VITE_API_URL to your deployed HTTPS API and rebuild the app.`
+      )
+    }
+    throw new TypeError('Cannot reach server. Run npm run dev in the project folder.')
   }
 
   throw lastError instanceof Error ? lastError : new Error('Network request failed')

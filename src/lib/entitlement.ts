@@ -1,6 +1,7 @@
 import { apiFetch } from '@/lib/api'
 import { getBearerHeaders } from '@/lib/auth-headers'
 import { hasRevenueCatProEntitlement, isRevenueCatConfigured } from '@/lib/revenuecat'
+import { hasNativeProEntitlement, isNativeRevenueCatAvailable } from '@/lib/replock-revenuecat-native'
 import { useStore } from '@/store'
 
 export interface ServerEntitlement {
@@ -11,12 +12,20 @@ export interface ServerEntitlement {
   source: string | null
 }
 
+export interface EntitlementSyncResult {
+  isPro: boolean
+  /** False when the backend was unreachable or returned no entitlement. */
+  serverSynced: boolean
+  source: 'server' | 'revenuecat' | 'none'
+}
+
 /**
  * Pro entitlement security model:
  * - Server `/api/subscription/status` and webhooks (Stripe / RevenueCat) are authoritative.
  * - Client `profile.isPro` is synced from the server on login and app launch; never trusted from local storage alone.
  * - RevenueCat SDK on native validates store receipts on launch when configured (fills webhook lag).
  * - Client → server sync strips isPro fields (see entitlement-sanitize.ts).
+ * - After IAP: grant Pro from RevenueCat even if backend sync fails (webhook / next sync will catch up).
  */
 
 export async function fetchServerEntitlement(refresh = false): Promise<ServerEntitlement | null> {
@@ -40,6 +49,24 @@ export function applyServerEntitlement(entitlement: ServerEntitlement): void {
   )
 }
 
+async function readStoreProEntitlement(): Promise<boolean> {
+  if (isRevenueCatConfigured()) {
+    try {
+      if (await hasRevenueCatProEntitlement()) return true
+    } catch {
+      // fall through to native plugin
+    }
+  }
+  if (isNativeRevenueCatAvailable()) {
+    try {
+      return await hasNativeProEntitlement()
+    } catch {
+      return false
+    }
+  }
+  return false
+}
+
 export async function refreshEntitlementFromServer(refreshStripe = false): Promise<boolean> {
   const entitlement = await fetchServerEntitlement(refreshStripe)
   if (!entitlement) return false
@@ -47,22 +74,28 @@ export async function refreshEntitlementFromServer(refreshStripe = false): Promi
   return entitlement.isPro
 }
 
-/** Sync server + RevenueCat SDK entitlement on app launch (after purchases SDK init). */
-export async function syncEntitlementOnLaunch(): Promise<boolean> {
-  let rcPro = false
-  if (isRevenueCatConfigured()) {
-    try {
-      rcPro = await hasRevenueCatProEntitlement()
-    } catch {
-      // SDK unavailable — rely on server only
-    }
-  }
+/**
+ * Prefer server Pro; if server unreachable or free, grant from RevenueCat store entitlement.
+ * Never throws on network failure — callers can still unlock Pro after a successful IAP.
+ */
+export async function syncEntitlementPreferringStore(options?: {
+  refreshStripe?: boolean
+}): Promise<EntitlementSyncResult> {
+  const refreshStripe = options?.refreshStripe ?? false
+  const rcPro = await readStoreProEntitlement()
 
-  const serverEntitlement = await fetchServerEntitlement(false)
+  let serverEntitlement: ServerEntitlement | null = null
+  let serverSynced = false
+  try {
+    serverEntitlement = await fetchServerEntitlement(refreshStripe)
+    serverSynced = serverEntitlement !== null
+  } catch {
+    serverSynced = false
+  }
 
   if (serverEntitlement?.isPro) {
     applyServerEntitlement(serverEntitlement)
-    return true
+    return { isPro: true, serverSynced: true, source: 'server' }
   }
 
   if (rcPro) {
@@ -73,12 +106,24 @@ export async function syncEntitlementOnLaunch(): Promise<boolean> {
       subscriptionStatus: 'active',
       source: 'revenuecat',
     })
-    return true
+    return { isPro: true, serverSynced, source: 'revenuecat' }
   }
 
   if (serverEntitlement) {
     applyServerEntitlement(serverEntitlement)
+    return { isPro: false, serverSynced: true, source: 'server' }
   }
 
-  return false
+  return { isPro: false, serverSynced, source: 'none' }
+}
+
+/** Sync server + RevenueCat SDK entitlement on app launch (after purchases SDK init). */
+export async function syncEntitlementOnLaunch(): Promise<boolean> {
+  const result = await syncEntitlementPreferringStore({ refreshStripe: false })
+  return result.isPro
+}
+
+/** After purchase / restore / native paywall — refresh Stripe when possible, always prefer store Pro. */
+export async function syncEntitlementAfterPurchase(): Promise<EntitlementSyncResult> {
+  return syncEntitlementPreferringStore({ refreshStripe: true })
 }

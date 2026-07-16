@@ -5,6 +5,7 @@ import { useStore } from '@/store'
 import { getTrialDaysRemaining, getTrialHoursRemaining, getTrialStatus } from '@/lib/trial'
 import { TRIAL_DAYS } from '@/types'
 import { useTranslation } from '@/i18n/context'
+import { openUpgradeOrFallback } from '@/lib/replock-revenuecat-native'
 
 interface TrialBannerProps {
   compact?: boolean
@@ -30,10 +31,14 @@ export function TrialBanner({ compact }: TrialBannerProps) {
         ? t('trial.hoursLeft', { count: hoursLeft })
         : t('trial.trialEnded')
 
+  const openUpgrade = () => {
+    void openUpgradeOrFallback(() => navigate('/pricing'))
+  }
+
   if (compact) {
     return (
       <button
-        onClick={() => navigate('/pricing')}
+        onClick={openUpgrade}
         className={`w-full mb-4 p-3 rounded-xl border flex items-center gap-3 text-left transition-colors ${
           isExpired
             ? 'bg-amber-500/10 border-amber-500/25 hover:bg-amber-500/15'
@@ -64,7 +69,7 @@ export function TrialBanner({ compact }: TrialBannerProps) {
     <motion.button
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      onClick={() => navigate('/pricing')}
+      onClick={openUpgrade}
       className={`w-full mb-6 p-5 rounded-2xl border text-left transition-all ${
         isExpired
           ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/5 border-amber-500/25'

@@ -11,7 +11,7 @@ import { formatPrice } from '@/lib/utils'
 import { usesStoreSubscriptions } from '@/lib/mobile-purchases'
 import { purchaseProSubscription, restoreMobilePurchases } from '@/lib/mobile-purchases'
 import { usesRevenueCat } from '@/lib/payment-platform'
-import { refreshEntitlementFromServer } from '@/lib/entitlement'
+import { syncEntitlementAfterPurchase } from '@/lib/entitlement'
 import { openPrivacy, openTerms } from '@/lib/legal'
 import { useToast } from '@/components/ui/Toast'
 import { useStore } from '@/store'
@@ -111,9 +111,17 @@ export function PricingPage() {
     setLoading(true)
     try {
       await purchaseProSubscription(billingPeriod)
-      await refreshEntitlementFromServer(true)
-      toast(t('pricing.onPro'), 'success')
-      navigate('/success?native=1', { replace: true, state: successNavigateState })
+      const sync = await syncEntitlementAfterPurchase()
+      if (sync.isPro) {
+        if (!sync.serverSynced) {
+          toast(t('pricing.proUnlockedOffline'), 'info')
+        } else {
+          toast(t('pricing.onPro'), 'success')
+        }
+        navigate('/success?native=1', { replace: true, state: successNavigateState })
+      } else {
+        toast(t('pricing.checkoutFailed'), 'error')
+      }
     } catch (err) {
       toast(err instanceof Error ? err.message : t('pricing.checkoutFailed'), 'error')
     } finally {
@@ -131,8 +139,16 @@ export function PricingPage() {
     try {
       const restored = await restoreMobilePurchases()
       if (restored) {
-        await refreshEntitlementFromServer(true)
-        toast(t('pricing.restored'), 'success')
+        const sync = await syncEntitlementAfterPurchase()
+        if (sync.isPro) {
+          if (!sync.serverSynced) {
+            toast(t('pricing.proUnlockedOffline'), 'info')
+          } else {
+            toast(t('pricing.restored'), 'success')
+          }
+        } else {
+          toast(t('pricing.noRestore'), 'info')
+        }
       } else {
         toast(t('pricing.noRestore'), 'info')
       }

@@ -20,6 +20,7 @@ import {
 import { EXERCISES } from '@/types'
 import { formatMinutes } from '@/lib/utils'
 import { cn } from '@/lib/utils'
+import { openUpgradeOrFallback } from '@/lib/replock-revenuecat-native'
 
 const PERIODS: StatsPeriod[] = ['week', 'month', 'year']
 
@@ -220,7 +221,12 @@ export function ActivityInsights() {
               </div>
               <h3 className="font-semibold mb-2">{t('activity.unlockInsights')}</h3>
               <p className="text-sm text-white/45 mb-5 leading-relaxed">{t('activity.unlockInsightsDesc')}</p>
-              <MotionButton fullWidth onClick={() => navigate('/pricing')}>
+              <MotionButton
+                fullWidth
+                onClick={() => {
+                  void openUpgradeOrFallback(() => navigate('/pricing'))
+                }}
+              >
                 <Sparkles size={16} />
                 {t('common.upgrade')}
               </MotionButton>

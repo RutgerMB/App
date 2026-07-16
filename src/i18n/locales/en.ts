@@ -750,6 +750,8 @@ export const en: Translations = {
     restored: 'Subscription restored',
     noRestore: 'No active subscription found',
     checkoutFailed: 'Purchase failed — try again',
+    proUnlockedOffline:
+      'Pro unlocked from the App Store. Account sync will retry when the server is reachable.',
     appleTerms:
       'Payment is charged to your Apple ID. Subscription renews automatically unless cancelled at least 24 hours before the period ends. Manage in Settings → Apple ID → Subscriptions.',
     stripeTerms: 'Cancel anytime from your account settings. Billed monthly via secure checkout.',

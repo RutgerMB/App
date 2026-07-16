@@ -19,8 +19,8 @@ import { Switch } from '@/components/ui/Switch'
 import { isNativeBlockingAvailable, isIosBlockingAvailable } from '@/lib/app-blocker'
 import {
   isNativeRevenueCatAvailable,
+  openUpgradeOrFallback,
   presentNativeCustomerCenter,
-  presentNativePaywall,
 } from '@/lib/replock-revenuecat-native'
 import { useStore } from '@/store'
 import { useAuthStore } from '@/store/auth'
@@ -64,29 +64,27 @@ export function SettingsPage() {
   }
 
   const handleSubscriptionPress = () => {
-    if (isNativeRevenueCatAvailable()) {
+    if (profile.isPro && isNativeRevenueCatAvailable()) {
       void (async () => {
         try {
-          if (profile.isPro) {
-            await presentNativeCustomerCenter()
-          } else {
-            await presentNativePaywall()
-          }
+          const { presented } = await presentNativeCustomerCenter()
+          if (!presented) navigate('/pricing')
         } catch {
-          toast(t('settings.subscriptionNativeFailed'), 'error')
+          navigate('/pricing')
         }
       })()
       return
     }
-    navigate('/pricing')
+    void openUpgradeOrFallback(() => navigate('/pricing'))
   }
 
   const handleManageSubscription = () => {
     void (async () => {
       try {
-        await presentNativeCustomerCenter()
+        const { presented } = await presentNativeCustomerCenter()
+        if (!presented) navigate('/pricing')
       } catch {
-        toast(t('settings.subscriptionNativeFailed'), 'error')
+        navigate('/pricing')
       }
     })()
   }
@@ -193,13 +191,7 @@ export function SettingsPage() {
               fullWidth
               className="mt-4 border-indigo-500/25 bg-indigo-500/5 text-indigo-300 hover:bg-indigo-500/10"
               onClick={() => {
-                if (isNativeRevenueCatAvailable()) {
-                  void presentNativePaywall().catch(() => {
-                    toast(t('settings.subscriptionNativeFailed'), 'error')
-                  })
-                  return
-                }
-                navigate('/pricing')
+                void openUpgradeOrFallback(() => navigate('/pricing'))
               }}
             >
               <Crown size={16} className="text-indigo-400" />

@@ -612,6 +612,8 @@ export const nl = {
     restored: 'Subscription restored',
     noRestore: 'No active subscription found',
     checkoutFailed: 'Aankoop mislukt — probeer opnieuw',
+    proUnlockedOffline:
+      'Pro ontgrendeld via de App Store. Accountsynchronisatie volgt opnieuw wanneer de server bereikbaar is.',
     appleTerms: 'Payment is charged to your Apple ID. Subscription renews automatically unless cancelled at least 24 hours before the period ends.',
     stripeTerms: 'Cancel anytime from your account settings. Billed monthly via secure checkout.',
   },

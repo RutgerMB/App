@@ -604,6 +604,8 @@ export const fr = {
     restored: 'Subscription restored',
     noRestore: 'No active subscription found',
     checkoutFailed: 'Achat échoué — réessaye',
+    proUnlockedOffline:
+      'Pro débloqué via l’App Store. La synchro du compte réessaiera quand le serveur sera joignable.',
     appleTerms: 'Payment is charged to your Apple ID. Subscription renews automatically unless cancelled at least 24 hours before the period ends.',
     stripeTerms: 'Cancel anytime from your account settings. Billed monthly via secure checkout.',
   },

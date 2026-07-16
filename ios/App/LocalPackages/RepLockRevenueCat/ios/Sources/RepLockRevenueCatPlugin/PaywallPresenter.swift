@@ -15,9 +15,11 @@ public enum PaywallPresenter {
         return root
     }
 
-    public static func presentPaywall(from viewController: UIViewController? = nil) {
-        guard presentedController == nil else { return }
-        guard let host = viewController ?? topViewController() else { return }
+    /// Returns `true` when a paywall sheet is shown (or already visible).
+    @discardableResult
+    public static func presentPaywall(from viewController: UIViewController? = nil) -> Bool {
+        if presentedController != nil { return true }
+        guard let host = viewController ?? topViewController() else { return false }
 
         let paywall = UIHostingController(rootView: RepLockPaywallView())
         paywall.modalPresentationStyle = .pageSheet
@@ -28,11 +30,14 @@ public enum PaywallPresenter {
         presentedController = paywall
         paywall.presentationController?.delegate = PresentationDelegate.shared
         host.present(paywall, animated: true)
+        return true
     }
 
-    public static func presentCustomerCenter(from viewController: UIViewController? = nil) {
-        guard presentedController == nil else { return }
-        guard let host = viewController ?? topViewController() else { return }
+    /// Returns `true` when Customer Center is shown (or already visible).
+    @discardableResult
+    public static func presentCustomerCenter(from viewController: UIViewController? = nil) -> Bool {
+        if presentedController != nil { return true }
+        guard let host = viewController ?? topViewController() else { return false }
 
         let center = UIHostingController(rootView: RepLockCustomerCenterView())
         center.modalPresentationStyle = .pageSheet
@@ -43,9 +48,11 @@ public enum PaywallPresenter {
         presentedController = center
         center.presentationController?.delegate = PresentationDelegate.shared
         host.present(center, animated: true)
+        return true
     }
 
-    fileprivate static func clearPresentedReference() {
+    /// Clears the presented sheet reference (e.g. after programmatic dismiss).
+    public static func clearPresentedReference() {
         presentedController = nil
     }
 }

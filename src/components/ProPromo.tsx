@@ -3,6 +3,7 @@ import { Sparkles, ChevronRight } from 'lucide-react'
 import { useStore } from '@/store'
 import { useTranslation } from '@/i18n/context'
 import { cn } from '@/lib/utils'
+import { openUpgradeOrFallback } from '@/lib/replock-revenuecat-native'
 
 export type ProPromoVariant = 'home' | 'exercise' | 'apps' | 'activity' | 'settings'
 
@@ -22,7 +23,9 @@ export function ProPromo({ variant, className, compact }: ProPromoProps) {
   return (
     <button
       type="button"
-      onClick={() => navigate('/pricing')}
+      onClick={() => {
+        void openUpgradeOrFallback(() => navigate('/pricing'))
+      }}
       className={cn(
         'w-full text-left rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 to-violet-500/5',
         'hover:from-indigo-500/14 hover:to-violet-500/8 hover:border-indigo-500/30 transition-all duration-200',

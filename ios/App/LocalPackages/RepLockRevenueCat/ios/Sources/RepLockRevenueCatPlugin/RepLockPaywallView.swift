@@ -24,13 +24,16 @@ public struct RepLockPaywallView: View {
             }
             .onPurchaseCompleted { customerInfo in
                 Task { @MainActor in
-                    try? await RevenueCatManager.shared.refreshCustomerInfo()
-                    _ = customerInfo
+                    let info = (try? await RevenueCatManager.shared.refreshCustomerInfo()) ?? customerInfo
+                    RepLockRevenueCatPlugin.notifyCustomerInfoUpdated(info)
+                    PaywallPresenter.clearPresentedReference()
+                    dismiss()
                 }
             }
-            .onRestoreCompleted { _ in
+            .onRestoreCompleted { customerInfo in
                 Task { @MainActor in
-                    try? await RevenueCatManager.shared.refreshCustomerInfo()
+                    let info = (try? await RevenueCatManager.shared.refreshCustomerInfo()) ?? customerInfo
+                    RepLockRevenueCatPlugin.notifyCustomerInfoUpdated(info)
                 }
             }
             .toolbar {
@@ -64,7 +67,9 @@ public struct RepLockCustomerCenterView: View {
             CustomerCenterView()
                 .onCustomerCenterRestoreCompleted { _ in
                     Task { @MainActor in
-                        try? await RevenueCatManager.shared.refreshCustomerInfo()
+                        if let info = try? await RevenueCatManager.shared.refreshCustomerInfo() {
+                            RepLockRevenueCatPlugin.notifyCustomerInfoUpdated(info)
+                        }
                     }
                 }
                 .toolbar {

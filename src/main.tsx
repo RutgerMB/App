@@ -5,11 +5,19 @@ import { I18nProvider } from '@/i18n/context'
 import { AuthProvider } from '@/components/AuthProvider'
 import { initBlockingSync } from '@/lib/blocking-sync'
 import { initMobilePurchases } from '@/lib/mobile-purchases'
+import { syncEntitlementAfterPurchase } from '@/lib/entitlement'
+import { subscribeNativeCustomerInfoUpdates } from '@/lib/replock-revenuecat-native'
 import App from './App'
 import './index.css'
 
 initMobilePurchases().catch(() => {})
 initBlockingSync()
+
+void subscribeNativeCustomerInfoUpdates((info) => {
+  if (info.isPro) {
+    void syncEntitlementAfterPurchase()
+  }
+})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

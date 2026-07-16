@@ -32,10 +32,21 @@ public class RepLockRevenueCatPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "presentCustomerCenter", returnType: CAPPluginReturnPromise),
     ]
 
+    /// Weak ref so SwiftUI paywall can notify the WebView after purchase/restore.
+    @MainActor
+    public static weak var sharedInstance: RepLockRevenueCatPlugin?
+
     public override func load() {
         Task { @MainActor in
+            Self.sharedInstance = self
             RevenueCatManager.shared.configure()
         }
+    }
+
+    @MainActor
+    public static func notifyCustomerInfoUpdated(_ info: CustomerInfo) {
+        guard let plugin = sharedInstance else { return }
+        plugin.notifyListeners("customerInfoUpdated", data: RevenueCatManager.serializeCustomerInfo(info))
     }
 
     @objc func configure(_ call: CAPPluginCall) {
@@ -117,15 +128,23 @@ public class RepLockRevenueCatPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func presentPaywall(_ call: CAPPluginCall) {
         Task { @MainActor [self] in
-            PaywallPresenter.presentPaywall(from: repLockPresenter(for: self))
-            call.resolve(["presented": true])
+            let presented = PaywallPresenter.presentPaywall(from: repLockPresenter(for: self))
+            if presented {
+                call.resolve(["presented": true])
+            } else {
+                repLockReject(call, "Could not present paywall — no host view controller", code: "NO_HOST")
+            }
         }
     }
 
     @objc func presentCustomerCenter(_ call: CAPPluginCall) {
         Task { @MainActor [self] in
-            PaywallPresenter.presentCustomerCenter(from: repLockPresenter(for: self))
-            call.resolve(["presented": true])
+            let presented = PaywallPresenter.presentCustomerCenter(from: repLockPresenter(for: self))
+            if presented {
+                call.resolve(["presented": true])
+            } else {
+                repLockReject(call, "Could not present customer center — no host view controller", code: "NO_HOST")
+            }
         }
     }
 }

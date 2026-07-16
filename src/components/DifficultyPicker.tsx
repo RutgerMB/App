@@ -6,6 +6,7 @@ import type { Difficulty } from '@/types'
 import { useTranslation } from '@/i18n/context'
 import { useStore } from '@/store'
 import { Badge } from '@/components/ui/Badge'
+import { openUpgradeOrFallback } from '@/lib/replock-revenuecat-native'
 
 export const DIFFICULTY_META: Record<Difficulty, { icon: string; gradient: string }> = {
   easy: { icon: '🌱', gradient: 'from-emerald-500 to-teal-500' },
@@ -30,7 +31,9 @@ export function DifficultyPicker({ value, onChange, compact, large, pricingNavig
 
   const handleSelect = (d: Difficulty) => {
     if (!isPro && isProDifficulty(d)) {
-      navigate('/pricing', pricingNavigateState ? { state: pricingNavigateState } : undefined)
+      void openUpgradeOrFallback(() =>
+        navigate('/pricing', pricingNavigateState ? { state: pricingNavigateState } : undefined)
+      )
       return
     }
     onChange(d)

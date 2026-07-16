@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { Check, Loader2 } from 'lucide-react'
 import { MotionButton } from '@/components/ui/Button'
 import { verifySession } from '@/lib/utils'
-import { refreshEntitlementFromServer } from '@/lib/entitlement'
+import { syncEntitlementAfterPurchase, syncEntitlementOnLaunch } from '@/lib/entitlement'
 import { useTranslation } from '@/i18n/context'
 
 export function SuccessPage() {
@@ -17,9 +17,13 @@ export function SuccessPage() {
 
   useEffect(() => {
     if (searchParams.get('native') === '1') {
-      refreshEntitlementFromServer(true)
-        .then(() => setStatus('success'))
-        .catch(() => setStatus('error'))
+      syncEntitlementAfterPurchase()
+        .then((result) => setStatus(result.isPro ? 'success' : 'error'))
+        .catch(() => {
+          syncEntitlementOnLaunch()
+            .then((isPro) => setStatus(isPro ? 'success' : 'error'))
+            .catch(() => setStatus('error'))
+        })
       return
     }
 
@@ -32,7 +36,7 @@ export function SuccessPage() {
     verifySession(sessionId)
       .then(async (data) => {
         if (data.isPro) {
-          await refreshEntitlementFromServer(true)
+          await syncEntitlementAfterPurchase()
           setStatus('success')
         } else {
           setStatus('error')

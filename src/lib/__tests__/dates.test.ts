@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { localDateString, offsetLocalDateString, parseLocalDateString } from '../dates'
-import { updateStreak } from '../streaks'
+import { reconcileStreak, updateStreak } from '../streaks'
 
 describe('localDateString', () => {
   it('formats YYYY-MM-DD in local timezone', () => {
@@ -53,5 +53,26 @@ describe('updateStreak', () => {
 
   it('updates longest when new streak exceeds prior record', () => {
     expect(updateStreak(yesterday, 11, 11, today)).toEqual({ streak: 12, longest: 12 })
+  })
+})
+
+describe('reconcileStreak', () => {
+  const today = '2026-07-14'
+  const yesterday = '2026-07-13'
+
+  it('keeps streak when last exercise was today', () => {
+    expect(reconcileStreak(today, 5, 10, today)).toEqual({ streak: 5, longest: 10 })
+  })
+
+  it('keeps streak when last exercise was yesterday (still active until end of today)', () => {
+    expect(reconcileStreak(yesterday, 4, 8, today)).toEqual({ streak: 4, longest: 8 })
+  })
+
+  it('resets displayed streak to 0 when a day was skipped', () => {
+    expect(reconcileStreak('2026-07-12', 9, 12, today)).toEqual({ streak: 0, longest: 12 })
+  })
+
+  it('shows 0 when there is no prior exercise date', () => {
+    expect(reconcileStreak(null, 3, 5, today)).toEqual({ streak: 0, longest: 5 })
   })
 })

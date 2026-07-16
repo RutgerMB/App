@@ -1,4 +1,5 @@
 import { Capacitor, registerPlugin } from '@capacitor/core'
+import type { PluginListenerHandle } from '@capacitor/core'
 
 export interface RepLockRevenueCatCustomerInfo {
   originalAppUserId: string
@@ -20,36 +21,84 @@ export interface RepLockRevenueCatPlugin {
   restorePurchases(): Promise<RepLockRevenueCatCustomerInfo>
   presentPaywall(): Promise<{ presented: boolean }>
   presentCustomerCenter(): Promise<{ presented: boolean }>
+  addListener(
+    eventName: 'customerInfoUpdated',
+    listenerFunc: (info: RepLockRevenueCatCustomerInfo) => void,
+  ): Promise<PluginListenerHandle>
 }
 
 const RepLockRevenueCatNative = registerPlugin<RepLockRevenueCatPlugin>('RepLockRevenueCat')
 
-export function isNativeRevenueCatAvailable(): boolean {
+export function isNativeRevenueCatPlatform(): boolean {
   return Capacitor.getPlatform() === 'ios'
 }
 
-/** Present the native RevenueCat Paywall (server-driven SwiftUI). */
-export async function presentNativePaywall(): Promise<void> {
-  if (!isNativeRevenueCatAvailable()) return
+/** Platform check only — prefer `isNativeRevenueCatPluginReady` before presenting UI. */
+export function isNativeRevenueCatAvailable(): boolean {
+  return isNativeRevenueCatPlatform()
+}
+
+export async function isNativeRevenueCatPluginReady(): Promise<boolean> {
+  if (!isNativeRevenueCatPlatform()) return false
   try {
-    await RepLockRevenueCatNative.presentPaywall()
+    await RepLockRevenueCatNative.hasProEntitlement()
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** Present the native RevenueCat Paywall (server-driven SwiftUI). */
+export async function presentNativePaywall(): Promise<{ presented: boolean }> {
+  if (!isNativeRevenueCatPlatform()) return { presented: false }
+  try {
+    const result = await RepLockRevenueCatNative.presentPaywall()
+    return { presented: Boolean(result?.presented) }
   } catch (error) {
     throw error instanceof Error ? error : new Error('Failed to present paywall')
   }
 }
 
 /** Present RevenueCat Customer Center for subscription management. */
-export async function presentNativeCustomerCenter(): Promise<void> {
-  if (!isNativeRevenueCatAvailable()) return
+export async function presentNativeCustomerCenter(): Promise<{ presented: boolean }> {
+  if (!isNativeRevenueCatPlatform()) return { presented: false }
   try {
-    await RepLockRevenueCatNative.presentCustomerCenter()
+    const result = await RepLockRevenueCatNative.presentCustomerCenter()
+    return { presented: Boolean(result?.presented) }
   } catch (error) {
     throw error instanceof Error ? error : new Error('Failed to present customer center')
   }
 }
 
+/**
+ * Open native paywall when the plugin is ready; otherwise call `fallback` (e.g. navigate to /pricing).
+ * Returns true when the native sheet was presented.
+ */
+export async function openUpgradeOrFallback(fallback: () => void): Promise<boolean> {
+  if (!isNativeRevenueCatPlatform()) {
+    fallback()
+    return false
+  }
+  const ready = await isNativeRevenueCatPluginReady()
+  if (!ready) {
+    fallback()
+    return false
+  }
+  try {
+    const { presented } = await presentNativePaywall()
+    if (!presented) {
+      fallback()
+      return false
+    }
+    return true
+  } catch {
+    fallback()
+    return false
+  }
+}
+
 export async function getNativeCustomerInfo(): Promise<RepLockRevenueCatCustomerInfo | null> {
-  if (!isNativeRevenueCatAvailable()) return null
+  if (!isNativeRevenueCatPlatform()) return null
   try {
     return await RepLockRevenueCatNative.getCustomerInfo()
   } catch {
@@ -58,7 +107,7 @@ export async function getNativeCustomerInfo(): Promise<RepLockRevenueCatCustomer
 }
 
 export async function hasNativeProEntitlement(): Promise<boolean> {
-  if (!isNativeRevenueCatAvailable()) return false
+  if (!isNativeRevenueCatPlatform()) return false
   try {
     const { isPro } = await RepLockRevenueCatNative.hasProEntitlement()
     return isPro
@@ -68,8 +117,19 @@ export async function hasNativeProEntitlement(): Promise<boolean> {
 }
 
 export async function identifyNativeRevenueCatUser(appUserID: string): Promise<void> {
-  if (!isNativeRevenueCatAvailable()) return
+  if (!isNativeRevenueCatPlatform()) return
   await RepLockRevenueCatNative.logIn({ appUserID })
+}
+
+export async function subscribeNativeCustomerInfoUpdates(
+  onUpdate: (info: RepLockRevenueCatCustomerInfo) => void,
+): Promise<PluginListenerHandle | null> {
+  if (!isNativeRevenueCatPlatform()) return null
+  try {
+    return await RepLockRevenueCatNative.addListener('customerInfoUpdated', onUpdate)
+  } catch {
+    return null
+  }
 }
 
 export { RepLockRevenueCatNative }

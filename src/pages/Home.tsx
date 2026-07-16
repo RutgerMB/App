@@ -17,6 +17,7 @@ import { EXERCISES } from '@/types'
 import { formatMinutes, cn } from '@/lib/utils'
 import { useTranslation } from '@/i18n/context'
 import type { Difficulty } from '@/types'
+import { openUpgradeOrFallback } from '@/lib/replock-revenuecat-native'
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -40,7 +41,7 @@ export function HomePage() {
 
   const handleDifficultyPress = () => {
     if (!profile.isPro) {
-      navigate('/pricing')
+      void openUpgradeOrFallback(() => navigate('/pricing'))
       return
     }
     setDifficultyOpen(true)
@@ -91,7 +92,9 @@ export function HomePage() {
                     <div className="w-px h-6 bg-white/10 shrink-0" aria-hidden />
                     <button
                       type="button"
-                      onClick={() => navigate('/pricing')}
+                      onClick={() => {
+                        void openUpgradeOrFallback(() => navigate('/pricing'))
+                      }}
                       className={cn(
                         'inline-flex items-center justify-center gap-1.5 h-10 px-4 sm:px-5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200',
                         'text-indigo-300 hover:bg-indigo-500/15 active:scale-[0.98]'
