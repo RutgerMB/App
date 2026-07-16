@@ -410,8 +410,9 @@ if (typeof window !== 'undefined') {
     if (streak !== state.currentStreak || longest !== state.longestStreak) {
       useStore.setState({ currentStreak: streak, longestStreak: longest })
     }
+    // Timed unlocks set isLocked:false with unlockedUntil; expiry must not require isLocked.
     const needsUpdate = state.apps.some((a) => {
-      if (!a.isLocked || !a.unlockedUntil) return false
+      if (!a.unlockedUntil) return false
       if (a.unlockedUntil < now) return true
       if (a.unlockedAt) {
         const baseline = a.usedMinutesAtUnlock ?? a.usedMinutes
@@ -423,7 +424,7 @@ if (typeof window !== 'undefined') {
     if (needsUpdate) {
       useStore.setState({
         apps: state.apps.map((a) => {
-          if (!a.isLocked || !a.unlockedUntil) return a
+          if (!a.unlockedUntil) return a
 
           if (a.unlockedUntil < now) {
             const baseline = a.usedMinutesAtUnlock ?? a.usedMinutes
