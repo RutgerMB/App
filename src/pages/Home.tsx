@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Flame, Clock, ChevronRight, Sparkles, Dumbbell, Grid3X3, Lock, Unlock } from 'lucide-react'
+import {
+  Flame, Clock, ChevronRight, Sparkles, Dumbbell, Grid3X3, Lock, Unlock,
+} from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
-import { MotionCard } from '@/components/ui/Card'
+import { SectionLabel } from '@/components/layout/PageHeader'
 import { MotionButton } from '@/components/ui/Button'
-import { StatCard, StatGrid } from '@/components/ui/StatCard'
 import { CircularProgress } from '@/components/ui/Progress'
 import { TrialBanner } from '@/components/TrialBanner'
 import { AppBrandIcon } from '@/components/AppBrandIcon'
 import { DifficultyHomeModal } from '@/components/DifficultyHomeModal'
 import { DIFFICULTY_META } from '@/components/DifficultyPicker'
+import { ProPromo } from '@/components/ProPromo'
 import { useStore } from '@/store'
 import { ExerciseIcon } from '@/components/ExerciseIcons'
 import { EXERCISES } from '@/types'
@@ -49,42 +51,39 @@ export function HomePage() {
 
   return (
     <AppShell>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-        <motion.header
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: 'easeOut' }}
-          className="relative pt-4 pb-2 text-center"
-        >
-          <div
-            className="absolute -inset-x-5 bottom-0 pointer-events-none rounded-b-[2.5rem] bg-gradient-to-b from-indigo-500/[0.16] via-violet-500/[0.06] to-transparent"
-            style={{ top: 'calc(-1 * (env(safe-area-inset-top, 0px) + 1.25rem))' }}
-            aria-hidden
-          />
-          <div className="relative space-y-5">
-            <div className="px-2">
-              <p className="text-base sm:text-lg font-medium text-indigo-200/80 tracking-wide">
-                {t('home.welcomeBack')}
-              </p>
-              <h1 className="text-[2.75rem] sm:text-[3.5rem] font-bold tracking-tight leading-[1.05] mt-2 bg-gradient-to-br from-white via-white to-white/70 bg-clip-text text-transparent">
-                {profile.name}
-              </h1>
-            </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="space-y-9 max-w-lg mx-auto w-full"
+      >
+        <header className="relative text-center pt-3 pb-1">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: 'easeOut' }}
+            className="relative"
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-300/70 mb-2">
+              RepLock
+            </p>
+            <p className="text-sm text-white/45 mb-1">{t('home.welcomeBack')}</p>
+            <h1 className="text-[2.35rem] font-bold tracking-tight leading-none truncate max-w-full px-2">
+              {profile.name}
+            </h1>
 
-            <div className="flex justify-center px-2">
-              <div className="inline-flex items-center p-1 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+            <div className="mt-5 flex justify-center">
+              <div className="inline-flex items-center p-1 rounded-2xl bg-white/[0.03] border border-white/[0.07]">
                 <button
                   type="button"
                   onClick={handleDifficultyPress}
                   className={cn(
-                    'inline-flex items-center justify-center gap-2 h-10 px-4 sm:px-5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200',
-                    'text-white/85 hover:bg-white/[0.08] active:scale-[0.98]'
+                    'inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl text-xs font-semibold transition-all duration-200',
+                    'text-white/85 hover:bg-white/[0.06] active:scale-[0.98]'
                   )}
                 >
                   <span className="text-base leading-none" aria-hidden>
                     {difficultyMeta.icon}
                   </span>
-                  <span className="hidden sm:inline text-white/45 font-medium">{t('settings.difficulty')}</span>
                   <span className="text-white/90">{t(`difficulty.${difficulty}.name`)}</span>
                 </button>
 
@@ -97,7 +96,7 @@ export function HomePage() {
                         void openUpgradeOrFallback(() => navigate('/pricing'))
                       }}
                       className={cn(
-                        'inline-flex items-center justify-center gap-1.5 h-10 px-4 sm:px-5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200',
+                        'inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl text-xs font-semibold transition-all duration-200',
                         'text-indigo-300 hover:bg-indigo-500/15 active:scale-[0.98]'
                       )}
                     >
@@ -108,137 +107,213 @@ export function HomePage() {
                 )}
               </div>
             </div>
-          </div>
-        </motion.header>
+          </motion.div>
+        </header>
 
-        <MotionCard className="p-5 sm:p-6 gradient-border" glow>
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <p className="text-white/40 text-xs uppercase tracking-wider font-medium mb-1.5">
-                {t('home.availableScreenTime')}
-              </p>
-              <p className="text-4xl sm:text-5xl font-bold tracking-tight gradient-text tabular-nums">
+        <section>
+          <div
+            className={cn(
+              'rounded-2xl px-5 py-6 text-center',
+              'bg-white/[0.03] border border-white/[0.07]'
+            )}
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40 mb-4">
+              {t('home.availableScreenTime')}
+            </p>
+            <div className="flex flex-col items-center gap-4">
+              <CircularProgress value={screenTimeBalance} max={progressMax} size={88} strokeWidth={5}>
+                <Clock size={20} className="text-white/30" />
+              </CircularProgress>
+              <p className="text-4xl font-bold tracking-tight tabular-nums gradient-text">
                 {formatMinutes(screenTimeBalance)}
               </p>
             </div>
-            <CircularProgress value={screenTimeBalance} max={progressMax} size={72} strokeWidth={5}>
-              <Clock size={18} className="text-white/30" />
-            </CircularProgress>
+            <MotionButton
+              fullWidth
+              size="lg"
+              className="mt-6 shadow-lg shadow-indigo-500/20"
+              onClick={() => navigate('/exercise')}
+            >
+              <Dumbbell size={18} />
+              {screenTimeBalance <= 0 ? t('home.earnFirst') : t('home.earnMore')}
+              <ChevronRight size={18} />
+            </MotionButton>
+            {screenTimeBalance <= 0 && (
+              <p className="mt-3 text-center text-xs text-white/40">{t('home.emptyBalanceHint')}</p>
+            )}
           </div>
-          <MotionButton
-            fullWidth
-            size="lg"
-            className="mt-5 shadow-lg shadow-indigo-500/20"
-            onClick={() => navigate('/exercise')}
-          >
-            <Dumbbell size={18} />
-            {screenTimeBalance <= 0 ? t('home.earnFirst') : t('home.earnMore')}
-            <ChevronRight size={18} />
-          </MotionButton>
-          {screenTimeBalance <= 0 && (
-            <p className="mt-3 text-center text-xs text-white/40">{t('home.emptyBalanceHint')}</p>
+        </section>
+
+        <section>
+          <div className="flex items-center justify-between gap-3 mb-4 px-0.5">
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+              {t('home.yourApps')}
+            </h2>
+            <button
+              type="button"
+              onClick={() => navigate('/apps')}
+              className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400/90"
+            >
+              {t('home.viewAllApps')}
+            </button>
+          </div>
+
+          {apps.length === 0 ? (
+            <button
+              type="button"
+              onClick={() => navigate('/apps')}
+              className={cn(
+                'w-full rounded-2xl px-4 py-5 text-center',
+                'bg-white/[0.03] border border-dashed border-white/[0.12]',
+                'hover:bg-white/[0.05] hover:border-white/[0.18] transition-all duration-200'
+              )}
+            >
+              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-violet-500/10 flex items-center justify-center">
+                <Grid3X3 size={22} className="text-violet-400" />
+              </div>
+              <p className="font-semibold text-sm text-white/80">{t('home.noAppsYet')}</p>
+              <p className="text-xs text-indigo-400 mt-1.5 font-medium">{t('home.viewAllApps')} →</p>
+            </button>
+          ) : (
+            <>
+              <div className="flex flex-wrap justify-center gap-2.5">
+                {apps.slice(0, 6).map((app, i) => (
+                  <motion.button
+                    key={app.id}
+                    type="button"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04, duration: 0.35 }}
+                    onClick={() => navigate('/apps')}
+                    className={cn(
+                      'w-[calc(33.333%-0.5rem)] max-w-[6.5rem]',
+                      'flex flex-col items-center text-center px-2 py-3.5 rounded-2xl',
+                      'bg-white/[0.03] border border-white/[0.07]',
+                      'hover:bg-white/[0.055] hover:border-white/[0.12]',
+                      'active:scale-[0.97] transition-all duration-200'
+                    )}
+                  >
+                    <div className="w-10 h-10 mb-2 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden">
+                      <AppBrandIcon brand={app.brand} name={app.name} color={app.color} size="sm" />
+                    </div>
+                    <p className="text-[11px] font-medium truncate w-full text-white/75">{app.name}</p>
+                    <p
+                      className={cn(
+                        'text-[9px] mt-1 flex items-center justify-center gap-0.5',
+                        app.isLocked ? 'text-amber-400/90' : 'text-emerald-400/90'
+                      )}
+                    >
+                      {app.isLocked ? <Lock size={9} /> : <Unlock size={9} />}
+                      {app.isLocked ? t('home.locked') : t('home.unlocked')}
+                    </p>
+                  </motion.button>
+                ))}
+              </div>
+              <p className="text-[11px] text-white/35 mt-3 text-center">
+                {t('home.appsStatusSummary', {
+                  locked: lockedApps.length,
+                  unlocked: unlockedApps.length,
+                })}
+              </p>
+            </>
           )}
-        </MotionCard>
+        </section>
 
-        {apps.length === 0 ? (
-          <MotionCard
-            className="p-5 cursor-pointer border-dashed border-white/15 hover:border-indigo-500/30 transition-colors"
-            onClick={() => navigate('/apps')}
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0">
-                <Grid3X3 size={22} className="text-white/40" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-white/80">{t('home.noAppsYet')}</p>
-                <p className="text-xs text-indigo-400 mt-1 font-medium">{t('home.viewAllApps')} →</p>
-              </div>
-            </div>
-          </MotionCard>
-        ) : (
-          <div>
-            <div className="flex items-center justify-between mb-3 px-0.5">
-              <p className="text-sm font-semibold text-white/70">{t('home.yourApps')}</p>
-              <button
-                type="button"
-                onClick={() => navigate('/apps')}
-                className="text-xs text-indigo-400 font-medium"
-              >
-                {t('home.viewAllApps')}
-              </button>
-            </div>
-            <div className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1 -mx-1 px-1 max-w-full scrollbar-none">
-              {apps.slice(0, 6).map((app) => (
-                <button
-                  key={app.id}
-                  type="button"
-                  onClick={() => navigate('/apps')}
-                  className="shrink-0 w-[88px] p-3 rounded-2xl bg-surface-2 border border-border text-center hover:border-indigo-500/30 transition-colors"
+        <section>
+          <div className="grid grid-cols-3 gap-2.5">
+            {[
+              {
+                icon: Flame,
+                iconClass: 'text-orange-400',
+                value: currentStreak,
+                label: t('home.streak'),
+              },
+              {
+                icon: Dumbbell,
+                iconClass: 'text-indigo-400',
+                value: totalExercises,
+                label: t('home.workouts'),
+              },
+              {
+                icon: Grid3X3,
+                iconClass: 'text-violet-400',
+                value: apps.length,
+                label: t('home.appsTracked'),
+                onClick: () => navigate('/apps'),
+              },
+            ].map((stat) => {
+              const Icon = stat.icon
+              const inner = (
+                <div
+                  className={cn(
+                    'h-full rounded-2xl px-2 py-4 text-center',
+                    'bg-white/[0.03] border border-white/[0.07]',
+                    stat.onClick && 'hover:bg-white/[0.055] hover:border-white/[0.12] transition-all'
+                  )}
                 >
-                  <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden">
-                    <AppBrandIcon brand={app.brand} name={app.name} color={app.color} size="sm" />
-                  </div>
-                  <p className="text-[10px] font-medium truncate text-white/70">{app.name}</p>
-                  <p className={cn(
-                    'text-[9px] mt-1 flex items-center justify-center gap-0.5',
-                    app.isLocked ? 'text-amber-400/90' : 'text-emerald-400/90'
-                  )}>
-                    {app.isLocked ? <Lock size={9} /> : <Unlock size={9} />}
-                    {app.isLocked ? t('home.locked') : t('home.unlocked')}
+                  <Icon size={15} className={cn('mx-auto mb-2', stat.iconClass)} />
+                  <p className="text-xl font-bold leading-none tabular-nums">{stat.value}</p>
+                  <p className="text-[10px] text-white/40 uppercase tracking-wider mt-1.5">
+                    {stat.label}
                   </p>
+                </div>
+              )
+              return stat.onClick ? (
+                <button key={stat.label} type="button" onClick={stat.onClick} className="w-full">
+                  {inner}
                 </button>
-              ))}
-            </div>
-            <p className="text-[11px] text-white/35 mt-2 px-0.5">
-              {t('home.appsStatusSummary', { locked: lockedApps.length, unlocked: unlockedApps.length })}
-            </p>
+              ) : (
+                <div key={stat.label}>{inner}</div>
+              )
+            })}
           </div>
-        )}
-
-        <StatGrid>
-          <StatCard
-            icon={Flame}
-            iconClassName="text-orange-400"
-            value={currentStreak}
-            label={t('home.streak')}
-          />
-          <StatCard
-            icon={Dumbbell}
-            iconClassName="text-indigo-400"
-            value={totalExercises}
-            label={t('home.workouts')}
-          />
-          <StatCard
-            icon={Grid3X3}
-            iconClassName="text-violet-400"
-            value={apps.length}
-            label={t('home.appsTracked')}
-            onClick={() => navigate('/apps')}
-          />
-        </StatGrid>
+        </section>
 
         <TrialBanner compact />
 
         {recentSession && (
-          <button type="button" onClick={() => navigate('/activity')} className="w-full text-left">
-            <MotionCard hover className="p-4">
-              <div className="flex items-center gap-3">
+          <section>
+            <SectionLabel>{t('home.lastWorkout')}</SectionLabel>
+            <button
+              type="button"
+              onClick={() => navigate('/activity')}
+              className={cn(
+                'group w-full text-left rounded-2xl px-4 py-3.5',
+                'bg-white/[0.03] border border-white/[0.07]',
+                'hover:bg-white/[0.055] hover:border-white/[0.12]',
+                'active:scale-[0.985] transition-all duration-200'
+              )}
+            >
+              <div className="flex items-center gap-3.5">
                 <div
-                  className={`w-10 h-10 rounded-xl bg-gradient-to-br ${EXERCISES[recentSession.type].gradient} flex items-center justify-center text-white shrink-0`}
+                  className={cn(
+                    'w-11 h-11 rounded-xl bg-gradient-to-br flex items-center justify-center text-white shrink-0 shadow-lg shadow-black/30',
+                    EXERCISES[recentSession.type].gradient
+                  )}
                 >
-                  <ExerciseIcon type={recentSession.type} size={18} />
+                  <ExerciseIcon type={recentSession.type} size={20} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-white/40 uppercase tracking-wider">{t('home.lastWorkout')}</p>
-                  <p className="font-medium text-sm truncate">{t(`exercises.${recentSession.type}.name`)}</p>
+                  <p className="font-semibold text-[15px] tracking-tight truncate">
+                    {t(`exercises.${recentSession.type}.name`)}
+                  </p>
+                  <p className="text-xs text-white/40 mt-0.5">{t('home.lastWorkout')}</p>
                 </div>
                 <span className="text-sm font-semibold text-emerald-400 shrink-0 tabular-nums">
                   +{formatMinutes(recentSession.earnedMinutes)}
                 </span>
+                <ChevronRight
+                  size={16}
+                  className="text-white/20 group-hover:text-white/40 transition-colors shrink-0"
+                />
               </div>
-            </MotionCard>
-          </button>
+            </button>
+          </section>
         )}
+
+        <div className="pt-1">
+          <ProPromo variant="home" compact />
+        </div>
       </motion.div>
 
       <DifficultyHomeModal open={difficultyOpen} onClose={() => setDifficultyOpen(false)} />

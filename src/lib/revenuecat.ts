@@ -9,6 +9,8 @@ import {
   PRODUCT_ID_MONTHLY,
   PRODUCT_ID_YEARLY,
   REVENUECAT_ENTITLEMENT,
+  REVENUECAT_OFFERING,
+  REVENUECAT_OFFERING_LEGACY,
 } from '@/types'
 import { identifyNativeRevenueCatUser } from '@/lib/replock-revenuecat-native'
 
@@ -75,7 +77,16 @@ export async function getRevenueCatPackages(): Promise<{
   yearly: PurchasesPackage | null
 }> {
   const offerings = await Purchases.getOfferings()
-  const current = offerings.current
+  const fromAll = offerings.all
+  const currentHasPackages =
+    !!offerings.current && offerings.current.availablePackages.length > 0
+  const current =
+    (currentHasPackages ? offerings.current : null) ??
+    fromAll?.[REVENUECAT_OFFERING] ??
+    fromAll?.[REVENUECAT_OFFERING_LEGACY] ??
+    (fromAll
+      ? Object.values(fromAll).find((o) => o.availablePackages.length > 0) ?? null
+      : null)
   if (!current) {
     return { monthly: null, yearly: null }
   }

@@ -6,6 +6,7 @@ import RevenueCatUI
 public struct RepLockPaywallView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showCustomerCenter = false
+    @State private var resolvedOffering: Offering?
 
     private let offering: Offering?
 
@@ -16,11 +17,17 @@ public struct RepLockPaywallView: View {
     public var body: some View {
         NavigationStack {
             Group {
-                if let offering {
+                if let offering = offering ?? resolvedOffering {
                     PaywallView(offering: offering)
                 } else {
-                    PaywallView()
+                    // Fallback while loading — still prefers Current / `defaults` once resolved.
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
+            }
+            .task {
+                guard offering == nil, resolvedOffering == nil else { return }
+                resolvedOffering = try? await RevenueCatManager.shared.getCurrentOffering()
             }
             .onPurchaseCompleted { customerInfo in
                 Task { @MainActor in

@@ -5,7 +5,6 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
 import { Lock, TrendingUp, TrendingDown, Sparkles } from 'lucide-react'
-import { MotionCard } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { MotionButton } from '@/components/ui/Button'
 import { useStore } from '@/store'
@@ -67,9 +66,9 @@ export function ActivityInsights() {
   }
 
   return (
-    <div className="mb-8 relative">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wider">
+    <div className="relative">
+      <div className="flex items-center justify-center gap-2 mb-5">
+        <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
           {t('activity.insights')}
         </h2>
         {isPro ? (
@@ -81,44 +80,50 @@ export function ActivityInsights() {
 
       <div className={cn('relative', !isPro && 'select-none')}>
         {/* Today vs Yesterday */}
-        <MotionCard className="p-5 mb-4">
-          <p className="text-xs text-white/40 uppercase tracking-wider mb-4">{t('activity.todayVsYesterday')}</p>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+        <div className="rounded-2xl p-5 mb-4 bg-white/[0.03] border border-white/[0.07]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40 mb-4 text-center">
+            {t('activity.todayVsYesterday')}
+          </p>
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-center">
               <p className="text-xs text-indigo-300 mb-1">{t('activity.todayLabel')}</p>
-              <p className="text-2xl font-bold">{formatMinutes(comparison.today)}</p>
+              <p className="text-2xl font-bold tabular-nums">{formatMinutes(comparison.today)}</p>
             </div>
-            <div className="p-4 rounded-xl bg-surface-3 border border-border">
+            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.07] text-center">
               <p className="text-xs text-white/40 mb-1">{t('activity.yesterdayLabel')}</p>
-              <p className="text-2xl font-bold text-white/70">{formatMinutes(comparison.yesterday)}</p>
+              <p className="text-2xl font-bold text-white/70 tabular-nums">
+                {formatMinutes(comparison.yesterday)}
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center justify-center gap-2 text-sm">
             {comparison.change >= 0 ? (
               <TrendingUp size={16} className="text-emerald-400" />
             ) : (
               <TrendingDown size={16} className="text-red-400" />
             )}
             <span className={comparison.change >= 0 ? 'text-emerald-400' : 'text-red-400'}>
-              {comparison.change >= 0 ? '+' : ''}{formatMinutes(Math.abs(comparison.change))}
+              {comparison.change >= 0 ? '+' : ''}
+              {formatMinutes(Math.abs(comparison.change))}
             </span>
             <span className="text-white/40">
               ({t('activity.change', { value: comparison.changePercent })})
             </span>
           </div>
-        </MotionCard>
+        </div>
 
         {/* Period selector */}
         <div className="flex gap-2 mb-4">
           {PERIODS.map((p) => (
             <button
               key={p}
+              type="button"
               onClick={() => setPeriod(p)}
               className={cn(
-                'flex-1 py-2 rounded-xl text-xs font-medium border transition-all',
+                'flex-1 py-2.5 rounded-xl text-xs font-medium border transition-all',
                 period === p
                   ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
-                  : 'bg-surface-2 border-border text-white/40 hover:text-white/60'
+                  : 'bg-white/[0.03] border-white/[0.07] text-white/40 hover:text-white/60'
               )}
             >
               {periodLabel[p]}
@@ -127,8 +132,10 @@ export function ActivityInsights() {
         </div>
 
         {/* Chart */}
-        <MotionCard className="p-4 mb-4">
-          <p className="text-[10px] text-white/35 uppercase tracking-wider mb-2">{t('activity.minutesEarned')}</p>
+        <div className="rounded-2xl p-4 mb-4 bg-white/[0.03] border border-white/[0.07]">
+          <p className="text-[10px] text-white/35 uppercase tracking-wider mb-2 text-center">
+            {t('activity.minutesEarned')}
+          </p>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -162,28 +169,40 @@ export function ActivityInsights() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </MotionCard>
+        </div>
 
         {/* Period totals */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <MotionCard className="p-3 text-center">
-            <p className="text-lg font-bold gradient-text">{formatMinutes(totals.totalEarned)}</p>
-            <p className="text-[10px] text-white/40 uppercase mt-1">{t('activity.totalEarned')}</p>
-          </MotionCard>
-          <MotionCard className="p-3 text-center">
-            <p className="text-lg font-bold">{formatMinutes(totals.avgDaily)}</p>
-            <p className="text-[10px] text-white/40 uppercase mt-1">{t('activity.avgDaily')}</p>
-          </MotionCard>
-          <MotionCard className="p-3 text-center">
-            <p className="text-lg font-bold">{formatMinutes(totals.bestDay.earnedMinutes)}</p>
-            <p className="text-[10px] text-white/40 uppercase mt-1">{t('activity.bestDay')}</p>
-          </MotionCard>
+        <div className="grid grid-cols-3 gap-2.5 mb-4">
+          <div className="rounded-2xl p-3 text-center bg-white/[0.03] border border-white/[0.07]">
+            <p className="text-lg font-bold gradient-text tabular-nums">
+              {formatMinutes(totals.totalEarned)}
+            </p>
+            <p className="text-[10px] text-white/40 uppercase mt-1 tracking-wider">
+              {t('activity.totalEarned')}
+            </p>
+          </div>
+          <div className="rounded-2xl p-3 text-center bg-white/[0.03] border border-white/[0.07]">
+            <p className="text-lg font-bold tabular-nums">{formatMinutes(totals.avgDaily)}</p>
+            <p className="text-[10px] text-white/40 uppercase mt-1 tracking-wider">
+              {t('activity.avgDaily')}
+            </p>
+          </div>
+          <div className="rounded-2xl p-3 text-center bg-white/[0.03] border border-white/[0.07]">
+            <p className="text-lg font-bold tabular-nums">
+              {formatMinutes(totals.bestDay.earnedMinutes)}
+            </p>
+            <p className="text-[10px] text-white/40 uppercase mt-1 tracking-wider">
+              {t('activity.bestDay')}
+            </p>
+          </div>
         </div>
 
         {/* Category split */}
         {categories.length > 0 && (
-          <MotionCard className="p-4">
-            <p className="text-xs text-white/40 uppercase tracking-wider mb-3">{t('activity.categorySplit')}</p>
+          <div className="rounded-2xl p-4 bg-white/[0.03] border border-white/[0.07]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40 mb-3 text-center">
+              {t('activity.categorySplit')}
+            </p>
             <div className="space-y-2">
               {categories.map((cat) => {
                 const max = categories[0]?.minutes ?? 1
@@ -192,7 +211,7 @@ export function ActivityInsights() {
                   <div key={cat.category}>
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-white/60">{cat.category}</span>
-                      <span className="text-white/40">{formatMinutes(cat.minutes)}</span>
+                      <span className="text-white/40 tabular-nums">{formatMinutes(cat.minutes)}</span>
                     </div>
                     <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
                       <div
@@ -204,7 +223,7 @@ export function ActivityInsights() {
                 )
               })}
             </div>
-          </MotionCard>
+          </div>
         )}
 
         {/* Free user overlay */}
@@ -220,7 +239,9 @@ export function ActivityInsights() {
                 <Lock size={22} className="text-indigo-400" />
               </div>
               <h3 className="font-semibold mb-2">{t('activity.unlockInsights')}</h3>
-              <p className="text-sm text-white/45 mb-5 leading-relaxed">{t('activity.unlockInsightsDesc')}</p>
+              <p className="text-sm text-white/45 mb-5 leading-relaxed">
+                {t('activity.unlockInsightsDesc')}
+              </p>
               <MotionButton
                 fullWidth
                 onClick={() => {

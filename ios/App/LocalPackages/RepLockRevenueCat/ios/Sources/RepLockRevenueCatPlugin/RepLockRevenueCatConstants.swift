@@ -11,8 +11,12 @@ public enum RepLockRevenueCatConstants {
     public static let productMonthly = "replock_pro_monthly"
     public static let productYearly = "replock_pro_yearly"
 
-    /// RevenueCat offering identifier (dashboard default offering).
-    public static let defaultOfferingIdentifier = "default"
+    /// RevenueCat offering identifier — App Store Current offering is `defaults`
+    /// (also ofrnga896d35397). Test Store historically used `default`.
+    public static let defaultOfferingIdentifier = "defaults"
+
+    /// Legacy Test Store offering id — kept as fallback lookup only.
+    public static let legacyOfferingIdentifier = "default"
 
     private static let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "app.replock.bleeker",

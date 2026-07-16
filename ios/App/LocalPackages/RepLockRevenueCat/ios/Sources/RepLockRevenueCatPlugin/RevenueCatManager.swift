@@ -106,10 +106,29 @@ public final class RevenueCatManager: NSObject, ObservableObject {
     public func getCurrentOffering() async throws -> Offering {
         ensureConfigured()
         let offerings = try await Purchases.shared.offerings()
-        guard let current = offerings.current else {
-            throw RevenueCatManagerError.noCurrentOffering
+
+        // Prefer dashboard Current offering when it has packages.
+        if let current = offerings.current, !current.availablePackages.isEmpty {
+            return current
         }
-        return current
+
+        // Explicit App Store offering id (`defaults`), then legacy Test Store (`default`).
+        let candidates = [
+            RepLockRevenueCatConstants.defaultOfferingIdentifier,
+            RepLockRevenueCatConstants.legacyOfferingIdentifier,
+        ]
+        for id in candidates {
+            if let named = offerings.offering(identifier: id), !named.availablePackages.isEmpty {
+                return named
+            }
+        }
+
+        // Last resort: first offering that actually has packages.
+        if let any = offerings.all.values.first(where: { !$0.availablePackages.isEmpty }) {
+            return any
+        }
+
+        throw RevenueCatManagerError.noCurrentOffering
     }
 
     public func package(for period: String) async throws -> Package {

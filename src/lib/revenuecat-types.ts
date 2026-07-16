@@ -26,6 +26,7 @@ export interface PurchasesOffering {
 
 export interface PurchasesOfferings {
   current: PurchasesOffering | null
+  all?: Record<string, PurchasesOffering>
 }
 
 export interface CustomerInfo {

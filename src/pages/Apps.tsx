@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { Plus, Trash2, Unlock, Clock, Grid3X3, Pencil } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { MotionCard } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button, MotionButton } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
@@ -14,7 +13,7 @@ import { useStore } from '@/store'
 import { FREE_APP_LIMIT, DEFAULT_DAILY_OPENINGS } from '@/types'
 import { localDateString } from '@/lib/dates'
 import { getAppLimitLabel, getTrialStatus } from '@/lib/trial'
-import { formatMinutes, formatTimeRemaining } from '@/lib/utils'
+import { formatMinutes, formatTimeRemaining, cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/Toast'
 import { useNavigate } from 'react-router-dom'
 import { AppIcon } from '@/components/AppBrandIcon'
@@ -116,13 +115,23 @@ export function AppsPage() {
 
   return (
     <AppShell>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="space-y-8 max-w-lg mx-auto w-full"
+      >
         <PageHeader
+          centered
           title={t('apps.title')}
           subtitle={`${t('apps.appsCount', { count: apps.length, limit: appLimitLabel })} · ${formatMinutes(screenTimeBalance)} ${t('apps.available')}`}
           action={
             canAddApps ? (
-              <Button variant="secondary" size="sm" onClick={() => setShowPicker(true)}>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="border-white/10 bg-white/[0.04]"
+                onClick={() => setShowPicker(true)}
+              >
                 <Plus size={16} />
                 {t('common.add')}
               </Button>
@@ -137,98 +146,129 @@ export function AppsPage() {
           <BlockerSetupCard compact />
         </div>
 
-        <div className="space-y-3">
-          {apps.map((app, i) => {
-            const isUnlocked = !app.isLocked
-
-            return (
-              <MotionCard key={app.id} className="p-4" style={{ animationDelay: `${i * 0.05}s` }}>
-                <div className="flex items-center gap-3 mb-3">
-                  <AppIcon
-                    brand={app.brand}
-                    name={app.name}
-                    icon={app.icon}
-                    color={app.color}
-                    size="lg"
-                    grayscale={!isUnlocked}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-sm truncate">{app.name}</h3>
-                      {isUnlocked ? (
-                        <Badge variant="success">{t('common.unlocked')}</Badge>
-                      ) : (
-                        <Badge variant="danger">{t('common.locked')}</Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-white/40 mt-0.5">
-                      {app.usedMinutes}/{app.dailyLimitMinutes}{t('common.minutes')} {t('apps.dailyLimit')}
-                      {isUnlocked && app.unlockedUntil && (
-                        <> · {formatTimeRemaining(app.unlockedUntil)} {t('apps.left')}</>
-                      )}
-                    </p>
-                  </div>
-                  {canEditLimits && (
-                    <button
-                      onClick={() => openEditLimit(app.id, app.dailyLimitMinutes)}
-                      className="p-2 rounded-lg hover:bg-indigo-500/10 text-white/20 hover:text-indigo-400 transition-colors"
-                      aria-label={t('apps.editLimit')}
-                    >
-                      <Pencil size={16} />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => removeApp(app.id)}
-                    className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-
-                <Progress value={app.usedMinutes} max={app.dailyLimitMinutes} size="sm" />
-
-                {app.isLocked ? (
-                  <MotionButton
-                    variant="outline"
-                    size="sm"
-                    fullWidth
-                    className="mt-3"
-                    onClick={() => {
-                      setShowUnlock(app.id)
-                      setUnlockMinutes(Math.min(15, screenTimeBalance))
-                    }}
-                  >
-                    <Unlock size={14} />
-                    {t('apps.unlockWithTime')}
-                  </MotionButton>
-                ) : (
-                  <div className="mt-3 flex items-center gap-2 text-xs text-emerald-400">
-                    <Unlock size={12} />
-                    {t('apps.activeUntil')}
-                  </div>
-                )}
-              </MotionCard>
-            )
-          })}
-        </div>
-
-        {apps.length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-violet-500/10 flex items-center justify-center">
-              <Grid3X3 size={26} className="text-violet-400" />
-            </div>
-            <p className="text-white/45">{t('apps.noApps')}</p>
-            {onIos ? (
-              <p className="text-sm text-white/35 mt-3 max-w-sm mx-auto leading-relaxed">{t('apps.iosPickAppsHint')}</p>
-            ) : (
-              <Button variant="secondary" className="mt-4" onClick={() => setShowPicker(true)}>
-                {t('apps.addFirst')}
-              </Button>
-            )}
+        <section>
+          <div className="text-center mb-4">
+            <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+              {t('nav.apps')}
+            </h2>
+            <div className="mx-auto mt-3 h-px w-10 bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent" />
           </div>
-        )}
 
-        <ProPromo variant="apps" compact className="mt-6" />
+          <div className="space-y-2">
+            {apps.map((app, i) => {
+              const isUnlocked = !app.isLocked
+
+              return (
+                <motion.div
+                  key={app.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04, duration: 0.35, ease: 'easeOut' }}
+                  className={cn(
+                    'rounded-2xl px-4 py-3.5',
+                    'bg-white/[0.03] border border-white/[0.07]'
+                  )}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <AppIcon
+                      brand={app.brand}
+                      name={app.name}
+                      icon={app.icon}
+                      color={app.color}
+                      size="lg"
+                      grayscale={!isUnlocked}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <h3 className="font-semibold text-[15px] tracking-tight truncate">
+                          {app.name}
+                        </h3>
+                        {isUnlocked ? (
+                          <Badge variant="success">{t('common.unlocked')}</Badge>
+                        ) : (
+                          <Badge variant="danger">{t('common.locked')}</Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-white/40 mt-0.5 truncate">
+                        {app.usedMinutes}/{app.dailyLimitMinutes}
+                        {t('common.minutes')} {t('apps.dailyLimit')}
+                        {isUnlocked && app.unlockedUntil && (
+                          <> · {formatTimeRemaining(app.unlockedUntil)} {t('apps.left')}</>
+                        )}
+                      </p>
+                    </div>
+                    {canEditLimits && (
+                      <button
+                        type="button"
+                        onClick={() => openEditLimit(app.id, app.dailyLimitMinutes)}
+                        className="p-2 rounded-lg hover:bg-indigo-500/10 text-white/20 hover:text-indigo-400 transition-colors"
+                        aria-label={t('apps.editLimit')}
+                      >
+                        <Pencil size={16} />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeApp(app.id)}
+                      className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+
+                  <Progress value={app.usedMinutes} max={app.dailyLimitMinutes} size="sm" />
+
+                  {app.isLocked ? (
+                    <MotionButton
+                      variant="outline"
+                      size="sm"
+                      fullWidth
+                      className="mt-3 border-white/10 bg-transparent hover:bg-white/[0.04]"
+                      onClick={() => {
+                        setShowUnlock(app.id)
+                        setUnlockMinutes(Math.min(15, screenTimeBalance))
+                      }}
+                    >
+                      <Unlock size={14} />
+                      {t('apps.unlockWithTime')}
+                    </MotionButton>
+                  ) : (
+                    <div className="mt-3 flex items-center gap-2 text-xs text-emerald-400">
+                      <Unlock size={12} />
+                      {t('apps.activeUntil')}
+                    </div>
+                  )}
+                </motion.div>
+              )
+            })}
+          </div>
+
+          {apps.length === 0 && (
+            <div className="text-center py-14">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-violet-500/10 flex items-center justify-center">
+                <Grid3X3 size={26} className="text-violet-400" />
+              </div>
+              <p className="text-white/45">{t('apps.noApps')}</p>
+              {onIos ? (
+                <p className="text-sm text-white/35 mt-3 max-w-sm mx-auto leading-relaxed">
+                  {t('apps.iosPickAppsHint')}
+                </p>
+              ) : (
+                <Button
+                  variant="secondary"
+                  className="mt-4 border-white/10 bg-white/[0.04]"
+                  onClick={() => setShowPicker(true)}
+                >
+                  {t('apps.addFirst')}
+                </Button>
+              )}
+            </div>
+          )}
+        </section>
+
+        <div className="pt-1">
+          <ProPromo variant="apps" compact />
+        </div>
       </motion.div>
 
       <DeviceAppPicker
@@ -246,8 +286,14 @@ export function AppsPage() {
       >
         {pendingApp && (
           <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-3 border border-border">
-              <AppIcon brand={pendingApp.brand} name={pendingApp.name} icon="" color={pendingApp.color} size="lg" />
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.07]">
+              <AppIcon
+                brand={pendingApp.brand}
+                name={pendingApp.name}
+                icon=""
+                color={pendingApp.color}
+                size="lg"
+              />
               <div>
                 <p className="font-semibold text-sm">{pendingApp.name}</p>
                 <p className="text-xs text-white/40">{t('apps.setDailyLimit')}</p>
@@ -298,10 +344,11 @@ export function AppsPage() {
         <div className="space-y-4">
           <p className="text-sm text-white/50">{t('apps.unlockDesc')}</p>
 
-          <div className="flex items-center gap-2 p-3 rounded-xl bg-surface-3 border border-border">
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-white/[0.03] border border-white/[0.07]">
             <Clock size={16} className="text-indigo-400" />
             <span className="text-sm">
-              {t('apps.balance')}: <span className="font-semibold text-white">{formatMinutes(screenTimeBalance)}</span>
+              {t('apps.balance')}:{' '}
+              <span className="font-semibold text-white">{formatMinutes(screenTimeBalance)}</span>
             </span>
           </div>
 
@@ -309,15 +356,18 @@ export function AppsPage() {
             {[5, 15, 30, 45, 60, 90].map((mins) => (
               <button
                 key={mins}
+                type="button"
                 onClick={() => setUnlockMinutes(mins)}
                 disabled={mins > screenTimeBalance}
-                className={`py-3 rounded-xl text-sm font-medium transition-all ${
+                className={cn(
+                  'py-3 rounded-xl text-sm font-medium transition-all',
                   unlockMinutes === mins
                     ? 'bg-indigo-500/20 border-2 border-indigo-500/50 text-indigo-300'
-                    : 'bg-surface-3 border border-border text-white/60 hover:border-border-hover disabled:opacity-30'
-                }`}
+                    : 'bg-white/[0.03] border border-white/[0.07] text-white/60 hover:border-white/15 disabled:opacity-30'
+                )}
               >
-                {mins}{t('common.minutes')}
+                {mins}
+                {t('common.minutes')}
               </button>
             ))}
           </div>

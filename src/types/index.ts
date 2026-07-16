@@ -262,6 +262,9 @@ export const GOOGLE_SUBSCRIPTION_ID = 'replock_pro'
 export const GOOGLE_PLAN_MONTHLY = 'monthly-plan'
 export const GOOGLE_PLAN_YEARLY = 'yearly-plan'
 export const REVENUECAT_ENTITLEMENT = 'pro'
+/** App Store Current offering id (`defaults`). Test Store historically used `default`. */
+export const REVENUECAT_OFFERING = 'defaults'
+export const REVENUECAT_OFFERING_LEGACY = 'default'
 
 export function getExercisesByCategory(category: ExerciseCategory): ExerciseType[] {
   return (Object.keys(EXERCISES) as ExerciseType[]).filter((id) => EXERCISES[id].category === category)

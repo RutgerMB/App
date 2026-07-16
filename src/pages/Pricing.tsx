@@ -7,7 +7,7 @@ import {
 import { MotionButton } from '@/components/ui/Button'
 import { BackButton } from '@/components/ui/BackButton'
 import { Badge } from '@/components/ui/Badge'
-import { formatPrice } from '@/lib/utils'
+import { formatPrice, cn } from '@/lib/utils'
 import { usesStoreSubscriptions } from '@/lib/mobile-purchases'
 import { purchaseProSubscription, restoreMobilePurchases } from '@/lib/mobile-purchases'
 import { usesRevenueCat } from '@/lib/payment-platform'
@@ -125,10 +125,8 @@ export function PricingPage() {
     } catch (err) {
       const message = err instanceof Error ? err.message : ''
       if (/cancel/i.test(message)) {
-        // User dismissed StoreKit / RevenueCat sheet — not an error.
         return
       }
-      // Never surface raw server auth strings after a store charge may have succeeded.
       if (/invalid or expired token|firebase session|cannot verify firebase/i.test(message)) {
         const sync = await syncEntitlementAfterPurchase().catch(() => null)
         if (sync?.isPro) {
@@ -183,9 +181,9 @@ export function PricingPage() {
     billingPeriod === 'yearly' ? t('pricing.perYear') : t('pricing.perMonth')
 
   return (
-    <div className="min-h-dvh bg-surface-0 noise flex flex-col safe-top safe-bottom overflow-y-auto">
+    <div className="min-h-dvh bg-surface-0 noise flex flex-col safe-top safe-bottom overflow-y-auto overflow-x-hidden">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[28rem] h-56 bg-indigo-500/[0.12] rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-0 w-64 h-64 bg-violet-500/8 rounded-full blur-3xl" />
       </div>
 
@@ -199,18 +197,19 @@ export function PricingPage() {
         <div className="w-12" />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col px-6 py-6 max-w-md mx-auto w-full pb-8">
+      <div className="relative z-10 flex-1 flex flex-col px-5 py-6 max-w-lg mx-auto w-full pb-8 space-y-7">
         {!profile.isPro && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`mb-6 p-4 rounded-2xl border text-center ${
+            className={cn(
+              'p-4 rounded-2xl border text-center',
               isExpired
                 ? 'bg-amber-500/10 border-amber-500/25'
                 : isUrgent
                   ? 'bg-orange-500/10 border-orange-500/25'
                   : 'bg-indigo-500/10 border-indigo-500/20'
-            }`}
+            )}
           >
             {isExpired ? (
               <>
@@ -230,38 +229,45 @@ export function PricingPage() {
           </motion.div>
         )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
+        <motion.header
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          transition={{ duration: 0.45, ease: 'easeOut' }}
+          className="text-center"
         >
-          <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-2xl shadow-indigo-500/30">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-300/70 mb-3">
+            RepLock
+          </p>
+          <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-xl shadow-indigo-500/30">
             <Sparkles size={28} className="text-white" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">{t('pricing.title')}</h1>
-          <p className="text-white/40 text-sm leading-relaxed max-w-xs mx-auto">
+          <h1 className="text-[2rem] font-bold tracking-tight leading-none mb-2.5">
+            {t('pricing.title')}
+          </h1>
+          <p className="text-white/45 text-sm leading-relaxed max-w-[18rem] mx-auto">
             {t('pricing.subtitle')}
           </p>
-        </motion.div>
+        </motion.header>
 
         {!profile.isPro && storeCheckout && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-2 gap-2 mb-4 p-1 rounded-2xl bg-surface-2 border border-border"
+            className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-white/[0.03] border border-white/[0.07]"
           >
             <button
               type="button"
               onClick={() => setBillingPeriod('yearly')}
-              className={`relative py-3 px-3 rounded-xl text-sm font-semibold transition-colors ${
+              className={cn(
+                'relative py-3 px-3 rounded-xl text-sm font-semibold transition-colors',
                 billingPeriod === 'yearly'
                   ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-500/40'
                   : 'text-white/45'
-              }`}
+              )}
             >
               {t('pricing.yearly')}
               {billingPeriod === 'yearly' && (
-                <span className="absolute -top-2 right-2 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="absolute -top-2 right-2 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
                   {t('pricing.savePercent', { percent: yearlyDiscountPct })}
                 </span>
               )}
@@ -269,11 +275,12 @@ export function PricingPage() {
             <button
               type="button"
               onClick={() => setBillingPeriod('monthly')}
-              className={`py-3 px-3 rounded-xl text-sm font-semibold transition-colors ${
+              className={cn(
+                'py-3 px-3 rounded-xl text-sm font-semibold transition-colors',
                 billingPeriod === 'monthly'
                   ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-500/40'
                   : 'text-white/45'
-              }`}
+              )}
             >
               {t('pricing.monthly')}
             </button>
@@ -281,10 +288,10 @@ export function PricingPage() {
         )}
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="p-6 rounded-3xl bg-surface-2 border border-indigo-500/30 gradient-border mb-6 relative overflow-hidden"
+          transition={{ delay: 0.1 }}
+          className="p-6 rounded-2xl bg-white/[0.03] border border-indigo-500/25 relative overflow-hidden"
         >
           {billingPeriod === 'yearly' && (
             <div className="absolute top-0 right-0 px-3 py-1 bg-indigo-500/20 rounded-bl-xl">
@@ -294,89 +301,93 @@ export function PricingPage() {
             </div>
           )}
 
-          <div className="flex items-baseline gap-1 mb-1">
-            <span className="text-4xl font-bold">{displayPrice}</span>
+          <div className="flex items-baseline justify-center gap-1 mb-1">
+            <span className="text-4xl font-bold tracking-tight">{displayPrice}</span>
             <span className="text-white/40 text-sm">{priceSuffix}</span>
           </div>
           {billingPeriod === 'yearly' ? (
-            <p className="text-xs text-emerald-400/80 mb-6">
+            <p className="text-xs text-emerald-400/80 mb-6 text-center">
               {t('pricing.yearlyEquivalent', { price: formatPrice(yearlyMonthlyEquivalent) })}
               {' · '}
               {t('pricing.yearlySavings', { amount: formatPrice(yearlySavings) })}
             </p>
           ) : (
-            <p className="text-xs text-white/35 mb-6">{t('pricing.lessThanCoffee')}</p>
+            <p className="text-xs text-white/35 mb-6 text-center">{t('pricing.lessThanCoffee')}</p>
           )}
 
           <div className="space-y-4">
             {features.map((f, i) => (
               <motion.div
                 key={f.titleKey}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 + i * 0.05 }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 + i * 0.05 }}
                 className="flex items-start gap-3"
               >
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center shrink-0 mt-0.5">
                   <f.icon size={16} className="text-indigo-400" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-medium text-white/85">{t(f.titleKey)}</p>
-                  <p className="text-xs text-white/40 mt-0.5">{t(f.descKey)}</p>
+                  <p className="text-xs text-white/40 mt-0.5 leading-relaxed">{t(f.descKey)}</p>
                 </div>
               </motion.div>
             ))}
           </div>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="grid grid-cols-2 gap-3 mb-8 text-sm"
-        >
-          <div className="p-4 rounded-2xl bg-surface-2 border border-border">
+        <div className="grid grid-cols-2 gap-2.5 text-sm">
+          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.07]">
             <p className="font-semibold mb-1 text-white/50">{t('pricing.freePlan')}</p>
             <p className="text-[10px] text-white/30 mb-3">{t('pricing.afterTrial')}</p>
             <ul className="space-y-2 text-white/40 text-xs">
-              <li className="flex items-center gap-1.5"><Check size={12} /> {t('pricing.freeApp')}</li>
-              <li className="flex items-center gap-1.5"><Check size={12} /> {t('pricing.mediumDifficulty')}</li>
-              <li className="flex items-center gap-1.5"><Check size={12} /> {t('pricing.basicTracking')}</li>
+              <li className="flex items-center gap-1.5">
+                <Check size={12} /> {t('pricing.freeApp')}
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Check size={12} /> {t('pricing.mediumDifficulty')}
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Check size={12} /> {t('pricing.basicTracking')}
+              </li>
             </ul>
           </div>
           <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/25">
             <p className="font-semibold mb-1 text-indigo-300">{t('pricing.proPlan')}</p>
             <p className="text-[10px] text-indigo-400/60 mb-3">{t('pricing.everything')}</p>
             <ul className="space-y-2 text-white/60 text-xs">
-              <li className="flex items-center gap-1.5"><Check size={12} className="text-indigo-400" /> {t('pricing.unlimitedApps')}</li>
-              <li className="flex items-center gap-1.5"><Check size={12} className="text-indigo-400" /> {t('pricing.customLimits')}</li>
-              <li className="flex items-center gap-1.5"><Check size={12} className="text-indigo-400" /> {t('pricing.difficultyModes')}</li>
-              <li className="flex items-center gap-1.5"><Check size={12} className="text-indigo-400" /> {t('pricing.deepAnalytics')}</li>
+              <li className="flex items-center gap-1.5">
+                <Check size={12} className="text-indigo-400" /> {t('pricing.unlimitedApps')}
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Check size={12} className="text-indigo-400" /> {t('pricing.customLimits')}
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Check size={12} className="text-indigo-400" /> {t('pricing.difficultyModes')}
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Check size={12} className="text-indigo-400" /> {t('pricing.deepAnalytics')}
+              </li>
             </ul>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.35 }}
-          className="p-4 rounded-2xl bg-surface-2/50 border border-border mb-6"
-        >
+        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.07]">
           <p className="text-xs text-white/50 leading-relaxed text-center">
             {t('pricing.noShortcuts')}
             <span className="text-white/70 font-medium">{t('pricing.noShortcutsBold')}</span>
           </p>
-        </motion.div>
+        </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 pt-1">
           {profile.isPro ? (
-            <div className="text-center p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+            <div className="text-center p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
               <Check size={24} className="mx-auto text-emerald-400 mb-2" />
               <p className="font-semibold text-emerald-300">{t('pricing.onPro')}</p>
               <p className="text-xs text-white/40 mt-1">{t('pricing.onProDesc')}</p>
             </div>
           ) : !storeCheckout ? (
-            <div className="text-center p-5 rounded-2xl bg-surface-2 border border-border">
+            <div className="text-center p-5 rounded-2xl bg-white/[0.03] border border-white/[0.07]">
               <Smartphone size={28} className="mx-auto text-indigo-400 mb-3" />
               <p className="font-semibold text-white/80 mb-1">{t('pricing.mobileOnlyTitle')}</p>
               <p className="text-xs text-white/40 leading-relaxed">{t('pricing.mobileOnlyDesc')}</p>
@@ -407,9 +418,21 @@ export function PricingPage() {
                 {revenueCat ? t('pricing.storeTerms') : t('pricing.appleTerms')}
               </p>
               <p className="text-center text-[11px] text-white/25">
-                <button type="button" onClick={openTerms} className="underline hover:text-white/40">{t('legal.termsTitle')}</button>
+                <button
+                  type="button"
+                  onClick={openTerms}
+                  className="underline hover:text-white/40"
+                >
+                  {t('legal.termsTitle')}
+                </button>
                 {' · '}
-                <button type="button" onClick={openPrivacy} className="underline hover:text-white/40">{t('legal.privacyTitle')}</button>
+                <button
+                  type="button"
+                  onClick={openPrivacy}
+                  className="underline hover:text-white/40"
+                >
+                  {t('legal.privacyTitle')}
+                </button>
               </p>
             </>
           )}
