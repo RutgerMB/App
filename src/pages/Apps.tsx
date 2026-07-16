@@ -199,24 +199,6 @@ export function AppsPage() {
           }
         />
 
-        <div className="space-y-3">
-          <TrialBanner compact />
-          <QuickBlockCard />
-          <ActiveScheduleCard />
-          <BlockerSetupCard compact />
-          {onIos && apps.some((a) => a.iosTokenId) && (
-            <button
-              type="button"
-              disabled={nativeSheetLoading}
-              onClick={() => void handleViewNativeLabels()}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-white/70 bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.05] transition-colors disabled:opacity-50"
-            >
-              <Eye size={16} />
-              {t('apps.iosViewSystemLabels')}
-            </button>
-          )}
-        </div>
-
         <section>
           <div className="text-center mb-4">
             <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
@@ -344,6 +326,24 @@ export function AppsPage() {
             </div>
           )}
         </section>
+
+        <div className="space-y-3">
+          <TrialBanner compact />
+          <QuickBlockCard />
+          <ActiveScheduleCard />
+          <BlockerSetupCard compact />
+          {onIos && apps.some((a) => a.iosTokenId) && (
+            <button
+              type="button"
+              disabled={nativeSheetLoading}
+              onClick={() => void handleViewNativeLabels()}
+              className="w-full flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-white/70 bg-white/[0.03] border border-white/[0.07] hover:bg-white/[0.05] transition-colors disabled:opacity-50"
+            >
+              <Eye size={16} />
+              {t('apps.iosViewSystemLabels')}
+            </button>
+          )}
+        </div>
 
         <div className="pt-1">
           <ProPromo variant="apps" compact />
