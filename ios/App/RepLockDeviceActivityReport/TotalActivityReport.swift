@@ -1,29 +1,38 @@
+//
+//  TotalActivityReport.swift
+//  RepLockDeviceActivityReport
+//
+//  Created by Rutger Bleeker on 16/07/2026.
+//
+
 import DeviceActivity
-import Foundation
 import SwiftUI
 
-struct TotalActivityConfiguration {
-    let totalMinutes: Int
+extension DeviceActivityReport.Context {
+    // If your app initializes a DeviceActivityReport with this context, then the system will use
+    // your extension's corresponding DeviceActivityReportScene to render the contents of the
+    // report.
+    static let totalActivity = Self("Total Activity")
 }
 
-/// Device Activity Report scene: sums today's segments and writes minutes to the App Group.
 struct TotalActivityReport: DeviceActivityReportScene {
+    // Define which context your scene will represent.
     let context: DeviceActivityReport.Context = .totalActivity
-    let content: (TotalActivityConfiguration) -> TotalActivityView
-
-    func makeConfiguration(
-        representing data: DeviceActivityResults<DeviceActivityData>
-    ) async -> TotalActivityConfiguration {
-        var totalSeconds: TimeInterval = 0
-
-        for await deviceData in data {
-            for await segment in deviceData.activitySegments {
-                totalSeconds += segment.totalActivityDuration
-            }
-        }
-
-        let totalMinutes = Int((totalSeconds / 60.0).rounded())
-        ScreenTimeSharedStore.writeTodayTotalMinutes(totalMinutes)
-        return TotalActivityConfiguration(totalMinutes: totalMinutes)
+    
+    // Define the custom configuration and the resulting view for this report.
+    let content: (String) -> TotalActivityView
+    
+    func makeConfiguration(representing data: DeviceActivityResults<DeviceActivityData>) async -> String {
+        // Reformat the data into a configuration that can be used to create
+        // the report's view.
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.day, .hour, .minute, .second]
+        formatter.unitsStyle = .abbreviated
+        formatter.zeroFormattingBehavior = .dropAll
+        
+        let totalActivityDuration = await data.flatMap { $0.activitySegments }.reduce(0, {
+            $0 + $1.totalActivityDuration
+        })
+        return formatter.string(from: totalActivityDuration) ?? "No activity data"
     }
 }

@@ -1,12 +1,23 @@
+//
+//  TotalActivityView.swift
+//  RepLockDeviceActivityReport
+//
+//  Created by Rutger Bleeker on 16/07/2026.
+//
+
 import SwiftUI
 
-/// Minimal report UI. Host app reads totals from the App Group; this view is mostly a probe target.
 struct TotalActivityView: View {
-    let totalMinutes: Int
-
+    let totalActivity: String
+    
     var body: some View {
-        Color.clear
-            .accessibilityHidden(true)
-            .accessibilityLabel("Screen time \(totalMinutes) minutes")
+        Text(totalActivity)
     }
+}
+
+// In order to support previews for your extension's custom views, make sure its source files are
+// members of your app's Xcode target as well as members of your extension's target. You can use
+// Xcode's File Inspector to modify a file's Target Membership.
+#Preview {
+    TotalActivityView(totalActivity: "1h 23m")
 }

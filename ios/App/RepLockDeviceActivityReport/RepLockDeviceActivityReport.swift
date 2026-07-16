@@ -1,16 +1,20 @@
+//
+//  RepLockDeviceActivityReport.swift
+//  RepLockDeviceActivityReport
+//
+//  Created by Rutger Bleeker on 16/07/2026.
+//
+
 import DeviceActivity
 import SwiftUI
 
-extension DeviceActivityReport.Context {
-    /// Must match `ScreenTimeSharedKeys.reportContextRawValue` and the host probe.
-    static let totalActivity = Self(ScreenTimeSharedKeys.reportContextRawValue)
-}
-
 @main
-struct RepLockDeviceActivityReportExtension: DeviceActivityReportExtension {
+struct RepLockDeviceActivityReport: DeviceActivityReportExtension {
     var body: some DeviceActivityReportScene {
-        TotalActivityReport { configuration in
-            TotalActivityView(totalMinutes: configuration.totalMinutes)
+        // Create a report for each DeviceActivityReport.Context that your app supports.
+        TotalActivityReport { totalActivity in
+            TotalActivityView(totalActivity: totalActivity)
         }
+        // Add more reports here...
     }
 }
