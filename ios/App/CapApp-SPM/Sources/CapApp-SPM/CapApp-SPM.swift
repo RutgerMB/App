@@ -6,7 +6,7 @@ import RepLockRevenueCatPlugin
 public let isCapacitorApp: Bool = {
     CapAppLocalPlugins.touch()
     return true
-}
+}()
 // CAP_PLUGIN_FORCE_LINK
 enum CapAppLocalPlugins {
     static func touch() {
