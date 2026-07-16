@@ -63,7 +63,9 @@ public struct RepLockCustomerCenterView: View {
         NavigationStack {
             CustomerCenterView()
                 .onCustomerCenterRestoreCompleted { _ in
-                    Task { await RevenueCatManager.shared.refreshCustomerInfo() }
+                    Task { @MainActor in
+                        try? await RevenueCatManager.shared.refreshCustomerInfo()
+                    }
                 }
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
