@@ -205,3 +205,28 @@ If it still fails, in Xcode: **File → Packages → Reset Package Caches**, the
 | **iOS Simulator** | `http://127.0.0.1:3001` can work if `npm run dev` runs on Mac |
 
 Family Controls / app blocking only works properly on a **physical iPhone**.
+
+---
+
+## RevenueCat API key (required for IAP on device)
+
+Physical iPhone + App Store **sandbox** needs the **App Store public SDK key** (`appl_…`), not the RevenueCat **Test Store** key (`test_…`).
+
+| Key | When to use |
+|-----|-------------|
+| `appl_…` | Real device / sandbox / TestFlight / App Store |
+| `test_…` | RevenueCat Test Store simulator flow only — **not** StoreKit on iPhone |
+
+**One-time setup on the Mac:**
+
+1. [RevenueCat](https://app.revenuecat.com) → **Project** → **API keys**
+2. Copy the **iOS** public key for bundle `app.replock.bleeker` (starts with `appl_`)
+3. Add to gitignored `.env` (preferred) or `.env.iphone-dev`:
+
+```bash
+VITE_REVENUECAT_API_KEY_IOS=appl_YOUR_KEY_HERE
+```
+
+4. Re-run `npm run cap:ios:sync` — it copies the key into the Vite build and `Info.plist` so JS and native Swift use the same key. Sync **fails** if the key is missing or starts with `test_`.
+
+Xcode warning *"Using a Test Store API key"* / *"No packages could be found for offering defaults"* means a `test_` key was still baked — fix the env and sync again.

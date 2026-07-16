@@ -17,7 +17,7 @@ Both layers share the same RevenueCat `Purchases.shared` singleton and entitleme
 - macOS with **Xcode 15+** (iOS 16 deployment target)
 - Apple Developer account with **In-App Purchase** capability enabled
 - RevenueCat project with iOS app `app.replock.bleeker`
-- Test API key: `test_cSXFKgGWQiSeYSJqQpUrEKbhwCi`
+- App Store public SDK key (`appl_…`) for device / sandbox — **not** Test Store (`test_…`)
 
 ---
 
@@ -27,7 +27,7 @@ Both layers share the same RevenueCat `Purchases.shared` singleton and entitleme
 
 1. RevenueCat → **Project** → **Apps** → Add iOS app
 2. Bundle ID: `app.replock.bleeker`
-3. Copy the **public iOS API key** (test key above for sandbox)
+3. Copy the **App Store public iOS API key** (`appl_…`) — use Test Store (`test_…`) only for RC’s simulated store, never for a physical iPhone
 
 ### 2.2 Entitlement
 
@@ -127,22 +127,25 @@ Prefer the repo's local package — it keeps Capacitor plugin registration consi
 
 ### 3.4 API key configuration
 
-**Default (repo):** `RepLockRevenueCatConstants.defaultAPIKey` = test key.
+**Device / sandbox / production:** App Store public SDK key (`appl_…`).
 
-**Production override:** add to `ios/App/App/Info.plist`:
+`npm run cap:ios:sync` reads `VITE_REVENUECAT_API_KEY_IOS` from `.env` (preferred) or `.env.iphone-dev`, **rejects** `test_…` keys, and writes the same `appl_…` value into:
+
+1. `.env.iphone-dev` (Vite / JS `Purchases.configure`)
+2. `ios/App/App/Info.plist` → `REVENUECAT_API_KEY` (native `RepLockRevenueCatConstants.apiKey`)
+
+```env
+VITE_REVENUECAT_API_KEY_IOS=appl_YOUR_IOS_APP_STORE_PUBLIC_SDK_KEY
+```
+
+Manual Info.plist override (if not using the sync script):
 
 ```xml
 <key>REVENUECAT_API_KEY</key>
 <string>appl_your_production_key</string>
 ```
 
-**JS layer:** set in `.env`:
-
-```env
-VITE_REVENUECAT_API_KEY_IOS=test_cSXFKgGWQiSeYSJqQpUrEKbhwCi
-```
-
-Use the same key in both places for consistent customer records.
+Use the **same** key in JS and native. Test Store keys (`test_…`) cause empty offerings on a real iPhone.
 
 ---
 
@@ -430,7 +433,7 @@ import { presentNativePaywall } from '@/lib/replock-revenuecat-native'
 3. **Refresh on foreground** — `PurchasesDelegate` in `RevenueCatManager` listens for `receivedUpdated`
 4. **Log level** — `.debug` in DEBUG, `.warn` in Release
 5. **Offerings empty** — means dashboard/App Store Connect misconfiguration, not a code bug
-6. **Sandbox testing** — use Sandbox Apple ID; RevenueCat test key `test_…` for sandbox only
+6. **Sandbox testing** — use a Sandbox Apple ID + App Store public SDK key (`appl_…`); never `test_…` on device
 
 ```swift
 // Delegate receives subscription renewals, refunds, family sharing changes
@@ -464,7 +467,8 @@ extension RevenueCatManager: PurchasesDelegate {
 | SPM resolve fails | Reset package caches; check network; verify `purchases-ios-spm` URL |
 | `cap sync` drops RepLockRevenueCat | Run `node scripts/ios-remove-stripe.mjs` |
 | Paywall blank | Create + publish paywall for `default` offering in dashboard |
-| Products not found | App Store Connect agreements; product IDs match `replock_pro_*` |
+| Products not found / empty `defaults` offering | Wrong API key (`test_` vs `appl_`); App Store Connect agreements; product IDs match `replock_pro_*` |
+| Xcode: “Using a Test Store API key” | Set `VITE_REVENUECAT_API_KEY_IOS=appl_…` and re-run `npm run cap:ios:sync` |
 | Entitlement not active | Link products to `pro` entitlement in RevenueCat |
 | Plugin not found in JS | Rebuild iOS app; confirm `CapApp-SPM.swift` imports `RepLockRevenueCatPlugin` |
 | Duplicate configure warning | Ignore if both layers init — singleton is idempotent |
@@ -473,7 +477,7 @@ extension RevenueCatManager: PurchasesDelegate {
 
 ## 12. Production checklist
 
-1. Replace test API key with `appl_…` production key (Info.plist + `.env`)
+1. Confirm `appl_…` App Store public SDK key in `.env` / Info.plist (not `test_…`)
 2. Verify App Store Connect subscriptions are **Ready to Submit**
 3. Upload App Store review subscription screenshot (`docs/app-store/`)
 4. Configure RevenueCat webhook → `server/revenuecat-webhook.ts`

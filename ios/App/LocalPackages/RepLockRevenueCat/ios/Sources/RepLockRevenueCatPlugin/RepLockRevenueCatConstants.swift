@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 /// RevenueCat configuration aligned with RepLock JS (`src/types/index.ts`).
 public enum RepLockRevenueCatConstants {
@@ -13,14 +14,40 @@ public enum RepLockRevenueCatConstants {
     /// RevenueCat offering identifier (dashboard default offering).
     public static let defaultOfferingIdentifier = "default"
 
-    /// RevenueCat public iOS API key (test/sandbox). Override via Info.plist `REVENUECAT_API_KEY`.
-    public static let defaultAPIKey = "test_cSXFKgGWQiSeYSJqQpUrEKbhwCi"
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "app.replock.bleeker",
+        category: "RepLockRevenueCat"
+    )
 
+    /// Public iOS SDK key from Info.plist `REVENUECAT_API_KEY` (injected by `npm run cap:ios:sync`).
+    /// Must be the App Store key (`appl_…`) for device / sandbox StoreKit — never the Test Store (`test_…`).
     public static var apiKey: String {
-        if let plistKey = Bundle.main.object(forInfoDictionaryKey: "REVENUECAT_API_KEY") as? String,
-           !plistKey.isEmpty {
-            return plistKey
+        let plistKey = Bundle.main.object(forInfoDictionaryKey: "REVENUECAT_API_KEY") as? String
+        let key = plistKey?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        if key.isEmpty {
+            logger.error(
+                "REVENUECAT_API_KEY missing from Info.plist. Run `npm run cap:ios:sync` after setting VITE_REVENUECAT_API_KEY_IOS=appl_… in .env"
+            )
+            assertionFailure("REVENUECAT_API_KEY missing from Info.plist")
+            return ""
         }
-        return defaultAPIKey
+
+        if key.hasPrefix("test_") {
+            #if targetEnvironment(simulator)
+            logger.warning(
+                "Using RevenueCat Test Store key (test_…). OK for RC Test Store simulator flow only — not real StoreKit."
+            )
+            #else
+            logger.error(
+                "CRITICAL: RevenueCat Test Store key (test_…) on a device build. Sandbox IAP will fail / offerings empty. Use App Store public SDK key (appl_…) from RevenueCat → Project → API keys for app.replock.bleeker. Set VITE_REVENUECAT_API_KEY_IOS and re-run npm run cap:ios:sync."
+            )
+            print(
+                "❌ [RepLock] RevenueCat Test Store key detected on device. Use appl_… App Store SDK key — see IOS_SETUP.md"
+            )
+            #endif
+        }
+
+        return key
     }
 }

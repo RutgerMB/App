@@ -52,6 +52,13 @@ public final class RevenueCatManager: NSObject, ObservableObject {
     public func configure(appUserID: String? = nil) {
         guard !isConfigured else { return }
 
+        let apiKey = RepLockRevenueCatConstants.apiKey
+        guard !apiKey.isEmpty else {
+            lastErrorMessage =
+                "REVENUECAT_API_KEY missing. Set VITE_REVENUECAT_API_KEY_IOS=appl_… and run npm run cap:ios:sync."
+            return
+        }
+
         #if DEBUG
         Purchases.logLevel = .debug
         #else
@@ -59,9 +66,9 @@ public final class RevenueCatManager: NSObject, ObservableObject {
         #endif
 
         if let appUserID, !appUserID.isEmpty {
-            Purchases.configure(withAPIKey: RepLockRevenueCatConstants.apiKey, appUserID: appUserID)
+            Purchases.configure(withAPIKey: apiKey, appUserID: appUserID)
         } else {
-            Purchases.configure(withAPIKey: RepLockRevenueCatConstants.apiKey)
+            Purchases.configure(withAPIKey: apiKey)
         }
 
         Purchases.shared.delegate = self

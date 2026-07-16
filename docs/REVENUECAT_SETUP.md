@@ -26,13 +26,21 @@ RepLock uses **RevenueCat** for iOS + Android subscriptions. Web is dev-only —
 ## 3. Environment variables
 
 ```env
-# Client (Vite)
+# Client (Vite) — App Store / Play public SDK keys (NOT Test Store)
 VITE_REVENUECAT_API_KEY_IOS=appl_xxx
 VITE_REVENUECAT_API_KEY_ANDROID=goog_xxx
 
 # Server
 REVENUECAT_WEBHOOK_SECRET=your_webhook_authorization_header_value
 ```
+
+| Key prefix | Use |
+|------------|-----|
+| `appl_…` | **Required** for physical iPhone + App Store sandbox / production StoreKit |
+| `test_…` | RevenueCat **Test Store** only (simulated catalog) — empty offerings on a real device |
+| `goog_…` | Android Play Store |
+
+`npm run cap:ios:sync` refuses to bake a `test_` key and injects `appl_…` into `.env.iphone-dev` + `Info.plist` `REVENUECAT_API_KEY` so JS (`Purchases.configure`) and native (`RepLockRevenueCat`) share the same key.
 
 ## 4. Webhook
 

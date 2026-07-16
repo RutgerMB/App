@@ -31,6 +31,16 @@ function getApiKey(): string | null {
   return null
 }
 
+/** Test Store keys (test_…) do not drive App Store / sandbox StoreKit on a real iPhone. */
+function warnIfTestStoreKeyOnIos(apiKey: string): void {
+  if (Capacitor.getPlatform() !== 'ios' || !apiKey.startsWith('test_')) return
+  const msg =
+    '[RepLock] RevenueCat Test Store key (test_…) on iOS. ' +
+    'Physical device / sandbox IAP needs the App Store public SDK key (appl_…). ' +
+    'Set VITE_REVENUECAT_API_KEY_IOS=appl_… and re-run npm run cap:ios:sync. See IOS_SETUP.md.'
+  console.error(msg)
+}
+
 export function isRevenueCatConfigured(): boolean {
   return Capacitor.isNativePlatform() && Boolean(getApiKey())
 }
@@ -38,6 +48,8 @@ export function isRevenueCatConfigured(): boolean {
 export async function initRevenueCat(appUserId?: string): Promise<void> {
   const apiKey = getApiKey()
   if (!apiKey || configured) return
+
+  warnIfTestStoreKeyOnIos(apiKey)
 
   await Purchases.setLogLevel({
     level: import.meta.env.DEV ? LOG_LEVEL.DEBUG : LOG_LEVEL.WARN,
