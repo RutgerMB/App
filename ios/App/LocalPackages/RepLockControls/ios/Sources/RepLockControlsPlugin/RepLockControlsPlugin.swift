@@ -236,7 +236,9 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        guard let raw = call.getObject("names") else {
+        // Cap 8 SPM on Xcode 15.x requires the two-arg getObject(_:_:); use options
+        // for optional presence (same pattern as RevenueCat optionalObject).
+        guard let raw = call.options["names"] as? JSObject else {
             repLockReject(call, "names object required")
             return
         }
