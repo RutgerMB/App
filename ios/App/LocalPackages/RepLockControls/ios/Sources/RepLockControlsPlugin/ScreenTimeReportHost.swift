@@ -137,16 +137,16 @@ private struct VisibleScreenTimeReportSheet: View {
                 .ignoresSafeArea()
 
                 VStack(spacing: 20) {
-                    Text("TODAY")
+                    Text("REALITY CHECK")
                         .font(.system(size: 11, weight: .semibold))
                         .tracking(2.2)
                         .foregroundStyle(Color.white.opacity(0.45))
 
-                    Text("Your screen time")
+                    Text("Your actual screen time")
                         .font(.system(size: 26, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
 
-                    Text("Apple measures this on your iPhone. RepLock shows the system total here — then you’re ready to continue setup.")
+                    Text("Apple measured this on your iPhone today. RepLock shows the system total here first, then sends you back to finish setup with context.")
                         .font(.system(size: 14, weight: .regular))
                         .foregroundStyle(Color.white.opacity(0.5))
                         .multilineTextAlignment(.center)
@@ -168,7 +168,7 @@ private struct VisibleScreenTimeReportSheet: View {
                     Spacer(minLength: 8)
 
                     Button(action: onContinue) {
-                        Text("Continue")
+                        Text("Continue setup")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)

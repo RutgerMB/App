@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Shield, X } from 'lucide-react'
+import { Shield, X, Scale, Smartphone, Eye } from 'lucide-react'
 import { useState, useEffect, useMemo } from 'react'
 import {
   IntroShell,
@@ -19,6 +19,7 @@ import {
   BenefitsList,
   HoldLogoButton,
   BlockPreviewCarousel,
+  formatHoursMinutes,
 } from '@/components/onboarding/OnboardingSteps'
 import {
   OpeningsSlider,
@@ -62,21 +63,23 @@ const MINUTES_PER_OPENING = 5
 const STEP = {
   INTRO: 1,
   LANGUAGE: 2,
-  SCREEN_TIME_PERMISSION: 3,
-  SCREEN_TIME_GUESS: 4,
-  REVEAL: 5,
-  POTENTIAL: 6,
-  YEARS: 7,
-  WEEK_ONE: 8,
-  BENEFITS: 9,
-  BLOCK_PREVIEW: 10,
-  SELECT_APPS: 11,
-  CREATE_GOAL: 12,
-  GOAL_CONFIRMED: 13,
-  NOTIFICATIONS: 14,
-  TRIAL: 15,
-  DIFFICULTY: 16,
-  NAME: 17,
+  SCREEN_TIME_PRIMER: 3,
+  SCREEN_TIME_PERMISSION: 4,
+  SCREEN_TIME_GUESS: 5,
+  SCREEN_TIME_REPORT: 6,
+  REVEAL: 7,
+  POTENTIAL: 8,
+  YEARS: 9,
+  WEEK_ONE: 10,
+  BENEFITS: 11,
+  BLOCK_PREVIEW: 12,
+  SELECT_APPS: 13,
+  CREATE_GOAL: 14,
+  GOAL_CONFIRMED: 15,
+  NOTIFICATIONS: 16,
+  TRIAL: 17,
+  DIFFICULTY: 18,
+  NAME: 19,
 } as const
 
 function SetupIllustration() {
@@ -183,6 +186,137 @@ function ScreenTimeSlider({ value, onChange }: { value: number; onChange: (v: nu
   )
 }
 
+function ScreenTimeTruthPrimer({ platform }: { platform: ReturnType<typeof getScreenTimePlatform> }) {
+  const isIos = platform === 'ios'
+  const isAndroid = platform === 'android'
+
+  return (
+    <div className="space-y-5 w-full max-w-sm mx-auto">
+      <div className="rounded-[28px] border border-white/[0.08] bg-white/[0.03] p-5">
+        <div className="inline-flex items-center gap-2 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-3 py-1.5 mb-4">
+          <Scale size={14} className="text-indigo-300" />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-200/90">
+            Screen Time check
+          </span>
+        </div>
+        <p className="text-base font-semibold text-white leading-snug mb-2">
+          First you&apos;ll guess your daily screen time. Then we&apos;ll compare it with what your phone recorded.
+        </p>
+        <p className="text-sm text-white/50 leading-relaxed">
+          {isIos
+            ? 'On iPhone, Apple reveals the real number in its own Screen Time sheet. RepLock wraps that reveal into setup so the moment lands clearly.'
+            : isAndroid
+              ? 'On Android, RepLock can usually pull the number directly once usage access is enabled.'
+              : 'In the browser we can only use your estimate, but the same setup still personalizes your plan.'}
+        </p>
+      </div>
+
+      <div className="grid gap-3">
+        {[
+          {
+            icon: Scale,
+            title: '1. Make your guess',
+            body: 'Commit to a number before the reveal so the comparison feels real.',
+          },
+          {
+            icon: Eye,
+            title: '2. See the truth',
+            body: isIos
+              ? 'Apple shows your actual total in a native Screen Time report.'
+              : 'RepLock reads the actual total from your device when permission is available.',
+          },
+          {
+            icon: Smartphone,
+            title: '3. Build your lock plan',
+            body: 'RepLock turns that number into a stricter daily target and your first app-blocking setup.',
+          },
+        ].map((item) => {
+          const Icon = item.icon
+          return (
+            <div key={item.title} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-2xl border border-white/[0.07] bg-surface-2 flex items-center justify-center shrink-0">
+                  <Icon size={18} className="text-white/80" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">{item.title}</p>
+                  <p className="text-xs text-white/45 leading-relaxed mt-1">{item.body}</p>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function ScreenTimeReportPrompt({
+  platform,
+  granted,
+  guessHours,
+  sawNativeReport,
+}: {
+  platform: ReturnType<typeof getScreenTimePlatform>
+  granted: boolean
+  guessHours: number
+  sawNativeReport: boolean
+}) {
+  const isIos = platform === 'ios'
+  const canRevealInApp = platform === 'android'
+  const title = isIos
+    ? sawNativeReport
+      ? 'Want to see the report again?'
+      : 'Ready for the real number?'
+    : canRevealInApp
+      ? 'Ready to compare your guess?'
+      : 'Your guess is locked in'
+  const subtitle = isIos
+    ? granted
+      ? 'Apple will show today’s Screen Time total in a native sheet. Close it when you are ready and RepLock will take you straight to the comparison.'
+      : 'Screen Time access is still off, so RepLock will continue with your guess. You can authorize later and revisit the reveal from inside the app.'
+    : canRevealInApp
+      ? 'RepLock will refresh your device total and compare it against the number you just guessed.'
+      : 'The browser cannot read Screen Time directly, so the next step will use your estimate transparently.'
+
+  return (
+    <div className="space-y-5 w-full max-w-sm mx-auto">
+      <div className="rounded-[28px] border border-white/[0.08] bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-violet-500/10 p-5">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 mb-4">
+          <Eye size={14} className="text-indigo-300" />
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55">
+            Reveal
+          </span>
+        </div>
+        <p className="text-2xl font-bold tracking-tight text-white mb-2">{title}</p>
+        <p className="text-sm text-white/55 leading-relaxed mb-5">{subtitle}</p>
+
+        <div className="rounded-2xl border border-white/[0.07] bg-black/20 p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35 mb-2">
+            Your locked guess
+          </p>
+          <p className="text-3xl font-bold gradient-text tabular-nums">{formatHoursMinutes(guessHours)}</p>
+        </div>
+      </div>
+
+      <div className="grid gap-3">
+        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
+          <p className="text-sm font-semibold text-white mb-1">What happens next</p>
+          <p className="text-xs text-white/45 leading-relaxed">
+            {isIos
+              ? granted
+                ? 'Tap Continue to open Apple’s report. After you dismiss it, RepLock will show the comparison and your recommended reduction.'
+                : 'Tap Continue to move on with your estimate. RepLock will stay honest about the missing device number.'
+              : canRevealInApp
+                ? 'Tap Continue and RepLock will refresh your actual total before showing the comparison.'
+                : 'Tap Continue to see your compare screen and your first RepLock target.'}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function OnboardingPage() {
   const location = useLocation()
   const restoredStep = (location.state as { step?: number } | null)?.step
@@ -230,7 +364,7 @@ export function OnboardingPage() {
 
   const needsNameStep = resolvedName.length === 0
   const SKIPPED_ONBOARDING_STEPS = 1 // WEEK_ONE skipped after YEARS
-  const totalSteps = (needsNameStep ? 17 : 16) - SKIPPED_ONBOARDING_STEPS
+  const totalSteps = (needsNameStep ? 19 : 18) - SKIPPED_ONBOARDING_STEPS
   const progressStep = step > STEP.WEEK_ONE ? step - SKIPPED_ONBOARDING_STEPS : step
   const screenTimePlatform = getScreenTimePlatform()
   const baselineHours = actualScreenHours ?? screenHours
@@ -292,8 +426,6 @@ export function OnboardingPage() {
           if (data) {
             setActualScreenHours(Math.max(0.5, Math.round(data.hours * 10) / 10))
           }
-          // Present the premium sheet once so the user sees today's total.
-          await showNativeScreenTimeSheetOnce()
           return
         }
       } else {
@@ -426,6 +558,20 @@ export function OnboardingPage() {
       advance()
       return
     }
+    if (step === STEP.SCREEN_TIME_REPORT) {
+      if (screenTimePlatform === 'ios' && screenTimeGranted) {
+        await showNativeScreenTimeSheetOnce()
+        const data = await fetchDailyScreenTimeHours()
+        if (data) setActualScreenHours(Math.max(0.5, Math.round(data.hours * 10) / 10))
+        advance()
+        return
+      }
+      if (screenTimePlatform !== 'web' && actualScreenHours == null) {
+        await refreshScreenTimeAccess({ retry: true })
+      }
+      advance()
+      return
+    }
     if (step === STEP.SELECT_APPS) {
       if (selectedApps.size === 0) {
         toast(t('onboarding.selectAppsRequired'), 'error')
@@ -481,6 +627,12 @@ export function OnboardingPage() {
       ? t('onboarding.startEarning')
       : step === STEP.NAME
         ? t('onboarding.startEarning')
+        : step === STEP.SCREEN_TIME_REPORT
+          ? screenTimePlatform === 'ios' && screenTimeGranted
+            ? sawNativeScreenTimeReport
+              ? 'Show it again'
+              : 'Show my real number'
+            : 'Continue'
         : step === STEP.YEARS
           ? t('intro.yearsCta')
           : undefined
@@ -602,6 +754,19 @@ export function OnboardingPage() {
           </>
         )
 
+      case STEP.SCREEN_TIME_PRIMER:
+        return (
+          <>
+            <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
+            <IntroHeading className="mb-2">We&apos;re about to compare your guess with reality.</IntroHeading>
+            <IntroSubtext className="mb-8">
+              This is the moment that makes RepLock feel personal, not generic analytics.
+            </IntroSubtext>
+            <ScreenTimeTruthPrimer platform={screenTimePlatform} />
+          </>
+        )
+
       case STEP.SCREEN_TIME_GUESS:
         return (
           <>
@@ -611,6 +776,24 @@ export function OnboardingPage() {
             <IntroSubtext className="mb-8">{t('intro.screenTimeHint')}</IntroSubtext>
             <ScreenTimeSlider value={screenHours} onChange={setScreenHours} />
             <p className="text-center text-sm text-white/35 mt-8">{t('intro.screenTimeFooter')}</p>
+          </>
+        )
+
+      case STEP.SCREEN_TIME_REPORT:
+        return (
+          <>
+            <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
+            <IntroHeading className="mb-2">Now let&apos;s see what your phone says.</IntroHeading>
+            <IntroSubtext className="mb-8">
+              The reveal happens next, then RepLock turns it into a tighter daily plan.
+            </IntroSubtext>
+            <ScreenTimeReportPrompt
+              platform={screenTimePlatform}
+              granted={screenTimeGranted}
+              guessHours={screenHours}
+              sawNativeReport={sawNativeScreenTimeReport}
+            />
           </>
         )
 
