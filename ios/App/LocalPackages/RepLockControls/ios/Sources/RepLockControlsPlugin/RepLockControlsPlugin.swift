@@ -306,7 +306,8 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        let force = call.getBool("force") ?? false
+        // Cap 8 SPM on Xcode 15.x requires the two-arg getBool(_:_:).
+        let force = call.getBool("force", false)
         Task { @MainActor in
             let auth = AuthorizationManager.refreshStatus()
             guard auth.authorized else {
