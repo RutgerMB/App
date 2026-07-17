@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
-  Flame, Clock, ChevronRight, Sparkles, Dumbbell, Grid3X3, Lock, Unlock,
+  Flame, ChevronRight, Sparkles, Dumbbell, Grid3X3, Lock, Unlock,
 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { SectionLabel } from '@/components/layout/PageHeader'
@@ -121,7 +121,12 @@ export function HomePage() {
             </p>
             <div className="flex flex-col items-center gap-4">
               <CircularProgress value={screenTimeBalance} max={progressMax} size={88} strokeWidth={5}>
-                <Clock size={20} className="text-white/30" />
+                <div
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/25 to-violet-600/20 border border-white/[0.08]"
+                  aria-hidden
+                >
+                  <Lock size={16} strokeWidth={2} className="text-indigo-200/80" />
+                </div>
               </CircularProgress>
               <p className="text-4xl font-bold tracking-tight tabular-nums gradient-text">
                 {formatMinutes(screenTimeBalance)}

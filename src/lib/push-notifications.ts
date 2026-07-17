@@ -1,50 +1,55 @@
-import { Capacitor, registerPlugin } from '@capacitor/core'
+import { AppLauncher } from '@capacitor/app-launcher'
+import { Capacitor } from '@capacitor/core'
+import { LocalNotifications } from '@capacitor/local-notifications'
 
-/**
- * Thin wrapper around @capacitor/push-notifications.
- * Onboarding "Allow notifications" calls requestPushPermission() — this hits
- * UNUserNotificationCenter via the native plugin when synced (not a no-op).
- * Reminder content itself is still "coming soon"; we only request OS permission.
- */
-interface PushNotificationsPlugin {
-  requestPermissions: () => Promise<{ receive: 'prompt' | 'prompt-with-rationale' | 'granted' | 'denied' }>
-  register: () => Promise<void>
-  checkPermissions?: () => Promise<{ receive: 'prompt' | 'prompt-with-rationale' | 'granted' | 'denied' }>
+export type NotificationPermissionStatus = 'granted' | 'denied' | 'prompt'
+
+function mapDisplayStatus(
+  display: 'prompt' | 'prompt-with-rationale' | 'granted' | 'denied'
+): NotificationPermissionStatus {
+  if (display === 'granted') return 'granted'
+  if (display === 'denied') return 'denied'
+  return 'prompt'
 }
 
-const PushNotifications = registerPlugin<PushNotificationsPlugin>('PushNotifications', {
-  web: () => ({
-    requestPermissions: async () => {
-      if (typeof window !== 'undefined' && 'Notification' in window) {
-        const result = await Notification.requestPermission()
-        return { receive: result === 'granted' ? 'granted' : 'denied' }
-      }
-      return { receive: 'denied' }
-    },
-    register: async () => {},
-    checkPermissions: async () => {
-      if (typeof window !== 'undefined' && 'Notification' in window) {
-        if (Notification.permission === 'granted') return { receive: 'granted' }
-        if (Notification.permission === 'denied') return { receive: 'denied' }
-        return { receive: 'prompt' }
-      }
-      return { receive: 'denied' }
-    },
-  }),
-})
+function mapWebPermission(): NotificationPermissionStatus {
+  if (typeof window === 'undefined' || !('Notification' in window)) return 'denied'
+  if (Notification.permission === 'granted') return 'granted'
+  if (Notification.permission === 'denied') return 'denied'
+  return 'prompt'
+}
 
-/** Request push notification permission — native plugin when synced, else web Notification API. */
-export async function requestPushPermission(): Promise<boolean> {
+/** Read current OS notification permission without prompting. */
+export async function checkNotificationPermission(): Promise<NotificationPermissionStatus> {
   try {
-    const perm = await PushNotifications.requestPermissions()
-    if (perm.receive === 'granted') {
-      // register() may no-op without APNs; still triggers device token flow when configured.
-      try {
-        await PushNotifications.register()
-      } catch {
-        // Permission was granted; token registration is optional for local permission UX.
-      }
-      return true
+    if (Capacitor.isNativePlatform()) {
+      const { display } = await LocalNotifications.checkPermissions()
+      return mapDisplayStatus(display)
+    }
+    return mapWebPermission()
+  } catch {
+    return mapWebPermission()
+  }
+}
+
+/**
+ * Request notification permission when the OS still allows a prompt.
+ * If already granted, returns true. If permanently denied, returns false
+ * without prompting (caller should open system settings).
+ */
+export async function requestNotificationPermission(): Promise<boolean> {
+  const current = await checkNotificationPermission()
+  if (current === 'granted') return true
+  if (current === 'denied') return false
+
+  try {
+    if (Capacitor.isNativePlatform()) {
+      const { display } = await LocalNotifications.requestPermissions()
+      return display === 'granted'
+    }
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      const result = await Notification.requestPermission()
+      return result === 'granted'
     }
     return false
   } catch {
@@ -56,7 +61,42 @@ export async function requestPushPermission(): Promise<boolean> {
   }
 }
 
+/** @deprecated Prefer requestNotificationPermission — same behavior. */
+export async function requestPushPermission(): Promise<boolean> {
+  return requestNotificationPermission()
+}
+
+/** Open the OS app/notification settings so the user can re-enable permission. */
+export async function openNotificationSettings(): Promise<void> {
+  const platform = Capacitor.getPlatform()
+  try {
+    if (platform === 'ios') {
+      await AppLauncher.openUrl({ url: 'app-settings:' })
+      return
+    }
+    if (platform === 'android') {
+      const pkg = 'com.replock.app'
+      await AppLauncher.openUrl({
+        url: `intent:#Intent;action=android.settings.APP_NOTIFICATION_SETTINGS;S.android.provider.extra.APP_PACKAGE=${pkg};end`,
+      })
+      return
+    }
+  } catch {
+    try {
+      if (platform === 'android') {
+        await AppLauncher.openUrl({ url: 'package:com.replock.app' })
+      }
+    } catch {
+      // No-op on web / unsupported
+    }
+  }
+}
+
 export function isPushSupported(): boolean {
   if (Capacitor.isNativePlatform()) return true
   return typeof window !== 'undefined' && 'Notification' in window
+}
+
+export function isNotificationSupported(): boolean {
+  return isPushSupported()
 }

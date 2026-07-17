@@ -11,12 +11,18 @@ const config: CapacitorConfig = {
     includePlugins: [
       '@revenuecat/purchases-capacitor',
       '@capgo/native-purchases',
+      '@capacitor/app',
+      '@capacitor/app-launcher',
+      '@capacitor/local-notifications',
       '@capacitor/push-notifications',
     ],
   },
   android: {
     includePlugins: [
       '@revenuecat/purchases-capacitor',
+      '@capacitor/app',
+      '@capacitor/app-launcher',
+      '@capacitor/local-notifications',
       '@capacitor/splash-screen',
       '@capacitor/status-bar',
     ],

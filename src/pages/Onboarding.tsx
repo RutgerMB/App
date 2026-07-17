@@ -54,7 +54,8 @@ import { useTranslation } from '@/i18n/context'
 import type { Locale, Difficulty } from '@/types'
 import { isNativeBlockingAvailable } from '@/lib/app-blocker'
 import { openPrivacy, openTerms } from '@/lib/legal'
-import { requestPushPermission } from '@/lib/push-notifications'
+import { requestNotificationPermission } from '@/lib/push-notifications'
+import { syncLocalReminders } from '@/lib/planned-notifications'
 import { cn } from '@/lib/utils'
 
 const SCREEN_TIME_KEY = 'replock-onboarding-screen-hours'
@@ -534,8 +535,18 @@ export function OnboardingPage() {
   }
 
   const handleAllowNotifications = async () => {
-    const granted = await requestPushPermission()
+    const granted = await requestNotificationPermission()
     setNotificationsEnabled(granted)
+    if (granted) {
+      const state = useStore.getState()
+      await syncLocalReminders({
+        profile: { ...state.profile, notificationsEnabled: true },
+        currentStreak: state.currentStreak,
+        lastExerciseDate: state.lastExerciseDate,
+        screenTimeBalance: state.screenTimeBalance,
+        locale: state.profile.locale ?? 'en',
+      })
+    }
     advance()
   }
 

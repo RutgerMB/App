@@ -554,6 +554,8 @@ export interface Translations {
     termsOfService: string
     contactSupport: string
     notificationsNote: string
+    notificationsDeniedNote: string
+    notificationsOpenSettings: string
     notificationsPermissionGranted: string
     notificationsPermissionDenied: string
     deleteAccount: string
@@ -684,5 +686,13 @@ export interface Translations {
     title: string
     desc: string
     backHome: string
+  }
+  notifications: {
+    streakAtRiskTitle: string
+    streakAtRiskBody: string
+    earnMinutesTitle: string
+    earnMinutesBody: string
+    trialEndingTitle: string
+    trialEndingBody: string
   }
 }

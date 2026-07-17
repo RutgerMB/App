@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -27,7 +27,16 @@ import { useToast } from '@/components/ui/Toast'
 import { formatMinutes, cn } from '@/lib/utils'
 import { openSupport } from '@/lib/legal'
 import { isDevToken } from '@/lib/dev-auth'
-import { requestPushPermission } from '@/lib/push-notifications'
+import {
+  checkNotificationPermission,
+  openNotificationSettings,
+  requestNotificationPermission,
+  type NotificationPermissionStatus,
+} from '@/lib/push-notifications'
+import {
+  disableAndClearReminders,
+  syncLocalReminders,
+} from '@/lib/planned-notifications'
 import { useTranslation } from '@/i18n/context'
 
 export function SettingsPage() {
@@ -59,6 +68,56 @@ export function SettingsPage() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [changingPassword, setChangingPassword] = useState(false)
+  const [osPermission, setOsPermission] = useState<NotificationPermissionStatus | null>(null)
+
+  const refreshOsPermission = async () => {
+    const status = await checkNotificationPermission()
+    setOsPermission(status)
+    return status
+  }
+
+  useEffect(() => {
+    void refreshOsPermission()
+  }, [])
+
+  const handleNotificationsToggle = async (enabled: boolean) => {
+    if (!enabled) {
+      setNotificationsEnabled(false)
+      await disableAndClearReminders()
+      toast(t('settings.notificationsDisabled'), 'info')
+      return
+    }
+
+    let status = await refreshOsPermission()
+    if (status === 'denied') {
+      setNotificationsEnabled(false)
+      toast(t('settings.notificationsPermissionDenied'), 'info')
+      await openNotificationSettings()
+      return
+    }
+
+    if (status === 'prompt') {
+      const granted = await requestNotificationPermission()
+      status = await refreshOsPermission()
+      if (!granted) {
+        setNotificationsEnabled(false)
+        toast(t('settings.notificationsPermissionDenied'), 'info')
+        if (status === 'denied') await openNotificationSettings()
+        return
+      }
+    }
+
+    setNotificationsEnabled(true)
+    const state = useStore.getState()
+    await syncLocalReminders({
+      profile: { ...state.profile, notificationsEnabled: true },
+      currentStreak: state.currentStreak,
+      lastExerciseDate: state.lastExerciseDate,
+      screenTimeBalance: state.screenTimeBalance,
+      locale: state.profile.locale ?? 'en',
+    })
+    toast(t('settings.notificationsPermissionGranted'), 'success')
+  }
 
   const handleResetDaily = () => {
     resetDailyUsage()
@@ -273,39 +332,40 @@ export function SettingsPage() {
                 <LanguageDropdown value={profile.locale} onChange={setLocale} />
               </div>
             ) : 'showNotifications' in section && section.showNotifications ? (
-              <div className="rounded-2xl p-4 bg-white/[0.03] border border-white/[0.07]">
+              <div className="rounded-2xl p-4 bg-white/[0.03] border border-white/[0.07] space-y-3">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3 min-w-0">
                     <Bell size={18} className="text-white/30 shrink-0" />
                     <div>
                       <p className="text-sm font-medium">{t('settings.notifications')}</p>
                       <p className="text-xs text-white/35 leading-relaxed">
-                        {t('settings.notificationsNote')}
+                        {osPermission === 'denied'
+                          ? t('settings.notificationsDeniedNote')
+                          : t('settings.notificationsNote')}
                       </p>
                     </div>
                   </div>
                   <Switch
                     id="notifications-toggle"
-                    checked={profile.notificationsEnabled !== false}
+                    checked={
+                      profile.notificationsEnabled !== false && osPermission !== 'denied'
+                    }
                     onChange={(enabled) => {
-                      void (async () => {
-                        if (enabled) {
-                          const granted = await requestPushPermission()
-                          setNotificationsEnabled(granted)
-                          toast(
-                            granted
-                              ? t('settings.notificationsPermissionGranted')
-                              : t('settings.notificationsPermissionDenied'),
-                            granted ? 'success' : 'info'
-                          )
-                        } else {
-                          setNotificationsEnabled(false)
-                          toast(t('settings.notificationsDisabled'), 'info')
-                        }
-                      })()
+                      void handleNotificationsToggle(enabled)
                     }}
                   />
                 </div>
+                {osPermission === 'denied' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void openNotificationSettings()
+                    }}
+                    className="w-full h-10 rounded-xl text-xs font-semibold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/15 transition-colors"
+                  >
+                    {t('settings.notificationsOpenSettings')}
+                  </button>
+                )}
               </div>
             ) : 'showDifficulty' in section && section.showDifficulty ? (
               <DifficultyPicker
