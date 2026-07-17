@@ -6,11 +6,27 @@
 
 ---
 
+## Composition rules (hard — do not regress)
+
+| Rule | Spec |
+|------|------|
+| Atmosphere first | Full-bleed gym/phone photos from `docs/marketing/assets/bg/` dominate every frame |
+| Copy | One idea per slide, ≤8 words, Impact-style white type, bottom third |
+| **No dots** | Never draw carousel pagination — TikTok adds them automatically |
+| **No purple chrome** | No purple glow, stroke pills, or AI-slop accents |
+| Device mock | At most **1** small phone (~220×440) on **slide 4 only**, corner placement — never >~12% of frame |
+| No screenshot dumps | Do not paste full app store / paywall screens as the hero |
+| CTA | Brand wordmark + "Search RepLock" — white only, no outlined pills |
+
+---
+
 ## Pre-flight (every post)
 
 - [ ] **6 PNGs** in order — not 5, not 7
-- [ ] Slide 1 is **full-bleed photo** (not black gradient)
-- [ ] Slides 4–5 show **real RepLock app UI** (composited from `docs/app-store/`)
+- [ ] Slide 1 is **full-bleed photo** (atmosphere + hook copy)
+- [ ] Slide 4 may show a **small** RepLock lock/earn phone mock — photo still dominates
+- [ ] Slides 1–3 and 5–6 are **photo + copy only** (no device)
+- [ ] **No pagination dots** drawn on any PNG
 - [ ] CTA says **RepLock** — never "RepLocks"
 - [ ] Trending **instrumental** sound attached (no lyrics over text)
 - [ ] Beat drop synced to **slide 4** (solution reveal)
@@ -22,7 +38,7 @@
 
 1. TikTok → **+** → **Photo** → select `slide-01.png` through `slide-06.png` (6 images)
 2. **Add sound before posting** — slideshows without audio get less reach
-3. Sync beat drop to **slide 4** (solution / app reveal)
+3. Sync beat drop to **slide 4** (solution / small device reveal)
 4. Paste caption + hashtags from the day below
 5. Post
 6. Pin comment: **Search RepLock** (switch to **Link in bio — free download** after App Store live)
@@ -34,11 +50,11 @@
 | # | Role | Visual | Copy rule |
 |---|------|--------|-----------|
 | 1 | Hook | Full-bleed gym/phone photo | Open loop — force the swipe |
-| 2 | Agitate | Photo + phone inset | ≤8 words |
-| 3 | Agitate | Photo + context | ≤8 words |
-| 4 | Solution | Real app screenshot in phone frame | Mechanic reveal |
-| 5 | Proof | App UI or stat line | Social proof / feature |
-| 6 | CTA | Locker/gym bg + RepLock branding | Search RepLock |
+| 2 | Agitate | Full-bleed photo only | ≤8 words |
+| 3 | Agitate | Full-bleed photo only | ≤8 words |
+| 4 | Solution | Photo + **small** corner phone mock | Mechanic reveal |
+| 5 | Proof | Full-bleed photo only | Social proof / feature line |
+| 6 | CTA | Locker/gym bg + white RepLock branding | Search RepLock |
 
 ---
 

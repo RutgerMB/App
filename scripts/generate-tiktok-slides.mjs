@@ -1,23 +1,35 @@
 #!/usr/bin/env node
 /**
- * TikTok slideshow PNGs — visual-first, 6 slides, ≤8 words each.
- * Backgrounds cached locally in docs/marketing/assets/bg/ (download once from Unsplash).
+ * TikTok slideshow PNGs — atmosphere-first, brand/copy over UI dumps.
+ *
+ * Composition rules (hard):
+ * - Full-bleed real gym/phone photos from docs/marketing/assets/bg/
+ * - One idea per slide, ≤8 words, Impact-style white type
+ * - NEVER draw carousel dots (TikTok adds them)
+ * - NEVER purple glow / pill chrome / AI-slop accents
+ * - App UI: at most ONE small phone mock (solution slide), ≤22% frame height
+ * - Screenshots are secondary — atmosphere + copy dominate every frame
  *
  * Usage: node scripts/generate-tiktok-slides.mjs [id|all]
  */
 import sharp from 'sharp'
-import { mkdirSync, existsSync, readdirSync } from 'fs'
+import { mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
 
 const WIDTH = 1080
 const HEIGHT = 1920
 const OUT = join(process.cwd(), 'docs', 'marketing', 'slides')
 const BG_DIR = join(process.cwd(), 'docs', 'marketing', 'assets', 'bg')
-const APP_STORE_DIR = join(process.cwd(), 'docs', 'app-store')
 
 const MAX_WORDS = 8
 
-/** Royalty-free Unsplash crops (1080×1920) — downloaded once, then loaded from disk */
+/** Device mock size — small secondary proof, not a screenshot dump */
+const PHONE_W = 220
+const PHONE_H = 440
+const PHONE_LEFT = WIDTH - PHONE_W - 56
+const PHONE_TOP = HEIGHT - PHONE_H - 280
+
+/** Royalty-free Unsplash crops (1080×1920) — cached in docs/marketing/assets/bg/ */
 const BACKGROUND_URLS = {
   gym1: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1080&h=1920&fit=crop&q=85',
   gym2: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1080&h=1920&fit=crop&q=85',
@@ -42,8 +54,6 @@ const BACKGROUND_URLS = {
 }
 
 const bgCache = new Map()
-let appScreenshotCache = null
-let appProofScreenshotCache = null
 
 function wordCount(text) {
   return text
@@ -54,6 +64,7 @@ function wordCount(text) {
 }
 
 function validateSlides(config) {
+  let deviceCount = 0
   for (const [i, slide] of config.slides.entries()) {
     const count = wordCount(slide.text)
     if (count > MAX_WORDS) {
@@ -64,6 +75,10 @@ function validateSlides(config) {
     if (!BACKGROUND_URLS[slide.bg]) {
       throw new Error(`${config.name} slide ${i + 1} uses unknown bg key: ${slide.bg}`)
     }
+    if (slide.device) deviceCount++
+  }
+  if (deviceCount > 1) {
+    throw new Error(`${config.name}: max 1 device mock per pack (got ${deviceCount})`)
   }
 }
 
@@ -82,12 +97,8 @@ async function ensureBackground(key) {
     const buf = Buffer.from(await res.arrayBuffer())
     await sharp(buf)
       .resize(WIDTH, HEIGHT, { fit: 'cover', position: 'centre' })
-      .jpeg({ quality: 88 })
+      .jpeg({ quality: 90 })
       .toFile(filePath)
-  }
-
-  if (!existsSync(filePath)) {
-    throw new Error(`Background missing after download: ${filePath}`)
   }
 
   const processed = await sharp(filePath).jpeg().toBuffer()
@@ -95,120 +106,117 @@ async function ensureBackground(key) {
   return processed
 }
 
-function findAppScreenshot(prefer) {
-  if (!existsSync(APP_STORE_DIR)) return null
-  const files = readdirSync(APP_STORE_DIR).filter((f) => f.endsWith('.png'))
-  if (files.length === 0) return null
-  if (prefer && files.includes(prefer)) return join(APP_STORE_DIR, prefer)
-  const main = files.find((f) => f === 'subscription-review-screenshot.png')
-  if (main) return join(APP_STORE_DIR, main)
-  return join(APP_STORE_DIR, files[0])
-}
-
-async function loadAppScreenshot(kind) {
-  if (kind === 'proof') {
-    if (appProofScreenshotCache) return appProofScreenshotCache
-    const path = findAppScreenshot('subscription-review-screenshot-monthly.png')
-    if (!path) return null
-    appProofScreenshotCache = await sharp(path)
-      .resize(360, 780, { fit: 'cover', position: 'top' })
-      .png()
-      .toBuffer()
-    return appProofScreenshotCache
-  }
-
-  if (appScreenshotCache) return appScreenshotCache
-  const path = findAppScreenshot('subscription-review-screenshot.png')
-  if (!path) return null
-  appScreenshotCache = await sharp(path)
-    .resize(360, 780, { fit: 'cover', position: 'top' })
-    .png()
-    .toBuffer()
-  return appScreenshotCache
-}
-
 function esc(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-/** Bottom-third text placement — photo reads first, caption second */
-function textOverlaySvg(slide, index, total) {
-  const { type, text } = slide
+/**
+ * Small stylized phone — lock/earn mechanic as brand proof.
+ * Not a paywall dump. ~11% of frame area, corner placement.
+ */
+function deviceMockSvg(line1 = 'LOCKED', line2 = '20 push-ups') {
+  const w = PHONE_W
+  const h = PHONE_H
+  const r = 36
+  const screenX = 10
+  const screenY = 12
+  const screenW = w - 20
+  const screenH = h - 24
+  const screenR = 28
+
+  return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bezel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2A2A2E"/>
+      <stop offset="100%" stop-color="#0C0C0E"/>
+    </linearGradient>
+    <filter id="phoneShadow">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#000" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+  <rect x="0" y="0" width="${w}" height="${h}" rx="${r}" fill="url(#bezel)" filter="url(#phoneShadow)"/>
+  <rect x="2" y="2" width="${w - 4}" height="${h - 4}" rx="${r - 2}" fill="none" stroke="#3F3F46" stroke-width="2"/>
+  <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="${screenR}" fill="#0A0A0B"/>
+  <rect x="${w / 2 - 36}" y="22" width="72" height="10" rx="5" fill="#18181B"/>
+  <text x="${w / 2}" y="120" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-size="18" font-weight="700" fill="#71717A" letter-spacing="3">REPLOCK</text>
+  <path d="M ${w / 2 - 16} 195 V 178 A 16 16 0 0 1 ${w / 2 + 16} 178 V 195" fill="none" stroke="#FAFAFA" stroke-width="3.5" stroke-linecap="round"/>
+  <rect x="${w / 2 - 28}" y="195" width="56" height="48" rx="8" fill="none" stroke="#FAFAFA" stroke-width="3"/>
+  <circle cx="${w / 2}" cy="216" r="4" fill="#FAFAFA"/>
+  <rect x="${w / 2 - 2}" y="216" width="4" height="14" rx="1" fill="#FAFAFA"/>
+  <text x="${w / 2}" y="290" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="28" font-weight="900" fill="#FAFAFA">${esc(line1)}</text>
+  <text x="${w / 2}" y="330" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#A1A1AA">${esc(line2)}</text>
+  <text x="${w / 2}" y="380" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#52525B">earn your scroll</text>
+</svg>`)
+}
+
+/** Bottom-third text — photo reads first. No dots. No purple chrome. */
+function textOverlaySvg(slide) {
+  const { type, text, device } = slide
   const lines = text.split('\n').slice(0, 2)
   const isHook = type === 'hook'
   const isCta = type === 'cta'
-  const isSolution = type === 'solution'
-  const isProof = type === 'proof'
-  const hasPhone = isSolution || isProof
+  const hasDevice = Boolean(device)
 
-  const fontSize = isHook ? 88 : isCta ? 80 : isSolution || isProof ? 68 : 60
-  const lineHeight = isHook ? 98 : isCta ? 90 : 76
-  const startY = hasPhone ? HEIGHT * 0.78 : HEIGHT * 0.72
+  const fontSize = isHook ? 92 : isCta ? 86 : 64
+  const lineHeight = isHook ? 102 : isCta ? 96 : 78
+
+  // Keep copy clear of the corner device
+  const startY = hasDevice
+    ? HEIGHT * 0.68
+    : isCta
+      ? HEIGHT * 0.42
+      : HEIGHT * 0.7
+  // When device is present, shift text left of phone
+  const tx = hasDevice ? 380 : 540
 
   const tspans = lines
     .map((line, i) => {
       const y = startY + i * lineHeight
-      return `<tspan x="540" y="${y}">${esc(line)}</tspan>`
+      return `<tspan x="${tx}" y="${y}">${esc(line)}</tspan>`
     })
     .join('\n')
 
-  const ctaBlock = isCta
-    ? `<rect x="190" y="${HEIGHT - 340}" width="700" height="110" rx="28" fill="none" stroke="#8B5CF6" stroke-width="5"/>
-       <text x="540" y="${HEIGHT - 200}" text-anchor="middle" font-family="Arial,sans-serif" font-size="30" fill="#A1A1AA">earn scroll with push-ups</text>
-       <text x="540" y="${HEIGHT - 120}" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#8B5CF6" letter-spacing="6">REPLOCK</text>`
+  const ctaSub = isCta
+    ? `<text x="540" y="${startY + lineHeight + 56}" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="28" font-weight="600" fill="#D4D4D8" letter-spacing="1">earn scroll with real reps</text>
+       <text x="540" y="${startY + lineHeight + 120}" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-size="22" font-weight="700" fill="#FAFAFA" letter-spacing="8">REPLOCK</text>`
     : ''
 
-  const storyInset = type === 'story'
-    ? `<rect x="780" y="280" width="200" height="400" rx="28" fill="#111" stroke="#52525B" stroke-width="3" opacity="0.92"/>
-       <rect x="795" y="310" width="170" height="340" rx="18" fill="#0A0A0B"/>
-       <text x="880" y="420" text-anchor="middle" font-size="36">📱</text>
-       <text x="880" y="470" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="#A1A1AA">TikTok</text>
-       <text x="880" y="510" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" fill="#71717A">Reels</text>`
-    : ''
-
-  const dots = Array.from({ length: total }, (_, i) => {
-    const cx = 540 - ((total - 1) * 16) / 2 + i * 16
-    return `<circle cx="${cx}" cy="1820" r="${i === index ? 7 : 4}" fill="${i === index ? '#8B5CF6' : 'rgba(255,255,255,0.25)'}"/>`
-  }).join('\n')
-
-  const overlayStrength = isHook ? 0.5 : hasPhone ? 0.75 : 0.62
+  // Lighter vignette so gym photo stays the hero
+  const topOpacity = isHook ? 0.15 : 0.22
+  const bottomOpacity = isCta ? 0.72 : hasDevice ? 0.55 : 0.58
 
   return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${WIDTH}" height="${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#000" stop-opacity="${isHook ? 0.2 : 0.3}"/>
-      <stop offset="50%" stop-color="#000" stop-opacity="0.05"/>
-      <stop offset="100%" stop-color="#000" stop-opacity="${overlayStrength}"/>
+      <stop offset="0%" stop-color="#000" stop-opacity="${topOpacity}"/>
+      <stop offset="45%" stop-color="#000" stop-opacity="0.02"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="${bottomOpacity}"/>
     </linearGradient>
-    <filter id="ts"><feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#000" flood-opacity="0.85"/></filter>
+    <filter id="ts">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.9"/>
+    </filter>
   </defs>
   <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#shade)"/>
-  ${storyInset}
-  ${ctaBlock}
-  <text text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="${fontSize}" font-weight="900" fill="#FFFFFF" filter="url(#ts)">${tspans}</text>
-  ${dots}
+  <text text-anchor="middle" font-family="Impact,Arial Black,Helvetica Neue,sans-serif" font-size="${fontSize}" font-weight="900" fill="#FFFFFF" filter="url(#ts)">${tspans}</text>
+  ${ctaSub}
 </svg>`)
 }
 
-function phoneFrameBorderSvg() {
-  return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
-<svg width="${WIDTH}" height="${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-  <rect x="340" y="140" width="400" height="820" rx="48" fill="none" stroke="#5E6AD2" stroke-width="4"/>
-  <rect x="420" y="168" width="240" height="28" rx="14" fill="#18181B" opacity="0.95"/>
-</svg>`)
-}
-
-/** 6 slides: hook → story ×2 → solution → proof → cta; unique bg keys per pack */
+/**
+ * 6 slides: hook → story ×2 → solution (optional small device) → proof → cta
+ * Atmosphere + copy first. Device only on solution when marked.
+ */
 const SLIDESHOWS = {
   1: {
     name: 'Leg Day Excuses',
     folder: 'slideshow-1',
     slides: [
-      { type: 'hook', text: 'skipped legs again.\nsee slide 4 💀', bg: 'gym2' },
+      { type: 'hook', text: 'skipped legs again.\nsee slide 4', bg: 'gym2' },
       { type: 'story', text: 'opened TikTok\nfor motivation', bg: 'phone' },
       { type: 'story', text: '45 min later.\nzero squats.', bg: 'scroll' },
-      { type: 'solution', text: 'apps stay locked\nuntil you rep', bg: 'rack-empty' },
+      { type: 'solution', text: 'apps stay locked\nuntil you rep', bg: 'rack-empty', device: true, deviceLine1: 'LOCKED', deviceLine2: '20 push-ups' },
       { type: 'proof', text: '20 push-ups =\nscroll time', bg: 'mirror' },
       { type: 'cta', text: 'Search RepLock', bg: 'locker' },
     ],
@@ -220,9 +228,9 @@ const SLIDESHOWS = {
       { type: 'hook', text: '90 sec rest.\n90 min scroll.', bg: 'gym3' },
       { type: 'story', text: 'one notification\n→ full spiral', bg: 'hands-phone' },
       { type: 'story', text: 'he hit 4 sets.\nyou hit 1.', bg: 'timer' },
-      { type: 'solution', text: 'earn minutes\nwith real reps', bg: 'gym4' },
+      { type: 'solution', text: 'earn minutes\nwith real reps', bg: 'gym4', device: true, deviceLine1: 'EARN', deviceLine2: '15 squats' },
       { type: 'proof', text: 'push-ups · squats\n· planks', bg: 'bench' },
-      { type: 'cta', text: 'try RepLock free', bg: 'night' },
+      { type: 'cta', text: 'Search RepLock', bg: 'night' },
     ],
   },
   3: {
@@ -232,7 +240,7 @@ const SLIDESHOWS = {
       { type: 'hook', text: '6 months in.\nsame mirror pic?', bg: 'mirror' },
       { type: 'story', text: 'perfect split\n3hr phone days', bg: 'scroll' },
       { type: 'story', text: 'not lazy.\nunlocked 24/7.', bg: 'phone' },
-      { type: 'solution', text: 'scroll tax =\npush-ups', bg: 'chalk' },
+      { type: 'solution', text: 'scroll tax =\npush-ups', bg: 'chalk', device: true, deviceLine1: 'LOCKED', deviceLine2: 'do the reps' },
       { type: 'proof', text: 'earn time\nwith real reps', bg: 'weights' },
       { type: 'cta', text: 'Search RepLock', bg: 'dark' },
     ],
@@ -244,9 +252,9 @@ const SLIDESHOWS = {
       { type: 'hook', text: "she's on cardio.\nyou're on reels.", bg: 'cardio-empty' },
       { type: 'story', text: 'walked past treadmill\n3 times', bg: 'treadmill' },
       { type: 'story', text: 'one curl.\nzero steps.', bg: 'phone' },
-      { type: 'solution', text: 'lock distractions\nearn your scroll', bg: 'gym3' },
+      { type: 'solution', text: 'lock distractions\nearn your scroll', bg: 'gym3', device: true, deviceLine1: 'LOCKED', deviceLine2: 'earn minutes' },
       { type: 'proof', text: 'apps locked\ntill you move', bg: 'squat' },
-      { type: 'cta', text: 'get RepLock', bg: 'locker' },
+      { type: 'cta', text: 'Search RepLock', bg: 'locker' },
     ],
   },
   5: {
@@ -256,7 +264,7 @@ const SLIDESHOWS = {
       { type: 'hook', text: 'spotter vs phone.\nguess who won', bg: 'gym2' },
       { type: 'story', text: 'spotter: one more\nphone: one reel', bg: 'phone' },
       { type: 'story', text: '4 sets planned.\n1 set done.', bg: 'scroll' },
-      { type: 'solution', text: '15 push-ups\nor TikTok locked', bg: 'bench' },
+      { type: 'solution', text: '15 push-ups\nor TikTok locked', bg: 'bench', device: true, deviceLine1: 'LOCKED', deviceLine2: '15 push-ups' },
       { type: 'proof', text: 'I chose\nviolence.', bg: 'chalk' },
       { type: 'cta', text: 'Search RepLock', bg: 'dark' },
     ],
@@ -268,7 +276,7 @@ const SLIDESHOWS = {
       { type: 'hook', text: '6am alarm.\nalready scrolling?', bg: 'bed-scroll' },
       { type: 'story', text: '45 min in bed\nzero steps', bg: 'phone' },
       { type: 'story', text: 'gym bag still\npacked', bg: 'locker' },
-      { type: 'solution', text: 'earn breakfast\nscroll time', bg: 'night' },
+      { type: 'solution', text: 'earn breakfast\nscroll time', bg: 'night', device: true, deviceLine1: 'EARN', deviceLine2: 'morning reps' },
       { type: 'proof', text: 'lock apps\ntill you move', bg: 'gym1' },
       { type: 'cta', text: 'Search RepLock', bg: 'dark' },
     ],
@@ -280,9 +288,9 @@ const SLIDESHOWS = {
       { type: 'hook', text: 'same weight\n3 months?', bg: 'weights' },
       { type: 'story', text: 'tracked macros\nscrolled every set', bg: 'scroll' },
       { type: 'story', text: 'sleep trash\nrecovery trash', bg: 'bed-scroll' },
-      { type: 'solution', text: 'maybe it was\nthe phone', bg: 'gym4' },
+      { type: 'solution', text: 'maybe it was\nthe phone', bg: 'gym4', device: true, deviceLine1: 'LOCKED', deviceLine2: 'reps first' },
       { type: 'proof', text: 'reps before\nreels', bg: 'timer' },
-      { type: 'cta', text: 'try RepLock', bg: 'night' },
+      { type: 'cta', text: 'Search RepLock', bg: 'night' },
     ],
   },
   8: {
@@ -292,7 +300,7 @@ const SLIDESHOWS = {
       { type: 'hook', text: 'meal prep ✓\n4hr phone ✓', bg: 'gym3' },
       { type: 'story', text: 'deleted TikTok\nreinstalled TikTok', bg: 'phone' },
       { type: 'story', text: 'new week\nsame habits', bg: 'scroll' },
-      { type: 'solution', text: 'block apps\ntill you move', bg: 'rack-empty' },
+      { type: 'solution', text: 'block apps\ntill you move', bg: 'rack-empty', device: true, deviceLine1: 'LOCKED', deviceLine2: 'move first' },
       { type: 'proof', text: 'earn scroll\nwith exercise', bg: 'squat' },
       { type: 'cta', text: 'Search RepLock', bg: 'locker' },
     ],
@@ -304,9 +312,9 @@ const SLIDESHOWS = {
       { type: 'hook', text: 'scroll tax is real.\nslide 4 changed it', bg: 'gym2' },
       { type: 'story', text: 'Instagram?\n10 push-ups', bg: 'phone' },
       { type: 'story', text: 'YouTube?\nsquats.', bg: 'scroll' },
-      { type: 'solution', text: 'feed not worth it\nanymore', bg: 'chalk' },
+      { type: 'solution', text: 'feed not worth it\nanymore', bg: 'chalk', device: true, deviceLine1: 'TAX', deviceLine2: '10 push-ups' },
       { type: 'proof', text: 'every minute\ncosts reps', bg: 'bench' },
-      { type: 'cta', text: 'get RepLock', bg: 'dark' },
+      { type: 'cta', text: 'Search RepLock', bg: 'dark' },
     ],
   },
   10: {
@@ -316,26 +324,23 @@ const SLIDESHOWS = {
       { type: 'hook', text: 'form checks: 2\nphone checks: 47', bg: 'mirror' },
       { type: 'story', text: 'rest timer =\nentertainment timer', bg: 'timer' },
       { type: 'story', text: 'left gym tired\nof scrolling', bg: 'scroll' },
-      { type: 'solution', text: 'turn rest into\nreps', bg: 'hands-phone' },
+      { type: 'solution', text: 'turn rest into\nreps', bg: 'hands-phone', device: true, deviceLine1: 'LOCKED', deviceLine2: 'earn scroll' },
       { type: 'proof', text: 'lock apps\ntill you earn', bg: 'gym1' },
       { type: 'cta', text: 'Search RepLock', bg: 'locker' },
     ],
   },
 }
 
-async function renderSlide(slide, index, total) {
+async function renderSlide(slide) {
   const bg = await ensureBackground(slide.bg)
   const composites = [{ input: bg, top: 0, left: 0 }]
 
-  if (slide.type === 'solution' || slide.type === 'proof') {
-    const shot = await loadAppScreenshot(slide.type === 'proof' ? 'proof' : 'main')
-    if (shot) {
-      composites.push({ input: shot, top: 180, left: 360 })
-      composites.push({ input: phoneFrameBorderSvg(), top: 0, left: 0 })
-    }
-  }
+  composites.push({ input: textOverlaySvg(slide), top: 0, left: 0 })
 
-  composites.push({ input: textOverlaySvg(slide, index, total), top: 0, left: 0 })
+  if (slide.device) {
+    const phone = deviceMockSvg(slide.deviceLine1 ?? 'LOCKED', slide.deviceLine2 ?? '20 push-ups')
+    composites.push({ input: phone, top: PHONE_TOP, left: PHONE_LEFT })
+  }
 
   return sharp({
     create: { width: WIDTH, height: HEIGHT, channels: 3, background: { r: 10, g: 10, b: 11 } },
@@ -354,9 +359,10 @@ async function generateSlideshow(id, config) {
   for (let i = 0; i < config.slides.length; i++) {
     const slide = config.slides[i]
     const filename = `slide-${String(i + 1).padStart(2, '0')}.png`
-    const png = await renderSlide(slide, i, config.slides.length)
+    const png = await renderSlide(slide)
     await sharp(png).toFile(join(outDir, filename))
-    console.log(`  ✓ ${filename} [${slide.type}]`)
+    const tag = slide.device ? 'solution+device' : slide.type
+    console.log(`  ✓ ${filename} [${tag}]`)
   }
 }
 
@@ -372,4 +378,5 @@ for (const id of ids) {
   await generateSlideshow(id, SLIDESHOWS[id])
 }
 
-console.log(`\nDone — ${ids.length} slideshow(s), 6 visual slides each.`)
+console.log(`\nDone — ${ids.length} slideshow(s), 6 atmosphere-first slides each.`)
+console.log('Rules: no dots, no purple chrome, device ≤1 per pack, photo + copy dominate.')

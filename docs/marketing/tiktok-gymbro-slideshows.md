@@ -3,7 +3,7 @@
 **Audience:** 18–30 male, gym-regular, scrolls between sets, knows what "skip leg day" means  
 **Format:** 6–7 slide photo carousels (TikTok slideshow)  
 **Tone:** Bro-humor, self-aware, meme-adjacent — not corporate, not try-hard  
-**Visual tip:** Dark gym footage, mirror selfies, chalk hands, red lighting. White bold text, Impact-style font. Last slide = app screenshot on phone in gym locker.
+**Visual tip:** Dark gym footage, mirror selfies, chalk hands, red lighting. White bold text, Impact-style font. Atmosphere + copy first — never dump full app screenshots. At most one small phone mock on the solution slide. Never draw carousel dots (TikTok adds them). No purple AI chrome.
 
 ---
 
