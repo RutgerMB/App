@@ -42,7 +42,6 @@ import {
   presentDailyScreenTimeReport,
   getScreenTimePlatform,
   SCREEN_TIME_BASELINE_WINDOW_DAYS,
-  screenTimeWindowLabel,
 } from '@/lib/screen-time'
 import { useToast } from '@/components/ui/Toast'
 import { LanguagePicker } from '@/components/LanguagePicker'
@@ -209,7 +208,9 @@ function ScreenTimeReportPrompt({
   platform: ReturnType<typeof getScreenTimePlatform>
   guessHours: number
 }) {
-  const title = platform === 'ios' ? 'Ready for the real number?' : 'Ready to compare?'
+  const { t } = useTranslation()
+  const title =
+    platform === 'ios' ? t('intro.reportReadyIos') : t('intro.reportReadyCompare')
 
   return (
     <div className="w-full max-w-sm mx-auto">
@@ -217,18 +218,18 @@ function ScreenTimeReportPrompt({
         <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 mb-4">
           <Eye size={14} className="text-indigo-300" />
           <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55">
-            Reveal
+            {t('intro.reportRevealBadge')}
           </span>
         </div>
         <p className="text-2xl font-bold tracking-tight text-white mb-5">{title}</p>
         <div className="rounded-2xl border border-white/[0.07] bg-black/20 p-4">
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35 mb-2">
-            Your guess
+            {t('intro.screenTimeGuessLabel')}
           </p>
           <p className="text-3xl font-bold gradient-text tabular-nums">{formatHoursMinutes(guessHours)}</p>
         </div>
         <p className="text-xs text-white/40 mt-4">
-          {screenTimeWindowLabel(SCREEN_TIME_BASELINE_WINDOW_DAYS)}
+          {t('intro.screenTimeWindowAvg', { days: SCREEN_TIME_BASELINE_WINDOW_DAYS })}
         </p>
       </div>
     </div>
@@ -558,9 +559,9 @@ export function OnboardingPage() {
         : step === STEP.SCREEN_TIME_REPORT
           ? screenTimePlatform === 'ios' && screenTimeGranted
             ? sawNativeScreenTimeReport
-              ? 'Show it again'
-              : 'Show my real number'
-            : 'Continue'
+              ? t('intro.showItAgain')
+              : t('intro.showRealNumber')
+            : t('common.continue')
         : step === STEP.YEARS
           ? t('intro.yearsCta')
           : undefined
@@ -684,8 +685,8 @@ export function OnboardingPage() {
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
             <IntroBrandMark />
-            <IntroHeading className="mb-2">First, guess your screen time.</IntroHeading>
-            <PrimerBeat icon={Scale} label="One number. No judgment." />
+            <IntroHeading className="mb-2">{t('intro.primerGuessTitle')}</IntroHeading>
+            <PrimerBeat icon={Scale} label={t('intro.primerGuessDesc')} />
           </>
         )
 
@@ -694,8 +695,13 @@ export function OnboardingPage() {
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
             <IntroBrandMark />
-            <IntroHeading className="mb-2">Then see what your phone recorded.</IntroHeading>
-            <PrimerBeat icon={Eye} label={`${screenTimeWindowLabel()} — not just today.`} />
+            <IntroHeading className="mb-2">{t('intro.primerTruthTitle')}</IntroHeading>
+            <PrimerBeat
+              icon={Eye}
+              label={t('intro.primerTruthDesc', {
+                window: t('intro.screenTimeWindowAvg', { days: SCREEN_TIME_BASELINE_WINDOW_DAYS }),
+              })}
+            />
           </>
         )
 
@@ -704,8 +710,8 @@ export function OnboardingPage() {
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
             <IntroBrandMark />
-            <IntroHeading className="mb-2">Then build your lock plan.</IntroHeading>
-            <PrimerBeat icon={Smartphone} label="Turn that number into a stricter daily target." />
+            <IntroHeading className="mb-2">{t('intro.primerPlanTitle')}</IntroHeading>
+            <PrimerBeat icon={Smartphone} label={t('intro.primerPlanDesc')} />
           </>
         )
 
@@ -724,7 +730,7 @@ export function OnboardingPage() {
           <>
             <IntroProgressBar step={progressStep} total={totalSteps} />
             <IntroBrandMark />
-            <IntroHeading className="mb-2">What your phone says.</IntroHeading>
+            <IntroHeading className="mb-2">{t('intro.reportTitle')}</IntroHeading>
             <ScreenTimeReportPrompt platform={screenTimePlatform} guessHours={screenHours} />
           </>
         )

@@ -58,6 +58,23 @@ export interface Translations {
     screenTimeHint: string
     screenTimeFooter: string
     screenTimeGuessLabel: string
+    screenTimeWindowAvg: string
+    primerGuessTitle: string
+    primerGuessDesc: string
+    primerTruthTitle: string
+    primerTruthDesc: string
+    primerPlanTitle: string
+    primerPlanDesc: string
+    reportTitle: string
+    reportReadyIos: string
+    reportReadyCompare: string
+    reportRevealBadge: string
+    showRealNumber: string
+    showItAgain: string
+    revealRealityCheck: string
+    revealDeltaLess: string
+    revealDeltaMore: string
+    revealSawAppleReport: string
     privacySheetTitle: string
     privacySheetDesc: string
     privacyStatTitle: string
@@ -559,6 +576,17 @@ export interface Translations {
     notificationsPermissionGranted: string
     notificationsPermissionDenied: string
     deleteAccount: string
+    changeDisplayName: string
+    changeDisplayNameDesc: string
+    displayName: string
+    displayNameConfirmTitle: string
+    displayNameConfirmDesc: string
+    displayNameConfirm: string
+    displayNameRequired: string
+    displayNameTooLong: string
+    displayNameUnchanged: string
+    displayNameSuccess: string
+    displayNameFailed: string
     changePassword: string
     changePasswordDesc: string
     currentPassword: string

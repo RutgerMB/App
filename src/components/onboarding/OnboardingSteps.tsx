@@ -10,7 +10,7 @@ import {
   INSIGHT_HORIZON_YEARS,
   REPLOCK_TARGET_REDUCTION,
 } from '@/lib/insight-math'
-import { screenTimeWindowLabel } from '@/lib/screen-time'
+import { SCREEN_TIME_BASELINE_WINDOW_DAYS } from '@/lib/screen-time'
 
 export function formatHoursMinutes(totalHours: number): string {
   const h = Math.floor(totalHours)
@@ -45,14 +45,14 @@ export function RevealComparison({
   const diff = fromDevice ? Math.abs(estimateHours - actual!) : 0
   const actualLower = fromDevice && actual! < estimateHours
   const deltaLabel = fromDevice ? formatHoursMinutes(diff) : null
-  const windowLabel = screenTimeWindowLabel()
+  const windowLabel = t('intro.screenTimeWindowAvg', { days: SCREEN_TIME_BASELINE_WINDOW_DAYS })
 
   return (
     <div className="flex flex-col items-center text-center w-full max-w-sm mx-auto">
       <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 mb-5">
         <span className="w-2 h-2 rounded-full bg-indigo-300" />
         <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-          Reality check
+          {t('intro.revealRealityCheck')}
         </span>
       </div>
 
@@ -63,8 +63,8 @@ export function RevealComparison({
           </p>
           <p className="text-sm text-white/60 mb-1">
             {actualLower
-              ? `${deltaLabel} less than your guess`
-              : `${deltaLabel} more than your guess`}
+              ? t('intro.revealDeltaLess', { delta: deltaLabel! })
+              : t('intro.revealDeltaMore', { delta: deltaLabel! })}
           </p>
           <p className="text-xs text-white/35 mb-8">{windowLabel}</p>
         </>
@@ -73,7 +73,7 @@ export function RevealComparison({
           <p className="text-4xl sm:text-5xl font-bold tabular-nums gradient-text mb-2 tracking-tight">
             ✓
           </p>
-          <p className="text-sm text-white/60 mb-2">You saw Apple&apos;s report.</p>
+          <p className="text-sm text-white/60 mb-2">{t('intro.revealSawAppleReport')}</p>
           <p className="text-xs text-white/35 mb-4">{windowLabel}</p>
           {onShowDeviceReport ? (
             <button
