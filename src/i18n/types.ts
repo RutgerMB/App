@@ -139,6 +139,14 @@ export interface Translations {
     haveAccount: string
     welcomeBack: string
     accountCreated: string
+    forgotPassword: string
+    forgotPasswordTitle: string
+    forgotPasswordSubtitle: string
+    sendResetLink: string
+    resetEmailSent: string
+    resetEmailSentDetail: string
+    resetFailed: string
+    backToSignIn: string
     loginFailed: string
     registerFailed: string
     passwordMismatch: string

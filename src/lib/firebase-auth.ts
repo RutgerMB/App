@@ -7,6 +7,8 @@ import {
   reauthenticateWithCredential,
   EmailAuthProvider,
   onAuthStateChanged,
+  sendEmailVerification,
+  sendPasswordResetEmail,
   type User,
 } from 'firebase/auth'
 import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
@@ -76,6 +78,13 @@ export async function firebaseRegister(
   const credential = await createUserWithEmailAndPassword(auth, email.trim(), password)
   await updateProfile(credential.user, { displayName: name.trim() })
 
+  // Firebase sends the verification email; do not block account creation if it fails.
+  try {
+    await sendEmailVerification(credential.user)
+  } catch {
+    // Account is still usable; user can verify later from Firebase console / re-register path.
+  }
+
   const appState = createEmptyAppState(name.trim(), email.trim().toLowerCase())
   await setDoc(userDocRef(credential.user.uid), {
     email: email.trim().toLowerCase(),
@@ -91,6 +100,11 @@ export async function firebaseRegister(
     appState,
     idToken,
   }
+}
+
+export async function firebaseSendPasswordReset(email: string): Promise<void> {
+  const auth = getFirebaseAuth()
+  await sendPasswordResetEmail(auth, email.trim().toLowerCase())
 }
 
 export async function firebaseLogin(

@@ -152,6 +152,11 @@ export function LoginPage() {
                 required
                 className="h-12 text-base"
               />
+              <div className="flex justify-end -mt-1">
+                <Link to="/forgot-password" className="text-sm text-indigo-400 font-medium hover:underline">
+                  {t('auth.forgotPassword')}
+                </Link>
+              </div>
               <IntroPrimaryButton type="submit" disabled={loading}>
                 {loading ? '…' : t('auth.signIn')}
               </IntroPrimaryButton>
@@ -184,6 +189,77 @@ export function LoginPage() {
             )}
           </div>
         )}
+      </div>
+    </IntroShell>
+  )
+}
+
+export function ForgotPasswordPage() {
+  const navigate = useNavigate()
+  const { toast } = useToast()
+  const { t } = useTranslation()
+  const sendPasswordReset = useAuthStore((s) => s.sendPasswordReset)
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [sent, setSent] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await sendPasswordReset(email.trim())
+      setSent(true)
+      toast(t('auth.resetEmailSent'), 'success')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('auth.resetFailed'), 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <IntroShell variant="auth">
+      <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
+        <button
+          type="button"
+          onClick={() => navigate('/login')}
+          className="text-sm text-white/50 mb-4 self-start hover:text-white/80"
+        >
+          ← {t('intro.backToLogin')}
+        </button>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold leading-tight">{t('auth.forgotPasswordTitle')}</h1>
+          <p className="text-white/50 mt-2 text-base">{t('auth.forgotPasswordSubtitle')}</p>
+        </motion.div>
+
+        <AuthCard>
+          {sent ? (
+            <div className="space-y-4 text-center">
+              <p className="text-sm text-white/70 leading-relaxed">{t('auth.resetEmailSentDetail')}</p>
+              <IntroPrimaryButton type="button" onClick={() => navigate('/login')}>
+                {t('auth.backToSignIn')}
+              </IntroPrimaryButton>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                id="reset-email"
+                type="email"
+                label={t('auth.email')}
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
+                className="h-12 text-base"
+              />
+              <IntroPrimaryButton type="submit" disabled={loading}>
+                {loading ? '…' : t('auth.sendResetLink')}
+              </IntroPrimaryButton>
+            </form>
+          )}
+        </AuthCard>
       </div>
     </IntroShell>
   )

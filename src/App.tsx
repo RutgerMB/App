@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/auth'
 import { OnboardingPage } from '@/pages/Onboarding'
 import { WelcomePage } from '@/pages/Welcome'
 import { hasCompletedWelcome } from '@/lib/welcome'
-import { AuthChoicePage, LoginPage, RegisterPage } from '@/pages/Auth'
+import { AuthChoicePage, LoginPage, RegisterPage, ForgotPasswordPage } from '@/pages/Auth'
 import { HomePage } from '@/pages/Home'
 import { ExercisePage, ExerciseCategoryPage } from '@/pages/Exercise'
 import { ExerciseSessionPage } from '@/pages/ExerciseSession'
@@ -95,6 +95,7 @@ export default function App() {
         <Route path="/get-started" element={<GuestRoute><AuthChoicePage /></GuestRoute>} />
         <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
         <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+        <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
         <Route path="/onboarding" element={<OnboardingRoute />} />
         <Route path="/pricing" element={<SignedInRoute requireOnboarding={false}><PricingPage /></SignedInRoute>} />
         <Route path="/success" element={<SignedInRoute requireOnboarding={false}><SuccessPage /></SignedInRoute>} />

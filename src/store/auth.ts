@@ -12,6 +12,7 @@ import {
   firebaseDeleteAccount,
   firebaseSaveAppState,
   firebaseGetIdToken,
+  firebaseSendPasswordReset,
   subscribeToAuthState,
   restoreFirebaseSession,
 } from '@/lib/firebase-auth'
@@ -51,6 +52,7 @@ interface AuthState {
   initAuth: () => Promise<void>
   register: (email: string, password: string, name: string) => Promise<void>
   login: (email: string, password: string) => Promise<void>
+  sendPasswordReset: (email: string) => Promise<void>
   devLogin: () => void
   logout: () => Promise<void>
   deleteAccount: (password: string) => Promise<void>
@@ -166,6 +168,17 @@ export const useAuthStore = create<AuthState>()(
           set({ token: res.token, user: res.user, usesFirebase: false })
           applyAppState(res.appState)
           await linkMobilePurchases(res.user.id)
+        } catch (err) {
+          throw mapAuthError(err)
+        }
+      },
+
+      sendPasswordReset: async (email) => {
+        if (!isFirebaseConfigured()) {
+          throw new Error('Password reset is only available with Firebase Auth.')
+        }
+        try {
+          await firebaseSendPasswordReset(email)
         } catch (err) {
           throw mapAuthError(err)
         }
