@@ -19,7 +19,6 @@ Regex rails always run locally:
 
 ```powershell
 .\.venv\Scripts\python.exe check_text.py --mode output --text "Earn screen time with push-ups."
-.\.venv\Scripts\python.exe check_text.py --mode output --file ..\..\docs\marketing\POST-READY.md
 ```
 
 Exit code `0` = pass, `1` = blocked.

@@ -58,4 +58,4 @@ REVENUECAT_WEBHOOK_SECRET=your_webhook_authorization_header_value
 
 ## 6. Pricing rationale
 
-See `docs/marketing/ECONOMY.md` — **€7.99/mo**, **€59.99/yr** (37% annual discount).
+Pricing: **€7.99/mo**, **€59.99/yr** (37% annual discount).

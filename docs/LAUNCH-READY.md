@@ -30,7 +30,6 @@ Code, tests, and polish are complete. **Physical device QA and store configurati
 | Settings | ✓ | Notifications toggle requests push permission; honest “scheduled reminders coming” copy |
 | Dev login | ✓ | Disabled in production builds (`dev-auth.ts`) |
 | i18n | ✓ | en + nl/de/fr/es — activity insights + exercise/workout keys synced |
-| Marketing | ✓ | 10 visual slideshow packs (5 slides each) |
 | Legal pages | ✓ | GitHub Pages privacy, terms, support |
 | Tests / build | ✓ | `npm test`, `npm run build`, `npx tsc --noEmit` |
 | Docs | ✓ | `docs/LAUNCH-USER-CHECKLIST.md` for Mac/ASC/RevenueCat steps |
@@ -87,8 +86,6 @@ Removing permission or goal steps would break blocking or leave users without ap
 | Monthly | €7.99/mo |
 | Yearly | €59.99/yr (~€5/mo) |
 
-See `docs/marketing/ECONOMY.md`
-
 ## Production env
 
 ```env
@@ -109,12 +106,6 @@ Deploy `firestore.rules` if using Firebase.
 - Support: https://rutgermb.github.io/App/legal/support.html
 - Terms: https://rutgermb.github.io/App/legal/terms.html
 - Email: RepLockIssue@outlook.com
-
-## TikTok launch
-
-- **Slides:** `docs/marketing/slides/slideshow-1/` … `slideshow-10/`
-- **Quick start:** `docs/marketing/POST-READY.md`
-- **Regenerate:** `npm run marketing:slides`
 
 ## Related docs
 
