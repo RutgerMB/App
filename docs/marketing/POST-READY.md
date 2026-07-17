@@ -1,10 +1,13 @@
 # RepLock Gymbro TikTok — Post-Ready Pack
 
+> **Slides removed from the repo** (Jul 2026). `docs/marketing/slides/` is gone and gitignored — large PNG packs bloated `git fetch`/`pull`. Captions and day plans below still apply; regenerate PNGs locally later with `npm run marketing:slides` (output stays untracked). Do **not** treat folder paths like `slideshow-2/` as present in git until you regenerate.
+
+
 > **Start here for posting:** [`POST-NOW.md`](./POST-NOW.md) — profile paste, day-by-day captions, pin comments, folder paths (Days 1–14).
 
 **New account / scripts:** [`TIKTOK-GYMBRO-LAUNCH.md`](./TIKTOK-GYMBRO-LAUNCH.md)  
-**Press post:** upload PNGs from `docs/marketing/slides/slideshow-N/` in order (`slide-01` → `slide-06`).  
-**Regenerate:** `npm run marketing:slides` (`slideshow-1` … `slideshow-13`)  
+**Press post:** PNGs were removed from git — regenerate with `npm run marketing:slides`, then upload from local `docs/marketing/slides/slideshow-N/` (`slide-01` → last).
+**Regenerate:** `npm run marketing:slides` — output under `docs/marketing/slides/` is **gitignored**; do not re-commit PNG packs.
 **Figma storyboards:** [RepLock TikTok Gymbro Storyboards](https://www.figma.com/slides/XyrQQqqQWJxi4h6ODvDl7a)
 
 ---

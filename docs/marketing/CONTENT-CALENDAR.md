@@ -1,5 +1,8 @@
 # RepLock TikTok — 30-Day Content Calendar
 
+> **Slides removed from the repo** (Jul 2026). `docs/marketing/slides/` is gone and gitignored — large PNG packs bloated `git fetch`/`pull`. Captions and day plans below still apply; regenerate PNGs locally later with `npm run marketing:slides` (output stays untracked). Do **not** treat folder paths like `slideshow-2/` as present in git until you regenerate.
+
+
 **Goal:** 1–2 posts/day for 30 days = 30–60 touchpoints. Mix slideshows, screen recordings, and text hooks.
 
 **Assets:** `docs/marketing/slides/slideshow-1/` … `slideshow-10/` (run `npm run marketing:slides`)

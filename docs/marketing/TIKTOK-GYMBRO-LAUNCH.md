@@ -1,9 +1,12 @@
 # RepLock TikTok — Gymbro Launch Package
 
+> **Slides removed from the repo** (Jul 2026). `docs/marketing/slides/` is gone and gitignored — large PNG packs bloated `git fetch`/`pull`. Captions and day plans below still apply; regenerate PNGs locally later with `npm run marketing:slides` (output stays untracked). Do **not** treat folder paths like `slideshow-2/` as present in git until you regenerate.
+
+
 **Status:** Post-ready · not started yet  
 **Audience:** 18–30 men who train regularly and lose sessions to their phone  
 **Tone:** Confident, dry humor, specific — not slang-stacked, not corporate, not childish  
-**Companion assets:** [`POST-NOW.md`](./POST-NOW.md) · [`POST-READY.md`](./POST-READY.md) · [`slides/slideshow-1`–`13`](./slides/) · [`CONTENT-CALENDAR.md`](./CONTENT-CALENDAR.md)
+**Companion assets:** [`POST-NOW.md`](./POST-NOW.md) · [`POST-READY.md`](./POST-READY.md) · slides folder **removed from git** (regenerate locally) · [`CONTENT-CALENDAR.md`](./CONTENT-CALENDAR.md)
 
 This is the **profile + script system** for standing up TikTok from zero. **Post today:** open [`POST-NOW.md`](./POST-NOW.md) — captions, pins, folder paths, Days 1–14.
 

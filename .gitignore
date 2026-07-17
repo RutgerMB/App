@@ -27,3 +27,6 @@ npm-debug.log*
 # User data (auth)
 server/data/
 .env.iphone-dev
+
+# Marketing slide PNGs (regenerate locally; do not commit huge binaries)
+docs/marketing/slides/

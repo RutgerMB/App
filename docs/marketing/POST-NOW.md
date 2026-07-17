@@ -1,17 +1,20 @@
 # RepLock TikTok — POST NOW
 
+> **Slides removed from the repo** (Jul 2026). `docs/marketing/slides/` is gone and gitignored — large PNG packs bloated `git fetch`/`pull`. Captions and day plans below still apply; regenerate PNGs locally later with `npm run marketing:slides` (output stays untracked). Do **not** treat folder paths like `slideshow-2/` as present in git until you regenerate.
+
+
 **Audience:** doomscrollers who need to *earn* scroll — push-ups / squats / planks (not lifting/running)  
 **Rules:** 1 person per pack · real 0m app screenshot · lock-in bodyweight copy  
-**Packs:** `docs/marketing/slides/slideshow-1` … `8`  
+**Packs:** previously `docs/marketing/slides/slideshow-1` … `8` — **removed from git**; regenerate locally when needed
 **Regenerate:** `node scripts/patch-home-screenshot.mjs` then `npm run marketing:slides`
 
 ---
 
-## Upload
+## Upload (after you regenerate slides locally)
 
 1. TikTok → **+** → **Photo**
-2. Select slides in order
-3. Add sound → paste `POST.txt` caption
+2. Select regenerated PNGs in order from `docs/marketing/slides/slideshow-N/` (local only; not in git)
+3. Add sound → paste caption below (or from regenerated `POST.txt`)
 4. Pin: **search RepLock**
 
 ---
