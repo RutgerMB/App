@@ -23,11 +23,11 @@ const BG_DIR = join(process.cwd(), 'docs', 'marketing', 'assets', 'bg')
 
 const MAX_WORDS = 8
 
-/** Device mock size — small secondary proof, not a screenshot dump */
-const PHONE_W = 220
-const PHONE_H = 440
-const PHONE_LEFT = WIDTH - PHONE_W - 56
-const PHONE_TOP = HEIGHT - PHONE_H - 280
+/** Device mock — ≤10% of frame height, corner only, solution slide only */
+const PHONE_W = 190
+const PHONE_H = 380
+const PHONE_LEFT = WIDTH - PHONE_W - 48
+const PHONE_TOP = HEIGHT - PHONE_H - 260
 
 /** Royalty-free Unsplash crops (1080×1920) — cached in docs/marketing/assets/bg/ */
 const BACKGROUND_URLS = {
@@ -117,12 +117,12 @@ function esc(s) {
 function deviceMockSvg(line1 = 'LOCKED', line2 = '20 push-ups') {
   const w = PHONE_W
   const h = PHONE_H
-  const r = 36
-  const screenX = 10
-  const screenY = 12
-  const screenW = w - 20
-  const screenH = h - 24
-  const screenR = 28
+  const r = 30
+  const screenX = 9
+  const screenY = 10
+  const screenW = w - 18
+  const screenH = h - 20
+  const screenR = 24
 
   return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
@@ -132,21 +132,21 @@ function deviceMockSvg(line1 = 'LOCKED', line2 = '20 push-ups') {
       <stop offset="100%" stop-color="#0C0C0E"/>
     </linearGradient>
     <filter id="phoneShadow">
-      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#000" flood-opacity="0.55"/>
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.55"/>
     </filter>
   </defs>
   <rect x="0" y="0" width="${w}" height="${h}" rx="${r}" fill="url(#bezel)" filter="url(#phoneShadow)"/>
   <rect x="2" y="2" width="${w - 4}" height="${h - 4}" rx="${r - 2}" fill="none" stroke="#3F3F46" stroke-width="2"/>
   <rect x="${screenX}" y="${screenY}" width="${screenW}" height="${screenH}" rx="${screenR}" fill="#0A0A0B"/>
-  <rect x="${w / 2 - 36}" y="22" width="72" height="10" rx="5" fill="#18181B"/>
-  <text x="${w / 2}" y="120" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-size="18" font-weight="700" fill="#71717A" letter-spacing="3">REPLOCK</text>
-  <path d="M ${w / 2 - 16} 195 V 178 A 16 16 0 0 1 ${w / 2 + 16} 178 V 195" fill="none" stroke="#FAFAFA" stroke-width="3.5" stroke-linecap="round"/>
-  <rect x="${w / 2 - 28}" y="195" width="56" height="48" rx="8" fill="none" stroke="#FAFAFA" stroke-width="3"/>
-  <circle cx="${w / 2}" cy="216" r="4" fill="#FAFAFA"/>
-  <rect x="${w / 2 - 2}" y="216" width="4" height="14" rx="1" fill="#FAFAFA"/>
-  <text x="${w / 2}" y="290" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="28" font-weight="900" fill="#FAFAFA">${esc(line1)}</text>
-  <text x="${w / 2}" y="330" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#A1A1AA">${esc(line2)}</text>
-  <text x="${w / 2}" y="380" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#52525B">earn your scroll</text>
+  <rect x="${w / 2 - 30}" y="18" width="60" height="8" rx="4" fill="#18181B"/>
+  <text x="${w / 2}" y="100" text-anchor="middle" font-family="Arial Black,Impact,sans-serif" font-size="15" font-weight="700" fill="#71717A" letter-spacing="2">REPLOCK</text>
+  <path d="M ${w / 2 - 14} 165 V 150 A 14 14 0 0 1 ${w / 2 + 14} 150 V 165" fill="none" stroke="#FAFAFA" stroke-width="3" stroke-linecap="round"/>
+  <rect x="${w / 2 - 24}" y="165" width="48" height="40" rx="7" fill="none" stroke="#FAFAFA" stroke-width="2.5"/>
+  <circle cx="${w / 2}" cy="182" r="3.5" fill="#FAFAFA"/>
+  <rect x="${w / 2 - 1.5}" y="182" width="3" height="12" rx="1" fill="#FAFAFA"/>
+  <text x="${w / 2}" y="250" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="24" font-weight="900" fill="#FAFAFA">${esc(line1)}</text>
+  <text x="${w / 2}" y="282" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="600" fill="#A1A1AA">${esc(line2)}</text>
+  <text x="${w / 2}" y="320" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#52525B">earn your scroll</text>
 </svg>`)
 }
 
@@ -206,24 +206,27 @@ function textOverlaySvg(slide) {
 
 /**
  * 6 slides: hook → story ×2 → solution (optional small device) → proof → cta
+ * Copy aligned to docs/marketing/TIKTOK-GYMBRO-LAUNCH.md scripts.
  * Atmosphere + copy first. Device only on solution when marked.
  */
 const SLIDESHOWS = {
   1: {
     name: 'Leg Day Excuses',
     folder: 'slideshow-1',
+    script: 2,
     slides: [
-      { type: 'hook', text: 'skipped legs again.\nsee slide 4', bg: 'gym2' },
+      { type: 'hook', text: 'skipped legs again.\nsee slide 4.', bg: 'gym2' },
       { type: 'story', text: 'opened TikTok\nfor motivation', bg: 'phone' },
       { type: 'story', text: '45 min later.\nzero squats.', bg: 'scroll' },
       { type: 'solution', text: 'apps stay locked\nuntil you rep', bg: 'rack-empty', device: true, deviceLine1: 'LOCKED', deviceLine2: '20 push-ups' },
-      { type: 'proof', text: '20 push-ups =\nscroll time', bg: 'mirror' },
+      { type: 'proof', text: 'friction >\nmotivation', bg: 'mirror' },
       { type: 'cta', text: 'Search RepLock', bg: 'locker' },
     ],
   },
   2: {
     name: 'Rest Timer Scrolling',
     folder: 'slideshow-2',
+    script: 1,
     slides: [
       { type: 'hook', text: '90 sec rest.\n90 min scroll.', bg: 'gym3' },
       { type: 'story', text: 'one notification\n→ full spiral', bg: 'hands-phone' },
@@ -236,21 +239,23 @@ const SLIDESHOWS = {
   3: {
     name: 'No Gains Arc',
     folder: 'slideshow-3',
+    script: 4,
     slides: [
       { type: 'hook', text: '6 months in.\nsame mirror pic?', bg: 'mirror' },
-      { type: 'story', text: 'perfect split\n3hr phone days', bg: 'scroll' },
-      { type: 'story', text: 'not lazy.\nunlocked 24/7.', bg: 'phone' },
-      { type: 'solution', text: 'scroll tax =\npush-ups', bg: 'chalk', device: true, deviceLine1: 'LOCKED', deviceLine2: 'do the reps' },
-      { type: 'proof', text: 'earn time\nwith real reps', bg: 'weights' },
+      { type: 'story', text: 'protein fine.\nsplit fine.', bg: 'weights' },
+      { type: 'story', text: 'phone access?\nunlimited.', bg: 'scroll' },
+      { type: 'solution', text: 'was a phone\nproblem', bg: 'chalk', device: true, deviceLine1: 'LOCKED', deviceLine2: 'do the reps' },
+      { type: 'proof', text: 'earn time\nwith real reps', bg: 'gym1' },
       { type: 'cta', text: 'Search RepLock', bg: 'dark' },
     ],
   },
   4: {
     name: 'Gym Crush Cardio',
     folder: 'slideshow-4',
+    script: 13,
     slides: [
       { type: 'hook', text: "she's on cardio.\nyou're on reels.", bg: 'cardio-empty' },
-      { type: 'story', text: 'walked past treadmill\n3 times', bg: 'treadmill' },
+      { type: 'story', text: 'walked past\ntreadmill 3×', bg: 'treadmill' },
       { type: 'story', text: 'one curl.\nzero steps.', bg: 'phone' },
       { type: 'solution', text: 'lock distractions\nearn your scroll', bg: 'gym3', device: true, deviceLine1: 'LOCKED', deviceLine2: 'earn minutes' },
       { type: 'proof', text: 'apps locked\ntill you move', bg: 'squat' },
@@ -260,23 +265,25 @@ const SLIDESHOWS = {
   5: {
     name: 'Phone Spotter',
     folder: 'slideshow-5',
+    script: 3,
     slides: [
-      { type: 'hook', text: 'spotter vs phone.\nguess who won', bg: 'gym2' },
+      { type: 'hook', text: "spotter doesn't miss.\nphone does.", bg: 'gym2' },
       { type: 'story', text: 'spotter: one more\nphone: one reel', bg: 'phone' },
       { type: 'story', text: '4 sets planned.\n1 set done.', bg: 'scroll' },
-      { type: 'solution', text: '15 push-ups\nor TikTok locked', bg: 'bench', device: true, deviceLine1: 'LOCKED', deviceLine2: '15 push-ups' },
-      { type: 'proof', text: 'I chose\nviolence.', bg: 'chalk' },
+      { type: 'solution', text: '15 push-ups\nor apps locked', bg: 'bench', device: true, deviceLine1: 'LOCKED', deviceLine2: '15 push-ups' },
+      { type: 'proof', text: 'embarrassing.\neffective.', bg: 'chalk' },
       { type: 'cta', text: 'Search RepLock', bg: 'dark' },
     ],
   },
   6: {
     name: 'Morning Scroll',
     folder: 'slideshow-6',
+    script: 6,
     slides: [
       { type: 'hook', text: '6am alarm.\nalready scrolling?', bg: 'bed-scroll' },
-      { type: 'story', text: '45 min in bed\nzero steps', bg: 'phone' },
-      { type: 'story', text: 'gym bag still\npacked', bg: 'locker' },
-      { type: 'solution', text: 'earn breakfast\nscroll time', bg: 'night', device: true, deviceLine1: 'EARN', deviceLine2: 'morning reps' },
+      { type: 'story', text: 'thumb opens feed\nbefore the bag', bg: 'phone' },
+      { type: 'story', text: 'whole day\ndecided itself', bg: 'scroll' },
+      { type: 'solution', text: 'earn morning\nscroll time', bg: 'night', device: true, deviceLine1: 'EARN', deviceLine2: 'morning reps' },
       { type: 'proof', text: 'lock apps\ntill you move', bg: 'gym1' },
       { type: 'cta', text: 'Search RepLock', bg: 'dark' },
     ],
@@ -284,10 +291,11 @@ const SLIDESHOWS = {
   7: {
     name: 'Plateau Theory',
     folder: 'slideshow-7',
+    script: 7,
     slides: [
       { type: 'hook', text: 'same weight\n3 months?', bg: 'weights' },
-      { type: 'story', text: 'tracked macros\nscrolled every set', bg: 'scroll' },
-      { type: 'story', text: 'sleep trash\nrecovery trash', bg: 'bed-scroll' },
+      { type: 'story', text: 'tracked macros\nmissed sleep', bg: 'scroll' },
+      { type: 'story', text: 'scrolled every\nrest timer', bg: 'bed-scroll' },
       { type: 'solution', text: 'maybe it was\nthe phone', bg: 'gym4', device: true, deviceLine1: 'LOCKED', deviceLine2: 'reps first' },
       { type: 'proof', text: 'reps before\nreels', bg: 'timer' },
       { type: 'cta', text: 'Search RepLock', bg: 'night' },
@@ -296,37 +304,80 @@ const SLIDESHOWS = {
   8: {
     name: 'Sunday Reset',
     folder: 'slideshow-8',
+    script: 11,
     slides: [
-      { type: 'hook', text: 'meal prep ✓\n4hr phone ✓', bg: 'gym3' },
-      { type: 'story', text: 'deleted TikTok\nreinstalled TikTok', bg: 'phone' },
-      { type: 'story', text: 'new week\nsame habits', bg: 'scroll' },
-      { type: 'solution', text: 'block apps\ntill you move', bg: 'rack-empty', device: true, deviceLine1: 'LOCKED', deviceLine2: 'move first' },
-      { type: 'proof', text: 'earn scroll\nwith exercise', bg: 'squat' },
+      { type: 'hook', text: 'meal prep done.\nhabits unchanged.', bg: 'gym3' },
+      { type: 'story', text: 'deleted apps.\nreinstalled apps.', bg: 'phone' },
+      { type: 'story', text: 'called it a reset.\nnothing reset.', bg: 'scroll' },
+      { type: 'solution', text: 'need friction\nnot wallpaper', bg: 'rack-empty', device: true, deviceLine1: 'LOCKED', deviceLine2: 'move first' },
+      { type: 'proof', text: 'block apps\ntill you move', bg: 'squat' },
       { type: 'cta', text: 'Search RepLock', bg: 'locker' },
     ],
   },
   9: {
     name: 'Push-Up Tax',
     folder: 'slideshow-9',
+    script: 5,
     slides: [
-      { type: 'hook', text: 'scroll tax is real.\nslide 4 changed it', bg: 'gym2' },
-      { type: 'story', text: 'Instagram?\n10 push-ups', bg: 'phone' },
-      { type: 'story', text: 'YouTube?\nsquats.', bg: 'scroll' },
+      { type: 'hook', text: 'scroll tax\nis real.', bg: 'gym2' },
+      { type: 'story', text: 'Instagram costs\npush-ups', bg: 'phone' },
+      { type: 'story', text: 'YouTube costs\nsquats', bg: 'scroll' },
       { type: 'solution', text: 'feed not worth it\nanymore', bg: 'chalk', device: true, deviceLine1: 'TAX', deviceLine2: '10 push-ups' },
-      { type: 'proof', text: 'every minute\ncosts reps', bg: 'bench' },
+      { type: 'proof', text: 'reps first.\nfeed second.', bg: 'bench' },
       { type: 'cta', text: 'Search RepLock', bg: 'dark' },
     ],
   },
   10: {
     name: 'Mirror vs Phone',
     folder: 'slideshow-10',
+    script: 10,
     slides: [
       { type: 'hook', text: 'form checks: 2\nphone checks: 47', bg: 'mirror' },
-      { type: 'story', text: 'rest timer =\nentertainment timer', bg: 'timer' },
+      { type: 'story', text: 'rest timer =\nentertainment', bg: 'timer' },
       { type: 'story', text: 'left gym tired\nof scrolling', bg: 'scroll' },
-      { type: 'solution', text: 'turn rest into\nreps', bg: 'hands-phone', device: true, deviceLine1: 'LOCKED', deviceLine2: 'earn scroll' },
-      { type: 'proof', text: 'lock apps\ntill you earn', bg: 'gym1' },
+      { type: 'solution', text: "rest is training.\nscroll isn't.", bg: 'hands-phone', device: true, deviceLine1: 'LOCKED', deviceLine2: 'earn scroll' },
+      { type: 'proof', text: 'earn rest back\nwith reps', bg: 'gym1' },
       { type: 'cta', text: 'Search RepLock', bg: 'locker' },
+    ],
+  },
+  // Text-atmosphere packs for scripts without screen-record assets
+  11: {
+    name: 'Product Mechanic',
+    folder: 'slideshow-11',
+    script: 8,
+    slides: [
+      { type: 'hook', text: "apps won't open\nuntil you train.", bg: 'phone' },
+      { type: 'story', text: 'open Instagram.\nblocked.', bg: 'hands-phone' },
+      { type: 'story', text: 'do the reps.\nearn minutes.', bg: 'chalk' },
+      { type: 'solution', text: "unlock.\nthat's the product.", bg: 'gym4', device: true, deviceLine1: 'EARNED', deviceLine2: '12 min scroll' },
+      { type: 'proof', text: 'push-ups · squats\n· planks', bg: 'bench' },
+      { type: 'cta', text: 'Search RepLock', bg: 'dark' },
+    ],
+  },
+  12: {
+    name: 'Discipline Take',
+    folder: 'slideshow-12',
+    script: 9,
+    slides: [
+      { type: 'hook', text: "discipline isn't\nyour problem.", bg: 'gym1' },
+      { type: 'story', text: 'unlimited phone\naccess is.', bg: 'scroll' },
+      { type: 'story', text: "you're not lazy.\nalways unlocked.", bg: 'phone' },
+      { type: 'solution', text: 'lock the apps.\nearn the minutes.', bg: 'rack-empty', device: true, deviceLine1: 'LOCKED', deviceLine2: 'earn minutes' },
+      { type: 'proof', text: 'friction sticks.\nmotivation fades.', bg: 'chalk' },
+      { type: 'cta', text: 'Search RepLock', bg: 'night' },
+    ],
+  },
+  13: {
+    name: '7-Day Challenge',
+    folder: 'slideshow-13',
+    script: 14,
+    slides: [
+      { type: 'hook', text: '7 days.\nearn every scroll.', bg: 'gym2' },
+      { type: 'story', text: 'no deleting apps.\njust earning them.', bg: 'phone' },
+      { type: 'story', text: 'day 1 rule:\nlocked → reps', bg: 'scroll' },
+      { type: 'solution', text: 'push-ups unlock\nminutes', bg: 'bench', device: true, deviceLine1: 'DAY 1', deviceLine2: 'earn scroll' },
+      { type: 'proof', text: 'comment "in"\nif you\'re playing', bg: 'weights' },
+      { type: 'cta', text: 'Search RepLock', bg: 'dark' },
     ],
   },
 }
@@ -370,7 +421,7 @@ const arg = process.argv[2] ?? 'all'
 const ids = arg === 'all' ? Object.keys(SLIDESHOWS) : [arg]
 
 if (!ids.every((id) => SLIDESHOWS[id])) {
-  console.error('Usage: node scripts/generate-tiktok-slides.mjs [1-10|all]')
+  console.error('Usage: node scripts/generate-tiktok-slides.mjs [1-13|all]')
   process.exit(1)
 }
 
@@ -379,4 +430,5 @@ for (const id of ids) {
 }
 
 console.log(`\nDone — ${ids.length} slideshow(s), 6 atmosphere-first slides each.`)
-console.log('Rules: no dots, no purple chrome, device ≤1 per pack, photo + copy dominate.')
+console.log('Rules: no dots, no purple chrome, device ≤~10% height, photo + copy dominate.')
+console.log('Post guide: docs/marketing/POST-NOW.md')

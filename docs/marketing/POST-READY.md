@@ -1,8 +1,10 @@
 # RepLock Gymbro TikTok — Post-Ready Pack
 
-**New account / profile + scripts:** [`TIKTOK-GYMBRO-LAUNCH.md`](./TIKTOK-GYMBRO-LAUNCH.md) — usernames, bios, pillars, 15 scripts, pin/sound strategy, first 7 days.  
+> **Start here for posting:** [`POST-NOW.md`](./POST-NOW.md) — profile paste, day-by-day captions, pin comments, folder paths (Days 1–14).
+
+**New account / scripts:** [`TIKTOK-GYMBRO-LAUNCH.md`](./TIKTOK-GYMBRO-LAUNCH.md)  
 **Press post:** upload PNGs from `docs/marketing/slides/slideshow-N/` in order (`slide-01` → `slide-06`).  
-**Regenerate:** `npm run marketing:slides` or `node scripts/generate-tiktok-slides.mjs all`  
+**Regenerate:** `npm run marketing:slides` (`slideshow-1` … `slideshow-13`)  
 **Figma storyboards:** [RepLock TikTok Gymbro Storyboards](https://www.figma.com/slides/XyrQQqqQWJxi4h6ODvDl7a)
 
 ---

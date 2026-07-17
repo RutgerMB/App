@@ -3,9 +3,9 @@
 **Status:** Post-ready · not started yet  
 **Audience:** 18–30 men who train regularly and lose sessions to their phone  
 **Tone:** Confident, dry humor, specific — not slang-stacked, not corporate, not childish  
-**Companion assets:** [`POST-READY.md`](./POST-READY.md) · [`slides/slideshow-1`–`10`](./slides/) · [`CONTENT-CALENDAR.md`](./CONTENT-CALENDAR.md)
+**Companion assets:** [`POST-NOW.md`](./POST-NOW.md) · [`POST-READY.md`](./POST-READY.md) · [`slides/slideshow-1`–`13`](./slides/) · [`CONTENT-CALENDAR.md`](./CONTENT-CALENDAR.md)
 
-This is the **profile + script system** for standing up TikTok from zero. Use `POST-READY.md` for upload checklists and regenerated PNGs.
+This is the **profile + script system** for standing up TikTok from zero. **Post today:** open [`POST-NOW.md`](./POST-NOW.md) — captions, pins, folder paths, Days 1–14.
 
 ---
 
@@ -427,7 +427,8 @@ Use Scripts 06, 07, 10, 11, 13 + Script 14 challenge + **repost Day 1 or 2 winne
 
 | Doc | Use |
 |-----|-----|
-| [`POST-READY.md`](./POST-READY.md) | Upload checklist, captions-by-pack, audio sync |
+| [`POST-NOW.md`](./POST-NOW.md) | **Post today** — profile, day-by-day paste blocks, 13 packs |
+| [`POST-READY.md`](./POST-READY.md) | Composition rules, legacy captions-by-pack, audio sync |
 | [`tiktok-gymbro-slideshows.md`](./tiktok-gymbro-slideshows.md) | Original storyboard copy |
 | [`CONTENT-CALENDAR.md`](./CONTENT-CALENDAR.md) | 30-day schedule |
 | `docs/marketing/slides/` | Generated PNGs |
