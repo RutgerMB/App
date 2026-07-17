@@ -404,6 +404,10 @@ export interface Translations {
     renamePlaceholder: string
     renameSave: string
     renameSaved: string
+    removeApp: string
+    removeConfirm: string
+    removeConfirmDesc: string
+    remove: string
     iconPresetLabel: string
     iosPickError_denied: string
     iosPickError_notDetermined: string
@@ -553,6 +557,14 @@ export interface Translations {
     notificationsPermissionGranted: string
     notificationsPermissionDenied: string
     deleteAccount: string
+    changePassword: string
+    changePasswordDesc: string
+    currentPassword: string
+    newPassword: string
+    confirmNewPassword: string
+    changePasswordSubmit: string
+    changePasswordSuccess: string
+    changePasswordFailed: string
     manageSubscription: string
     manageSubscriptionDesc: string
     subscriptionNativeFailed: string

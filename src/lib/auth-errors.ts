@@ -25,6 +25,8 @@ export function mapAuthError(err: unknown): Error {
       return new Error('Network error. Check your connection and try again.')
     case 'auth/operation-not-allowed':
       return new Error('This sign-in method is not enabled. Please contact support.')
+    case 'auth/requires-recent-login':
+      return new Error('Please re-enter your current password and try again.')
     default:
       if (err instanceof Error) return err
       return new Error('Something went wrong. Please try again.')

@@ -56,6 +56,7 @@ export function AppsPage() {
   const [renameTarget, setRenameTarget] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
   const [nativeSheetLoading, setNativeSheetLoading] = useState(false)
+  const [removeTarget, setRemoveTarget] = useState<string | null>(null)
 
   // Pull nicknames from native App Group so Home/Apps never stay on "App 1".
   useEffect(() => {
@@ -284,8 +285,9 @@ export function AppsPage() {
                     )}
                     <button
                       type="button"
-                      onClick={() => removeApp(app.id)}
+                      onClick={() => setRemoveTarget(app.id)}
                       className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-colors"
+                      aria-label={t('apps.removeApp')}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -410,6 +412,31 @@ export function AppsPage() {
             </MotionButton>
           </div>
         )}
+      </Modal>
+
+      <Modal
+        open={!!removeTarget}
+        onClose={() => setRemoveTarget(null)}
+        title={t('apps.removeConfirm')}
+        position="center"
+      >
+        <p className="text-sm text-white/50 mb-4">{t('apps.removeConfirmDesc')}</p>
+        <div className="flex gap-3">
+          <Button variant="secondary" className="flex-1" onClick={() => setRemoveTarget(null)}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            variant="danger"
+            className="flex-1"
+            onClick={() => {
+              if (!removeTarget) return
+              removeApp(removeTarget)
+              setRemoveTarget(null)
+            }}
+          >
+            {t('apps.remove')}
+          </Button>
+        </div>
       </Modal>
 
       <Modal

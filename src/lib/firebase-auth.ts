@@ -9,6 +9,7 @@ import {
   onAuthStateChanged,
   sendEmailVerification,
   sendPasswordResetEmail,
+  updatePassword,
   type User,
 } from 'firebase/auth'
 import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
@@ -181,6 +182,28 @@ export async function firebaseSaveAppState(uid: string, appState: AppState): Pro
     },
     { merge: true }
   )
+}
+
+export function firebaseIsEmailPasswordUser(): boolean {
+  const user = getFirebaseAuth().currentUser
+  if (!user) return false
+  return user.providerData.some((p) => p.providerId === 'password')
+}
+
+export async function firebaseChangePassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<void> {
+  const auth = getFirebaseAuth()
+  const user = auth.currentUser
+  if (!user || !user.email) throw new Error('Not signed in')
+  if (!firebaseIsEmailPasswordUser()) {
+    throw new Error('Password change is only available for email accounts')
+  }
+
+  const credential = EmailAuthProvider.credential(user.email, currentPassword)
+  await reauthenticateWithCredential(user, credential)
+  await updatePassword(user, newPassword)
 }
 
 export async function firebaseDeleteAccount(password: string): Promise<void> {

@@ -10,6 +10,8 @@ import {
   firebaseLogin,
   firebaseLogout,
   firebaseDeleteAccount,
+  firebaseChangePassword,
+  firebaseIsEmailPasswordUser,
   firebaseSaveAppState,
   firebaseGetIdToken,
   firebaseSendPasswordReset,
@@ -53,6 +55,8 @@ interface AuthState {
   register: (email: string, password: string, name: string) => Promise<void>
   login: (email: string, password: string) => Promise<void>
   sendPasswordReset: (email: string) => Promise<void>
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>
+  canChangePassword: () => boolean
   devLogin: () => void
   logout: () => Promise<void>
   deleteAccount: (password: string) => Promise<void>
@@ -179,6 +183,28 @@ export const useAuthStore = create<AuthState>()(
         }
         try {
           await firebaseSendPasswordReset(email)
+        } catch (err) {
+          throw mapAuthError(err)
+        }
+      },
+
+      canChangePassword: () => {
+        const { token, usesFirebase } = get()
+        if (!token || isDevToken(token)) return false
+        if (!usesFirebase || !isFirebaseConfigured()) return false
+        return firebaseIsEmailPasswordUser()
+      },
+
+      changePassword: async (currentPassword, newPassword) => {
+        const { token, usesFirebase } = get()
+        if (!token || isDevToken(token)) {
+          throw new Error('Cannot change password for a local dev session.')
+        }
+        if (!usesFirebase || !isFirebaseConfigured()) {
+          throw new Error('Password change is only available with Firebase Auth.')
+        }
+        try {
+          await firebaseChangePassword(currentPassword, newPassword)
         } catch (err) {
           throw mapAuthError(err)
         }

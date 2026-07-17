@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
-  Crown, Bell, Shield, HelpCircle, LogOut, ChevronRight, ExternalLink, Trash2, FileText,
+  Crown, Bell, Shield, HelpCircle, LogOut, ChevronRight, ExternalLink, Trash2, FileText, KeyRound,
 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader, SectionLabel } from '@/components/layout/PageHeader'
@@ -48,10 +48,17 @@ export function SettingsPage() {
   const token = useAuthStore((s) => s.token)
   const logout = useAuthStore((s) => s.logout)
   const deleteAccountAction = useAuthStore((s) => s.deleteAccount)
+  const changePasswordAction = useAuthStore((s) => s.changePassword)
+  const canChangePassword = useAuthStore((s) => s.canChangePassword)
   const [showReset, setShowReset] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
+  const [showChangePassword, setShowChangePassword] = useState(false)
   const [deletePassword, setDeletePassword] = useState('')
   const [deleting, setDeleting] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [changingPassword, setChangingPassword] = useState(false)
 
   const handleResetDaily = () => {
     resetDailyUsage()
@@ -68,6 +75,35 @@ export function SettingsPage() {
     } catch (err) {
       toast(err instanceof Error ? err.message : t('auth.loginFailed'), 'error')
       setDeleting(false)
+    }
+  }
+
+  const resetChangePasswordForm = () => {
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+  }
+
+  const handleChangePassword = async () => {
+    if (!currentPassword.trim() || !newPassword.trim()) return
+    if (newPassword !== confirmPassword) {
+      toast(t('auth.passwordMismatch'), 'error')
+      return
+    }
+    if (newPassword.length < 8) {
+      toast(t('auth.passwordTooShort'), 'error')
+      return
+    }
+    setChangingPassword(true)
+    try {
+      await changePasswordAction(currentPassword, newPassword)
+      toast(t('settings.changePasswordSuccess'), 'success')
+      setShowChangePassword(false)
+      resetChangePasswordForm()
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('settings.changePasswordFailed'), 'error')
+    } finally {
+      setChangingPassword(false)
     }
   }
 
@@ -177,6 +213,7 @@ export function SettingsPage() {
   ]
 
   const canDeleteAccount = token && !isDevToken(token)
+  const showChangePasswordButton = canChangePassword()
 
   return (
     <AppShell>
@@ -361,6 +398,18 @@ export function SettingsPage() {
           </div>
         </div>
 
+        {showChangePasswordButton && (
+          <Button
+            variant="secondary"
+            fullWidth
+            className="border-white/10 bg-white/[0.04]"
+            onClick={() => setShowChangePassword(true)}
+          >
+            <KeyRound size={16} />
+            {t('settings.changePassword')}
+          </Button>
+        )}
+
         {canDeleteAccount && (
           <Button variant="danger" fullWidth onClick={() => setShowDelete(true)}>
             <Trash2 size={16} />
@@ -421,6 +470,69 @@ export function SettingsPage() {
             disabled={deleting || !deletePassword}
           >
             {t('auth.deleteAccountSubmit')}
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={showChangePassword}
+        onClose={() => {
+          if (changingPassword) return
+          setShowChangePassword(false)
+          resetChangePasswordForm()
+        }}
+        title={t('settings.changePassword')}
+      >
+        <p className="text-sm text-white/50 mb-4">{t('settings.changePasswordDesc')}</p>
+        <div className="space-y-3 mb-4">
+          <Input
+            id="current-password"
+            type="password"
+            label={t('settings.currentPassword')}
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            autoComplete="current-password"
+          />
+          <Input
+            id="new-password"
+            type="password"
+            label={t('settings.newPassword')}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            autoComplete="new-password"
+          />
+          <Input
+            id="confirm-new-password"
+            type="password"
+            label={t('settings.confirmNewPassword')}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            autoComplete="new-password"
+          />
+        </div>
+        <div className="flex gap-3">
+          <Button
+            variant="secondary"
+            className="flex-1"
+            onClick={() => {
+              setShowChangePassword(false)
+              resetChangePasswordForm()
+            }}
+            disabled={changingPassword}
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            className="flex-1"
+            onClick={handleChangePassword}
+            disabled={
+              changingPassword ||
+              !currentPassword.trim() ||
+              !newPassword.trim() ||
+              !confirmPassword.trim()
+            }
+          >
+            {t('settings.changePasswordSubmit')}
           </Button>
         </div>
       </Modal>
