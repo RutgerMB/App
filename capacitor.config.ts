@@ -14,7 +14,6 @@ const config: CapacitorConfig = {
       '@capacitor/app',
       '@capacitor/app-launcher',
       '@capacitor/local-notifications',
-      '@capacitor/push-notifications',
     ],
   },
   android: {

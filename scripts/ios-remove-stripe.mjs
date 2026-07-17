@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Post-process iOS project after `npx cap sync ios`.
- * - Removes Stripe/StatusBar/SplashScreen SPM entries (web-only on iOS)
+ * - Removes Stripe/StatusBar/SplashScreen/PushNotifications SPM entries (unused on iOS)
  * - Re-injects RepLockControls + CapgoNativePurchases + RepLockRevenueCat (cap sync wipes local SPM plugins)
  * - Ensures CapApp-SPM.swift imports + force-links plugin classes
  * - Injects local plugin class names into capacitor.config.json packageClassList
@@ -53,6 +53,9 @@ const spmPackageRemovals = [
   /^\s*\.product\(name: "CapacitorStatusBar".*\n/gm,
   /^\s*\.package\(name: "CapacitorSplashScreen".*\n/gm,
   /^\s*\.product\(name: "CapacitorSplashScreen".*\n/gm,
+  // Unused on iOS — app uses LocalNotifications only; Xcode 15.4 rejects CAPPluginCall.reject
+  /^\s*\.package\(name: "CapacitorPushNotifications".*\n/gm,
+  /^\s*\.product\(name: "CapacitorPushNotifications".*\n/gm,
 ]
 
 function ensureLocalPackage(pkg, { name, path }) {
@@ -246,6 +249,7 @@ if (existsSync(podfilePath)) {
   podfile = podfile.replace(/^\s*pod 'CapacitorCommunityStripe'.*\n/gm, '')
   podfile = podfile.replace(/^\s*pod 'CapacitorStatusBar'.*\n/gm, '')
   podfile = podfile.replace(/^\s*pod 'CapacitorSplashScreen'.*\n/gm, '')
+  podfile = podfile.replace(/^\s*pod 'CapacitorPushNotifications'.*\n/gm, '')
   podfile = podfile.replace(/^\s*pod 'Stripe.*'.*\n/gm, '')
   if (podfile !== before) {
     writeFileSync(podfilePath, podfile)
