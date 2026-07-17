@@ -77,8 +77,12 @@ function stripSpmLines(pkg) {
   const nl = pkg.includes('\r\n') ? '\r\n' : '\n'
   const lines = pkg.split(/\r?\n/)
   const kept = lines.filter((line) => {
+    // Match package OR product lines (quoted name) and path snippets — CRLF-safe (no /.*\n/)
     if (SPM_STRIP_NAMES.some((name) => line.includes(`"${name}"`))) return false
     if (SPM_STRIP_PATH_SNIPPETS.some((snip) => line.includes(snip))) return false
+    // Belt-and-suspenders: product(name:) even if quotes/spacing differ
+    if (/\.product\s*\(\s*name:\s*"CapacitorPushNotifications"/i.test(line)) return false
+    if (/\.package\s*\([^)]*CapacitorPushNotifications/i.test(line)) return false
     return true
   })
   // Drop trailing commas left on the previous dependency/product line before `]`
@@ -167,6 +171,10 @@ function ensureCapAppSpmImports() {
     .replace(/^import CapgoNativePurchases\r?\n/gm, '')
     .replace(/^import RepLockControls\r?\n/gm, '')
     .replace(/^import CapacitorLocalNotifications\r?\n/gm, '')
+    // Never leave Push force-link / imports after package strip (dangling product deps)
+    .replace(/^import\s+PushNotificationsPlugin\r?\n/gm, '')
+    .replace(/^import\s+CapacitorPushNotifications\r?\n/gm, '')
+    .replace(/^[ \t]*_\s*=\s*PushNotificationsPlugin\.self\r?\n/gm, '')
 
   for (const requiredImport of requiredImports) {
     if (!content.includes(requiredImport)) {
@@ -284,12 +292,41 @@ function stripPbxprojPush() {
   if (!existsSync(pbxprojPath)) return false
   let pbx = readFileSync(pbxprojPath, 'utf8')
   const before = pbx
-  // Remove any stray PushNotifications product / package refs if Cap sync left them
+
+  // Collect XCSwiftPackageProductDependency IDs for Push products, then drop
+  // both the block and any packageProductDependencies list entries.
+  const pushProductIds = []
+  pbx.replace(
+    /([A-F0-9]{24}) \/\* ([^*]*PushNotifications[^*]*) \*\/ = \{\s*\n\s*isa = XCSwiftPackageProductDependency;[\s\S]*?productName = [^;]*;[\s\S]*?\n\s*\};/g,
+    (full, id) => {
+      pushProductIds.push(id)
+      return full
+    }
+  )
+
+  for (const id of pushProductIds) {
+    pbx = pbx.replace(
+      new RegExp(
+        `[ \\t]*${id} \\/\\* [^*]* \\*\\/ = \\{[\\s\\S]*?isa = XCSwiftPackageProductDependency;[\\s\\S]*?\\n\\s*\\};\\r?\\n`,
+        'g'
+      ),
+      ''
+    )
+    pbx = pbx.replace(new RegExp(`[ \\t]*${id} \\/\\* [^*]* \\*\\/,?\\r?\\n`, 'g'), '')
+  }
+
+  // Fallback: any remaining Push / push-notifications lines (package refs, comments)
   pbx = pbx.replace(/^[^\n]*PushNotifications[^\n]*\r?\n/gm, '')
   pbx = pbx.replace(/^[^\n]*push-notifications[^\n]*\r?\n/gm, '')
+  pbx = pbx.replace(/^[^\n]*CapacitorPushNotifications[^\n]*\r?\n/gm, '')
+
   if (pbx !== before) {
     writeFileSync(pbxprojPath, pbx)
-    console.log('Removed PushNotifications refs from project.pbxproj')
+    console.log(
+      `Removed PushNotifications refs from project.pbxproj${
+        pushProductIds.length ? ` (${pushProductIds.length} product dep(s))` : ''
+      }`
+    )
     return true
   }
   return false
@@ -315,13 +352,17 @@ if (existsSync(spmPackagePath)) {
     console.log('CapApp-SPM/Package.swift already up to date')
   }
 
-  // Hard verify — never leave Push in Package.swift
+  // Hard verify — never leave Push package OR dangling product in Package.swift
   const verify = readFileSync(spmPackagePath, 'utf8')
-  if (/CapacitorPushNotifications|push-notifications/i.test(verify)) {
-    console.error('ERROR: CapacitorPushNotifications still present in Package.swift after strip')
+  const hasPushPackage = /\.package\s*\([^)]*CapacitorPushNotifications|push-notifications/i.test(verify)
+  const hasPushProduct = /\.product\s*\(\s*name:\s*"CapacitorPushNotifications"/i.test(verify)
+  if (hasPushPackage || hasPushProduct || /CapacitorPushNotifications/i.test(verify)) {
+    console.error(
+      `ERROR: CapacitorPushNotifications still present in Package.swift after strip (package=${hasPushPackage}, product=${hasPushProduct})`
+    )
     process.exitCode = 1
   } else {
-    console.log('Verified: CapApp-SPM/Package.swift has no PushNotifications')
+    console.log('Verified: CapApp-SPM/Package.swift has no Push package or product')
   }
   if (!/LocalPackages\/CapacitorLocalNotifications/.test(verify)) {
     console.warn('WARN: CapacitorLocalNotifications is not pointing at LocalPackages')
@@ -344,6 +385,19 @@ if (stripPodfile()) {
 
 if (stripPbxprojPush()) {
   changed = true
+}
+
+// Final cross-file guard: CapApp-SPM.swift + pbxproj must not reference Push either
+for (const [label, filePath] of [
+  ['CapApp-SPM.swift', capAppSpmSwiftPath],
+  ['project.pbxproj', pbxprojPath],
+]) {
+  if (!existsSync(filePath)) continue
+  const text = readFileSync(filePath, 'utf8')
+  if (/CapacitorPushNotifications|PushNotificationsPlugin|push-notifications/i.test(text)) {
+    console.error(`ERROR: PushNotifications still referenced in ${label}`)
+    process.exitCode = 1
+  }
 }
 
 if (changed) {
