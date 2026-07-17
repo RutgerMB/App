@@ -2,6 +2,11 @@
 node_modules/
 dist/
 
+# Python / NeMo Guardrails
+tools/nemo-guardrails/.venv/
+__pycache__/
+*.py[cod]
+
 # Environment
 .env
 .env.local

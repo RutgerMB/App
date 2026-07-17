@@ -1,0 +1,66 @@
+# RepLock NeMo Guardrails config
+# Regex rails run without an LLM. Self-check rails need OPENAI_API_KEY (or another model).
+
+instructions:
+  - type: general
+    content: |
+      You help produce RepLock product and marketing content.
+      RepLock is a fitness + screen-time app for adults.
+      Never invent medical claims, never target children under 13,
+      never invent fake reviews, and never expose secrets or credentials.
+
+sample_conversation: |
+  user "Draft a TikTok caption for RepLock"
+    ask for marketing copy
+  bot respond with safe marketing copy
+    "Earn screen time by doing push-ups. Search RepLock."
+
+models:
+  - type: main
+    engine: openai
+    model: gpt-4o-mini
+
+rails:
+  input:
+    flows:
+      - regex check input
+      - self check input
+
+  output:
+    flows:
+      - regex check output
+      - self check output
+
+  config:
+    regex_detection:
+      input:
+        case_insensitive: true
+        patterns:
+          # Secrets / credentials
+          - '(?i)(api[_-]?key|secret[_-]?key|private[_-]?key)\s*[:=]\s*\S+'
+          - '(?i)-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----'
+          - '(?i)sk-(live|test)-[A-Za-z0-9]{16,}'
+          - '(?i)AIza[0-9A-Za-z\-_]{20,}'
+          # Prompt injection / jailbreak attempts
+          - '(?i)ignore (all )?(previous|prior|above) (instructions|rules|prompts)'
+          - '(?i)disregard (your|the) (system|safety) (prompt|rules|guidelines)'
+          - '(?i)you are now (DAN|unrestricted|jailbroken)'
+          # Under-13 / child targeting
+          - '(?i)\b(for kids|for children|under\s*13|ages?\s*0\s*-\s*12)\b'
+          # Harmful / medical overclaim
+          - '(?i)\b(guaranteed|cure|diagnos(e|is)|treat(s|ment)? (depression|adhd|obesity))\b'
+          - '(?i)\b(lose \d+ (lbs|pounds|kg) in \d+ days)\b'
+      output:
+        case_insensitive: true
+        patterns:
+          - '(?i)(api[_-]?key|secret[_-]?key|private[_-]?key)\s*[:=]\s*\S+'
+          - '(?i)-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----'
+          - '(?i)sk-(live|test)-[A-Za-z0-9]{16,}'
+          - '(?i)AIza[0-9A-Za-z\-_]{20,}'
+          - '(?i)\b(for kids|for children|under\s*13|ages?\s*0\s*-\s*12)\b'
+          - '(?i)\b(guaranteed|cure|diagnos(e|is)|treat(s|ment)? (depression|adhd|obesity))\b'
+          - '(?i)\b(lose \d+ (lbs|pounds|kg) in \d+ days)\b'
+          - '(?i)\b(100%\s*safe|clinically proven|doctor recommended)\b'
+
+    self_check:
+      enabled: true

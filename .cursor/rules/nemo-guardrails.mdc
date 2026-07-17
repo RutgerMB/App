@@ -1,0 +1,21 @@
+---
+description: Run NeMo Guardrails on AI-generated marketing, legal, and store copy
+globs: docs/marketing/**/*,docs/legal/**/*,docs/app-store/**/*
+alwaysApply: false
+---
+
+# NeMo Guardrails
+
+Before finalizing user-facing marketing, legal, or App Store copy:
+
+1. Avoid under-13 targeting, medical cure/diagnosis claims, fake social proof, and leaking secrets.
+2. Safety-check drafts with the local NeMo setup:
+
+```powershell
+tools\nemo-guardrails\.venv\Scripts\python.exe tools\nemo-guardrails\check_text.py --mode output --file <draft-path>
+```
+
+3. Fix any `REGEX: BLOCKED` matches before shipping the copy.
+4. Optional LLM self-check: set `OPENAI_API_KEY` and pass `--llm`.
+
+Details: `tools/nemo-guardrails/README.md`
