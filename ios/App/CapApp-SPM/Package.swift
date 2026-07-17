@@ -15,7 +15,11 @@ let package = Package(
         .package(name: "RepLockControls", path: "../LocalPackages/RepLockControls"),
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.1"),
         .package(name: "RevenuecatPurchasesCapacitor", path: "../LocalPackages/RevenuecatPurchasesCapacitor"),
-        .package(name: "CapgoNativePurchases", path: "../LocalPackages/CapgoNativePurchases")
+        .package(name: "CapgoNativePurchases", path: "../LocalPackages/CapgoNativePurchases"),
+        .package(name: "CapacitorApp", path: "../../../node_modules/@capacitor/app"),
+        .package(name: "CapacitorAppLauncher", path: "../../../node_modules/@capacitor/app-launcher"),
+        .package(name: "CapacitorLocalNotifications", path: "../../../node_modules/@capacitor/local-notifications"),
+        .package(name: "CapacitorPushNotifications", path: "../../../node_modules/@capacitor/push-notifications")
     ],
     targets: [
         .target(
@@ -26,7 +30,11 @@ let package = Package(
                 .product(name: "RepLockRevenueCat", package: "RepLockRevenueCat"),
                 .product(name: "RepLockControls", package: "RepLockControls"),
                 .product(name: "RevenuecatPurchasesCapacitor", package: "RevenuecatPurchasesCapacitor"),
-                .product(name: "CapgoNativePurchases", package: "CapgoNativePurchases")
+                .product(name: "CapgoNativePurchases", package: "CapgoNativePurchases"),
+                .product(name: "CapacitorApp", package: "CapacitorApp"),
+                .product(name: "CapacitorAppLauncher", package: "CapacitorAppLauncher"),
+                .product(name: "CapacitorLocalNotifications", package: "CapacitorLocalNotifications"),
+                .product(name: "CapacitorPushNotifications", package: "CapacitorPushNotifications")
             ]
         )
     ]
