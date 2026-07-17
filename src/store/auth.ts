@@ -11,6 +11,7 @@ import {
   firebaseLogout,
   firebaseDeleteAccount,
   firebaseChangePassword,
+  firebaseUpdateDisplayName,
   firebaseIsEmailPasswordUser,
   firebaseSaveAppState,
   firebaseGetIdToken,
@@ -22,7 +23,7 @@ import { stripProFieldsFromSnapshot } from '@/lib/entitlement-sanitize'
 import { syncEntitlementOnLaunch } from '@/lib/entitlement'
 import { initMobilePurchases } from '@/lib/mobile-purchases'
 import { mapAuthError } from '@/lib/auth-errors'
-import { useStore } from '@/store'
+import { useStore, MAX_DISPLAY_NAME_LENGTH } from '@/store'
 
 export function getAppStateSnapshot(): AppState {
   const s = useStore.getState()
@@ -57,6 +58,7 @@ interface AuthState {
   sendPasswordReset: (email: string) => Promise<void>
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   canChangePassword: () => boolean
+  updateDisplayName: (name: string) => Promise<void>
   devLogin: () => void
   logout: () => Promise<void>
   deleteAccount: (password: string) => Promise<void>
@@ -207,6 +209,28 @@ export const useAuthStore = create<AuthState>()(
           await firebaseChangePassword(currentPassword, newPassword)
         } catch (err) {
           throw mapAuthError(err)
+        }
+      },
+
+      updateDisplayName: async (name) => {
+        const trimmed = name.trim().slice(0, MAX_DISPLAY_NAME_LENGTH)
+        if (!trimmed) {
+          throw new Error('Display name is required')
+        }
+
+        const { user, usesFirebase, token } = get()
+
+        if (usesFirebase && isFirebaseConfigured() && user && !isDevToken(token)) {
+          try {
+            await firebaseUpdateDisplayName(trimmed)
+          } catch (err) {
+            throw mapAuthError(err)
+          }
+        }
+
+        useStore.getState().setDisplayName(trimmed)
+        if (user) {
+          set({ user: { ...user, name: trimmed } })
         }
       },
 

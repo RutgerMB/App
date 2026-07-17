@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
-  Crown, Bell, Shield, HelpCircle, LogOut, ChevronRight, ExternalLink, Trash2, FileText, KeyRound,
+  Crown, Bell, Shield, HelpCircle, LogOut, ChevronRight, ExternalLink, Trash2, FileText, KeyRound, UserPen,
 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader, SectionLabel } from '@/components/layout/PageHeader'
@@ -21,7 +21,7 @@ import {
   openManageSubscription,
   openUpgradeOrFallback,
 } from '@/lib/replock-revenuecat-native'
-import { useStore } from '@/store'
+import { useStore, MAX_DISPLAY_NAME_LENGTH } from '@/store'
 import { useAuthStore } from '@/store/auth'
 import { useToast } from '@/components/ui/Toast'
 import { formatMinutes, cn } from '@/lib/utils'
@@ -58,10 +58,15 @@ export function SettingsPage() {
   const logout = useAuthStore((s) => s.logout)
   const deleteAccountAction = useAuthStore((s) => s.deleteAccount)
   const changePasswordAction = useAuthStore((s) => s.changePassword)
+  const updateDisplayNameAction = useAuthStore((s) => s.updateDisplayName)
   const canChangePassword = useAuthStore((s) => s.canChangePassword)
   const [showReset, setShowReset] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [showChangePassword, setShowChangePassword] = useState(false)
+  const [showChangeName, setShowChangeName] = useState(false)
+  const [changeNameStep, setChangeNameStep] = useState<'edit' | 'confirm'>('edit')
+  const [displayNameDraft, setDisplayNameDraft] = useState('')
+  const [savingName, setSavingName] = useState(false)
   const [deletePassword, setDeletePassword] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
@@ -141,6 +146,54 @@ export function SettingsPage() {
     setCurrentPassword('')
     setNewPassword('')
     setConfirmPassword('')
+  }
+
+  const openChangeName = () => {
+    setDisplayNameDraft(profile.name)
+    setChangeNameStep('edit')
+    setShowChangeName(true)
+  }
+
+  const closeChangeName = () => {
+    if (savingName) return
+    setShowChangeName(false)
+    setChangeNameStep('edit')
+    setDisplayNameDraft('')
+  }
+
+  const handleChangeNameContinue = () => {
+    const trimmed = displayNameDraft.trim()
+    if (!trimmed) {
+      toast(t('settings.displayNameRequired'), 'error')
+      return
+    }
+    if (trimmed.length > MAX_DISPLAY_NAME_LENGTH) {
+      toast(t('settings.displayNameTooLong'), 'error')
+      return
+    }
+    if (trimmed === profile.name.trim()) {
+      toast(t('settings.displayNameUnchanged'), 'info')
+      return
+    }
+    setDisplayNameDraft(trimmed)
+    setChangeNameStep('confirm')
+  }
+
+  const handleChangeNameConfirm = async () => {
+    const trimmed = displayNameDraft.trim()
+    if (!trimmed) return
+    setSavingName(true)
+    try {
+      await updateDisplayNameAction(trimmed)
+      toast(t('settings.displayNameSuccess'), 'success')
+      setShowChangeName(false)
+      setChangeNameStep('edit')
+      setDisplayNameDraft('')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : t('settings.displayNameFailed'), 'error')
+    } finally {
+      setSavingName(false)
+    }
   }
 
   const handleChangePassword = async () => {
@@ -458,29 +511,41 @@ export function SettingsPage() {
           </div>
         </div>
 
-        {showChangePasswordButton && (
+        <div className="space-y-3">
           <Button
             variant="secondary"
             fullWidth
             className="border-white/10 bg-white/[0.04]"
-            onClick={() => setShowChangePassword(true)}
+            onClick={openChangeName}
           >
-            <KeyRound size={16} />
-            {t('settings.changePassword')}
+            <UserPen size={16} />
+            {t('settings.changeDisplayName')}
           </Button>
-        )}
 
-        {canDeleteAccount && (
-          <Button variant="danger" fullWidth onClick={() => setShowDelete(true)}>
-            <Trash2 size={16} />
-            {t('settings.deleteAccount')}
+          {showChangePasswordButton && (
+            <Button
+              variant="secondary"
+              fullWidth
+              className="border-white/10 bg-white/[0.04]"
+              onClick={() => setShowChangePassword(true)}
+            >
+              <KeyRound size={16} />
+              {t('settings.changePassword')}
+            </Button>
+          )}
+
+          {canDeleteAccount && (
+            <Button variant="danger" fullWidth onClick={() => setShowDelete(true)}>
+              <Trash2 size={16} />
+              {t('settings.deleteAccount')}
+            </Button>
+          )}
+
+          <Button variant="secondary" fullWidth className="border-white/10 bg-white/[0.04]" onClick={logout}>
+            <LogOut size={16} />
+            {t('auth.signOut')}
           </Button>
-        )}
-
-        <Button variant="secondary" fullWidth className="border-white/10 bg-white/[0.04]" onClick={logout}>
-          <LogOut size={16} />
-          {t('auth.signOut')}
-        </Button>
+        </div>
 
         <p className="text-center text-xs text-white/20 pb-2">
           RepLock v1.0.0 · {t('settings.version')}
@@ -532,6 +597,68 @@ export function SettingsPage() {
             {t('auth.deleteAccountSubmit')}
           </Button>
         </div>
+      </Modal>
+
+      <Modal
+        open={showChangeName}
+        onClose={closeChangeName}
+        title={
+          changeNameStep === 'edit'
+            ? t('settings.changeDisplayName')
+            : t('settings.displayNameConfirmTitle')
+        }
+      >
+        {changeNameStep === 'edit' ? (
+          <>
+            <p className="text-sm text-white/50 mb-4">{t('settings.changeDisplayNameDesc')}</p>
+            <Input
+              id="display-name"
+              label={t('settings.displayName')}
+              value={displayNameDraft}
+              onChange={(e) => setDisplayNameDraft(e.target.value.slice(0, MAX_DISPLAY_NAME_LENGTH))}
+              autoComplete="name"
+              maxLength={MAX_DISPLAY_NAME_LENGTH}
+              className="mb-4"
+            />
+            <div className="flex gap-3">
+              <Button variant="secondary" className="flex-1" onClick={closeChangeName}>
+                {t('common.cancel')}
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleChangeNameContinue}
+                disabled={!displayNameDraft.trim()}
+              >
+                {t('common.continue')}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-white/50 mb-4">
+              {t('settings.displayNameConfirmDesc', { name: displayNameDraft.trim() })}
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                className="flex-1"
+                onClick={() => setChangeNameStep('edit')}
+                disabled={savingName}
+              >
+                {t('common.back')}
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={() => {
+                  void handleChangeNameConfirm()
+                }}
+                disabled={savingName}
+              >
+                {t('settings.displayNameConfirm')}
+              </Button>
+            </div>
+          </>
+        )}
       </Modal>
 
       <Modal

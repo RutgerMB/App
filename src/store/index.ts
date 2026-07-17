@@ -48,8 +48,11 @@ const initialState: AppState = {
   usageHistory: [],
 }
 
+export const MAX_DISPLAY_NAME_LENGTH = 40
+
 interface StoreActions {
   completeOnboarding: (name: string, difficulty?: Difficulty) => void
+  setDisplayName: (name: string) => void
   setLocale: (locale: Locale) => void
   setDifficulty: (difficulty: Difficulty) => void
   setNotificationsEnabled: (enabled: boolean) => void
@@ -80,6 +83,14 @@ export const useStore = create<AppState & StoreActions>()(
         set((s) => ({
           profile: { ...s.profile, name, difficulty, onboardingComplete: true },
         })),
+
+      setDisplayName: (name) => {
+        const trimmed = name.trim().slice(0, MAX_DISPLAY_NAME_LENGTH)
+        if (!trimmed) return
+        set((s) => ({
+          profile: { ...s.profile, name: trimmed },
+        }))
+      },
 
       setLocale: (locale) =>
         set((s) => ({

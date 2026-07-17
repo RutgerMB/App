@@ -154,6 +154,12 @@ export async function firebaseLogin(
   }
 }
 
+export async function firebaseUpdateDisplayName(name: string): Promise<void> {
+  const user = getFirebaseAuth().currentUser
+  if (!user) throw new Error('Not signed in')
+  await updateProfile(user, { displayName: name.trim() })
+}
+
 export async function firebaseLogout(): Promise<void> {
   await signOut(getFirebaseAuth())
 }
