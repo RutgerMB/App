@@ -58,6 +58,25 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Native-app feel: no text selection / iOS callout on Capacitor */
+  html,
+  body,
+  #root {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* Allow selection where users type or edit */
+  input,
+  textarea,
+  [contenteditable],
+  [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+  }
+
   html {
     @apply antialiased bg-surface-0;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
