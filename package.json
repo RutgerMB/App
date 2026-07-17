@@ -19,7 +19,8 @@
     "marketing:subscription-screenshot": "node scripts/generate-subscription-screenshot.mjs",
     "preview": "vite preview",
     "test": "vitest run",
-    "start": "tsx server/index.ts"
+    "start": "tsx server/index.ts",
+    "start:prod": "NODE_ENV=production tsx server/index.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",

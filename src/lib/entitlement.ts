@@ -150,14 +150,15 @@ export async function syncEntitlementPreferringStore(options?: {
     return { isPro: true, serverSynced, source: 'revenuecat', authError }
   }
 
-  // Capgo / local grant may already have set isPro before sync ran.
-  if (useStore.getState().profile.isPro) {
-    return { isPro: true, serverSynced, source: 'revenuecat', authError }
-  }
-
+  // Server authoritatively free + no store entitlement → clear local Pro (no localStorage bypass).
   if (serverEntitlement) {
     applyServerEntitlement(serverEntitlement)
     return { isPro: false, serverSynced: true, source: 'server' }
+  }
+
+  // Offline / unreachable API only: keep a fresh local grant (post-IAP before webhook).
+  if (useStore.getState().profile.isPro) {
+    return { isPro: true, serverSynced: false, source: 'revenuecat', authError }
   }
 
   return { isPro: false, serverSynced, source: 'none', authError }

@@ -75,6 +75,26 @@ export function createUser(data: Omit<StoredUser, 'appState'> & { appState?: App
   return user
 }
 
+/**
+ * Ensure a row exists for Firebase / RevenueCat app_user_id so entitlements and webhooks work.
+ * Password hash is empty — email/password login cannot succeed for these rows.
+ */
+export function ensureExternalUser(userId: string, email?: string, name?: string): StoredUser {
+  const existing = findUserById(userId)
+  if (existing) return existing
+
+  const resolvedEmail = (email?.trim() || `${userId}@firebase.replock.local`).toLowerCase()
+  const resolvedName = name?.trim() || resolvedEmail.split('@')[0] || 'User'
+
+  return createUser({
+    id: userId,
+    email: resolvedEmail,
+    passwordHash: '',
+    name: resolvedName,
+    createdAt: Date.now(),
+  })
+}
+
 export function deleteUser(userId: string): boolean {
   const db = readDb()
   const idx = db.users.findIndex((u) => u.id === userId)
@@ -102,6 +122,8 @@ export function getEntitlement(userId: string): ProEntitlement | undefined {
 }
 
 export function setEntitlement(userId: string, entitlement: ProEntitlement): StoredUser | undefined {
+  ensureExternalUser(userId)
+
   const db = readDb()
   const idx = db.users.findIndex((u) => u.id === userId)
   if (idx === -1) return undefined

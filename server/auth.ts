@@ -8,6 +8,7 @@ import {
   updateUserAppState,
   deleteUser,
   getEntitlement,
+  ensureExternalUser,
 } from './db.js'
 import {
   isFirebaseAdminConfigured,
@@ -58,6 +59,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 
   const firebaseUser = await verifyFirebaseIdToken(token)
   if (firebaseUser) {
+    ensureExternalUser(firebaseUser.uid, firebaseUser.email)
     ;(req as Request & { auth: AuthPayload }).auth = {
       userId: firebaseUser.uid,
       email: firebaseUser.email,
@@ -134,7 +136,7 @@ export async function handleLogin(req: Request, res: Response) {
     }
 
     const user = findUserByEmail(email.trim().toLowerCase())
-    if (!user) return res.status(401).json({ error: 'Invalid email or password' })
+    if (!user?.passwordHash) return res.status(401).json({ error: 'Invalid email or password' })
 
     const valid = await bcrypt.compare(password, user.passwordHash)
     if (!valid) return res.status(401).json({ error: 'Invalid email or password' })

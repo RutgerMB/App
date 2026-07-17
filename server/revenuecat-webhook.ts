@@ -1,4 +1,5 @@
-import { findUserById, getEntitlement, setEntitlement } from './db.js'
+import { timingSafeEqual } from 'crypto'
+import { ensureExternalUser, getEntitlement, setEntitlement } from './db.js'
 import type { ProEntitlement } from './entitlement.js'
 
 export interface RevenueCatWebhookEvent {
@@ -61,7 +62,7 @@ export function handleRevenueCatWebhookEvent(
   if (!event?.app_user_id) return { handled: false }
 
   const userId = event.app_user_id
-  if (!findUserById(userId)) return { handled: false }
+  ensureExternalUser(userId)
 
   const existing = getEntitlement(userId)
   const proEntitled = hasProEntitlement(event)
@@ -95,11 +96,21 @@ export function handleRevenueCatWebhookEvent(
   return { handled: false }
 }
 
+function safeEqualString(a: string, b: string): boolean {
+  const bufA = Buffer.from(a)
+  const bufB = Buffer.from(b)
+  if (bufA.length !== bufB.length) return false
+  return timingSafeEqual(bufA, bufB)
+}
+
 export function verifyRevenueCatAuthorization(
   authHeader: string | undefined,
   expectedSecret: string | undefined
 ): boolean {
   if (!expectedSecret) return false
   if (!authHeader) return false
-  return authHeader === expectedSecret || authHeader === `Bearer ${expectedSecret}`
+  return (
+    safeEqualString(authHeader, expectedSecret) ||
+    safeEqualString(authHeader, `Bearer ${expectedSecret}`)
+  )
 }

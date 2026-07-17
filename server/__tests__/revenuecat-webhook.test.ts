@@ -4,12 +4,12 @@ import {
   verifyRevenueCatAuthorization,
 } from '../revenuecat-webhook.js'
 
-const mockFindUserById = vi.fn()
+const mockEnsureExternalUser = vi.fn()
 const mockGetEntitlement = vi.fn()
 const mockSetEntitlement = vi.fn()
 
 vi.mock('../db.js', () => ({
-  findUserById: (...args: unknown[]) => mockFindUserById(...args),
+  ensureExternalUser: (...args: unknown[]) => mockEnsureExternalUser(...args),
   getEntitlement: (...args: unknown[]) => mockGetEntitlement(...args),
   setEntitlement: (...args: unknown[]) => mockSetEntitlement(...args),
 }))
@@ -17,7 +17,7 @@ vi.mock('../db.js', () => ({
 describe('revenuecat-webhook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockFindUserById.mockReturnValue({ id: 'user-1' })
+    mockEnsureExternalUser.mockReturnValue({ id: 'user-1' })
     mockGetEntitlement.mockReturnValue(null)
   })
 
@@ -60,8 +60,9 @@ describe('revenuecat-webhook', () => {
     )
   })
 
-  it('rejects unknown users', () => {
-    mockFindUserById.mockReturnValue(undefined)
+  it('provisions unknown Firebase / RevenueCat users', () => {
+    mockEnsureExternalUser.mockReturnValue({ id: 'unknown' })
+    mockGetEntitlement.mockReturnValue(null)
     const result = handleRevenueCatWebhookEvent({
       api_version: '1.0',
       event: {
@@ -71,7 +72,9 @@ describe('revenuecat-webhook', () => {
         entitlement_ids: ['pro'],
       },
     })
-    expect(result.handled).toBe(false)
+    expect(mockEnsureExternalUser).toHaveBeenCalledWith('unknown')
+    expect(result.handled).toBe(true)
+    expect(mockSetEntitlement).toHaveBeenCalled()
   })
 
   it('rejects webhooks when secret is missing', () => {

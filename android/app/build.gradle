@@ -9,6 +9,11 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        // Release-safe defaults; debug overrides below for local/LAN API testing.
+        manifestPlaceholders = [
+            usesCleartextTraffic: "false",
+            allowBackup: "false"
+        ]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -17,9 +22,19 @@ android {
         }
     }
     buildTypes {
+        debug {
+            manifestPlaceholders = [
+                usesCleartextTraffic: "true",
+                allowBackup: "false"
+            ]
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            manifestPlaceholders = [
+                usesCleartextTraffic: "false",
+                allowBackup: "false"
+            ]
         }
     }
 }

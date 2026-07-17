@@ -43,6 +43,13 @@ import {
 } from './revenuecat-webhook.js'
 
 const stripeKey = process.env.STRIPE_SECRET_KEY
+const isLiveStripe = !!stripeKey?.startsWith('sk_live')
+
+if (isLiveStripe && process.env.NODE_ENV !== 'production') {
+  throw new Error(
+    'Live Stripe key (sk_live_*) requires NODE_ENV=production. Use npm run start:prod or a test key for local testing.'
+  )
+}
 
 function isDemoMode(): boolean {
   return process.env.NODE_ENV !== 'production' && !stripeKey
@@ -155,7 +162,7 @@ app.post(
 
     try {
       const result = handleStripeWebhookEvent(event)
-      res.json({ received: true, handled: result.handled, userId: result.userId ?? null })
+      res.json({ received: true, handled: result.handled })
     } catch (err) {
       console.error('Stripe webhook handler error:', err)
       res.status(500).json({ error: 'Webhook handler failed' })
@@ -182,7 +189,7 @@ app.post('/api/webhooks/revenuecat', async (req, res) => {
   try {
     const payload = req.body as RevenueCatWebhookPayload
     const result = handleRevenueCatWebhookEvent(payload)
-    res.json({ received: true, handled: result.handled, userId: result.userId ?? null })
+    res.json({ received: true, handled: result.handled })
   } catch (err) {
     console.error('RevenueCat webhook handler error:', err)
     res.status(500).json({ error: 'Webhook handler failed' })
@@ -229,7 +236,10 @@ app.post('/api/subscription/apple/verify', authMiddleware, async (req, res) => {
       subscriptionStatus: 'active',
       source: 'apple',
     }
-    setEntitlement(auth.userId, entitlement)
+    const saved = setEntitlement(auth.userId, entitlement)
+    if (!saved) {
+      return res.status(500).json({ error: 'Could not save entitlement' })
+    }
 
     res.json({
       customerId,
@@ -357,7 +367,7 @@ app.get('/api/verify-session', authMiddleware, async (req, res) => {
     const session = await stripe.checkout.sessions.retrieve(sessionId)
 
     const sessionUserId = session.metadata?.userId
-    if (sessionUserId && sessionUserId !== auth.userId) {
+    if (!sessionUserId || sessionUserId !== auth.userId) {
       return res.status(403).json({ error: 'Session does not belong to this account' })
     }
 
@@ -371,7 +381,10 @@ app.get('/api/verify-session', authMiddleware, async (req, res) => {
         subscriptionStatus: 'active',
         source: 'stripe',
       }
-      setEntitlement(auth.userId, entitlement)
+      const saved = setEntitlement(auth.userId, entitlement)
+      if (!saved) {
+        return res.status(500).json({ error: 'Could not save entitlement' })
+      }
       res.json({
         isPro: true,
         customerId,
@@ -457,6 +470,9 @@ app.get('/api/subscription/status', authMiddleware, async (req, res) => {
 })
 
 app.get('/api/health', (_req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.json({ status: 'ok' })
+  }
   res.json({
     status: 'ok',
     stripe: !!stripe,
