@@ -18,16 +18,16 @@ import type { WorkoutPlan } from '@/types'
 
 const CATEGORY_GRADIENT: Record<ExerciseCategory, string> = {
   cardio: 'from-orange-500 to-red-500',
-  chest: 'from-indigo-500 to-violet-600',
-  legs: 'from-violet-500 to-purple-600',
+  chest: 'from-emerald-500 to-teal-600',
+  legs: 'from-teal-500 to-emerald-600',
   core: 'from-cyan-500 to-teal-600',
-  arms: 'from-blue-500 to-indigo-600',
+  arms: 'from-blue-500 to-emerald-600',
 }
 
 const CATEGORY_GLOW: Record<ExerciseCategory, string> = {
   cardio: 'shadow-orange-500/25',
-  chest: 'shadow-indigo-500/25',
-  legs: 'shadow-violet-500/25',
+  chest: 'shadow-emerald-500/25',
+  legs: 'shadow-teal-500/25',
   core: 'shadow-cyan-500/25',
   arms: 'shadow-blue-500/25',
 }
@@ -122,7 +122,7 @@ export function ExercisePage() {
             transition={{ duration: 0.45, ease: 'easeOut' }}
             className="relative"
           >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-300/70 mb-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-300/70 mb-2">
               RepLock
             </p>
             <h1 className="text-[2rem] font-bold tracking-tight leading-none">
@@ -136,7 +136,7 @@ export function ExercisePage() {
 
         <section>
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Sparkles size={13} className="text-indigo-400/80" />
+            <Sparkles size={13} className="text-emerald-400/80" />
             <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
               {t('exercise.plannedWorkouts')}
             </h2>
@@ -176,7 +176,7 @@ export function ExercisePage() {
             <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
               {t('exercise.byMuscle')}
             </h2>
-            <div className="mx-auto mt-3 h-px w-10 bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent" />
+            <div className="mx-auto mt-3 h-px w-10 bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
           </div>
 
           <div className="flex flex-wrap justify-center gap-3">

@@ -138,8 +138,8 @@ export function BlockerPermissionPrompt() {
   return (
     <Modal open={open} onClose={handleSkip} title={title} position="bottom">
       <div className="flex flex-col items-center text-center mb-5">
-        <div className="w-16 h-16 rounded-2xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center mb-4">
-          <Shield size={32} className="text-indigo-400" />
+        <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center mb-4">
+          <Shield size={32} className="text-emerald-400" />
         </div>
         <p className="text-sm text-white/55 leading-relaxed">{desc}</p>
       </div>

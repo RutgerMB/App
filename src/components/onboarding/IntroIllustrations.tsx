@@ -37,7 +37,7 @@ export function BlockAppsIllustration() {
         initial={{ opacity: 0, scale: 0.92, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ delay: 0.35, duration: 0.5 }}
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[92%] rounded-2xl bg-gradient-to-br from-indigo-950 to-violet-950 border border-indigo-500/20 p-4 shadow-2xl text-white"
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[92%] rounded-2xl bg-gradient-to-br from-emerald-950 to-teal-950 border border-emerald-500/20 p-4 shadow-2xl text-white"
       >
         <div className="flex items-center gap-2 mb-2">
           <Clock size={16} className="opacity-80" />
@@ -63,7 +63,7 @@ export function EarnWorkoutIllustration() {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-32 h-32 rounded-[2rem] bg-gradient-to-br from-indigo-500 to-violet-600 shadow-2xl shadow-indigo-500/40 flex items-center justify-center"
+        className="w-32 h-32 rounded-[2rem] bg-gradient-to-br from-emerald-500 to-teal-600 shadow-2xl shadow-emerald-500/40 flex items-center justify-center"
       >
         <Dumbbell size={48} className="text-white" strokeWidth={1.75} />
       </motion.div>

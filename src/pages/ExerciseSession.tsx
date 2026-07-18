@@ -214,8 +214,8 @@ export function ExerciseSessionPage() {
               <ExerciseDemoVideo type={type} className="mb-6" />
               <h2 className="text-2xl font-bold mb-3">{exName}</h2>
               <p className="text-white/55 text-base leading-relaxed mb-4">{howTo}</p>
-              <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 mb-4">
-                <p className="text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-1">{t('exercise.focusOn')}</p>
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-4">
+                <p className="text-xs font-semibold text-emerald-300 uppercase tracking-wider mb-1">{t('exercise.focusOn')}</p>
                 <p className="text-sm text-white/70 leading-relaxed">{focusTip}</p>
               </div>
             </motion.div>
@@ -258,7 +258,7 @@ export function ExerciseSessionPage() {
                 />
               </div>
               {setsValid ? (
-                <div className="mt-6 p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 text-center">
+                <div className="mt-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-center">
                   <p className="text-sm text-white/55">
                     {t('exercise.perSetPreview', {
                       amount: distributeAcrossSets(totalAmount, setCount)[0],

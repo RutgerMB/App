@@ -57,7 +57,7 @@ export function SuccessPage() {
     <div className="min-h-dvh bg-surface-0 noise flex flex-col items-center justify-center px-6 safe-top safe-bottom">
       {status === 'loading' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
-          <Loader2 size={40} className="mx-auto text-indigo-400 animate-spin mb-4" />
+          <Loader2 size={40} className="mx-auto text-emerald-400 animate-spin mb-4" />
           <p className="text-white/50">{t('success.confirming')}</p>
         </motion.div>
       )}

@@ -343,7 +343,7 @@ export function SettingsPage() {
               'bg-white/[0.03] border border-white/[0.07]'
             )}
           >
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-2xl font-bold shadow-lg shadow-indigo-500/25">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-2xl font-bold shadow-lg shadow-emerald-500/25">
               {profile.name.charAt(0).toUpperCase()}
             </div>
             <div className="flex items-center justify-center gap-2 min-w-0">
@@ -364,14 +364,14 @@ export function SettingsPage() {
               <Button
                 variant="outline"
                 fullWidth
-                className="mt-5 border-indigo-500/25 bg-indigo-500/5 text-indigo-300 hover:bg-indigo-500/10"
+                className="mt-5 border-emerald-500/25 bg-emerald-500/5 text-emerald-300 hover:bg-emerald-500/10"
                 onClick={() => {
                   void openUpgradeOrFallback(() => navigate('/pricing'))
                 }}
               >
-                <Crown size={16} className="text-indigo-400" />
+                <Crown size={16} className="text-emerald-400" />
                 <span className="flex-1 text-left">{t('settings.upgradePro')}</span>
-                <ChevronRight size={16} className="text-indigo-400/50" />
+                <ChevronRight size={16} className="text-emerald-400/50" />
               </Button>
             )}
           </div>
@@ -414,7 +414,7 @@ export function SettingsPage() {
                     onClick={() => {
                       void openNotificationSettings()
                     }}
-                    className="w-full h-10 rounded-xl text-xs font-semibold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/15 transition-colors"
+                    className="w-full h-10 rounded-xl text-xs font-semibold text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/15 transition-colors"
                   >
                     {t('settings.notificationsOpenSettings')}
                   </button>
@@ -479,8 +479,8 @@ export function SettingsPage() {
         )}
 
         {isIosBlockingAvailable() && (
-          <div className="rounded-2xl p-4 border border-indigo-500/20 bg-indigo-500/5">
-            <h3 className="text-sm font-semibold text-indigo-200 mb-2">
+          <div className="rounded-2xl p-4 border border-emerald-500/20 bg-emerald-500/5">
+            <h3 className="text-sm font-semibold text-emerald-200 mb-2">
               {t('settings.iosBlockingTitle')}
             </h3>
             <p className="text-xs text-white/50 leading-relaxed">{t('settings.iosBlockingDesc')}</p>

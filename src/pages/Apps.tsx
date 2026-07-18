@@ -51,6 +51,8 @@ export function AppsPage() {
   const [pendingName, setPendingName] = useState('')
   const [showUnlock, setShowUnlock] = useState<string | null>(null)
   const [unlockMinutes, setUnlockMinutes] = useState(15)
+  const [unlockCustomInput, setUnlockCustomInput] = useState('')
+  const [unlockError, setUnlockError] = useState<string | null>(null)
   const [editLimitApp, setEditLimitApp] = useState<string | null>(null)
   const [editLimitValue, setEditLimitValue] = useState(30)
   const [renameTarget, setRenameTarget] = useState<string | null>(null)
@@ -92,12 +94,56 @@ export function AppsPage() {
     a.name.toLowerCase(),
   ])
 
+  const availableBalance = Math.max(0, Math.floor(screenTimeBalance))
+
+  const selectUnlockPreset = (mins: number) => {
+    setUnlockCustomInput('')
+    setUnlockError(null)
+    setUnlockMinutes(mins)
+  }
+
+  const applyCustomUnlockInput = (raw: string) => {
+    // Digits only — no decimals, commas, or signs
+    const cleaned = raw.replace(/[^\d]/g, '')
+    setUnlockCustomInput(cleaned)
+    if (!cleaned) {
+      setUnlockError(null)
+      setUnlockMinutes(Math.min(15, availableBalance) || 0)
+      return
+    }
+    const mins = Number.parseInt(cleaned, 10)
+    if (!Number.isFinite(mins) || mins < 1) {
+      setUnlockError(t('apps.unlockInvalidMinutes'))
+      setUnlockMinutes(0)
+      return
+    }
+    if (mins > availableBalance) {
+      setUnlockError(t('apps.notEnoughBalance'))
+      setUnlockMinutes(availableBalance)
+      return
+    }
+    setUnlockError(null)
+    setUnlockMinutes(mins)
+  }
+
   const handleUnlock = () => {
     if (!showUnlock) return
-    const success = unlockApp(showUnlock, unlockMinutes)
+    const mins = Math.floor(unlockMinutes)
+    if (!Number.isFinite(mins) || mins < 1) {
+      setUnlockError(t('apps.unlockInvalidMinutes'))
+      return
+    }
+    if (mins > availableBalance) {
+      setUnlockError(t('apps.notEnoughBalance'))
+      toast(t('apps.notEnoughBalance'), 'error')
+      return
+    }
+    const success = unlockApp(showUnlock, mins)
     if (success) {
-      toast(t('apps.unlockedFor', { amount: formatMinutes(unlockMinutes) }), 'success')
+      toast(t('apps.unlockedFor', { amount: formatMinutes(mins) }), 'success')
       setShowUnlock(null)
+      setUnlockCustomInput('')
+      setUnlockError(null)
     } else {
       const today = localDateString()
       const used = profile.openingsDate === today ? (profile.openingsUsedToday ?? 0) : 0
@@ -268,7 +314,7 @@ export function AppsPage() {
                     <button
                       type="button"
                       onClick={() => openRename(app.id)}
-                      className="p-2 rounded-lg hover:bg-indigo-500/10 text-white/20 hover:text-indigo-400 transition-colors"
+                      className="p-2 rounded-lg hover:bg-emerald-500/10 text-white/20 hover:text-emerald-400 transition-colors"
                       aria-label={t('apps.renameApp')}
                     >
                       <Pencil size={16} />
@@ -277,7 +323,7 @@ export function AppsPage() {
                       <button
                         type="button"
                         onClick={() => openEditLimit(app.id, app.dailyLimitMinutes)}
-                        className="p-2 rounded-lg hover:bg-indigo-500/10 text-white/20 hover:text-indigo-400 transition-colors"
+                        className="p-2 rounded-lg hover:bg-emerald-500/10 text-white/20 hover:text-emerald-400 transition-colors"
                         aria-label={t('apps.editLimit')}
                       >
                         <Clock size={16} />
@@ -303,7 +349,9 @@ export function AppsPage() {
                       className="mt-3 border-white/10 bg-transparent hover:bg-white/[0.04]"
                       onClick={() => {
                         setShowUnlock(app.id)
-                        setUnlockMinutes(Math.min(15, screenTimeBalance))
+                        setUnlockCustomInput('')
+                        setUnlockError(null)
+                        setUnlockMinutes(Math.min(15, Math.max(0, Math.floor(screenTimeBalance))))
                       }}
                     >
                       <Unlock size={14} />
@@ -322,8 +370,8 @@ export function AppsPage() {
 
           {apps.length === 0 && (
             <div className="text-center py-14">
-              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-violet-500/10 flex items-center justify-center">
-                <Grid3X3 size={26} className="text-violet-400" />
+              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-teal-500/10 flex items-center justify-center">
+                <Grid3X3 size={26} className="text-teal-400" />
               </div>
               <p className="text-white/45">{t('apps.noApps')}</p>
               {!onIos && (
@@ -485,15 +533,24 @@ export function AppsPage() {
         </div>
       </Modal>
 
-      <Modal open={!!showUnlock} onClose={() => setShowUnlock(null)} title={t('apps.unlockApp')} position="center">
+      <Modal
+        open={!!showUnlock}
+        onClose={() => {
+          setShowUnlock(null)
+          setUnlockCustomInput('')
+          setUnlockError(null)
+        }}
+        title={t('apps.unlockApp')}
+        position="center"
+      >
         <div className="space-y-4">
           <p className="text-sm text-white/50">{t('apps.unlockDesc')}</p>
 
           <div className="flex items-center gap-2 p-3 rounded-xl bg-white/[0.03] border border-white/[0.07]">
-            <Clock size={16} className="text-indigo-400" />
+            <Clock size={16} className="text-emerald-400" />
             <span className="text-sm">
               {t('apps.balance')}:{' '}
-              <span className="font-semibold text-white">{formatMinutes(screenTimeBalance)}</span>
+              <span className="font-semibold text-white">{formatMinutes(availableBalance)}</span>
             </span>
           </div>
 
@@ -502,12 +559,12 @@ export function AppsPage() {
               <button
                 key={mins}
                 type="button"
-                onClick={() => setUnlockMinutes(mins)}
-                disabled={mins > screenTimeBalance}
+                onClick={() => selectUnlockPreset(mins)}
+                disabled={mins > availableBalance}
                 className={cn(
                   'py-3 rounded-xl text-sm font-medium transition-all',
-                  unlockMinutes === mins
-                    ? 'bg-indigo-500/20 border-2 border-indigo-500/50 text-indigo-300'
+                  unlockMinutes === mins && !unlockCustomInput
+                    ? 'bg-emerald-500/20 border-2 border-emerald-500/50 text-emerald-300'
                     : 'bg-white/[0.03] border border-white/[0.07] text-white/60 hover:border-white/15 disabled:opacity-30'
                 )}
               >
@@ -517,13 +574,43 @@ export function AppsPage() {
             ))}
           </div>
 
+          <div className="space-y-1.5">
+            <label htmlFor="unlock-custom-minutes" className="text-xs text-white/45">
+              {t('apps.unlockCustomLabel')}
+            </label>
+            <Input
+              id="unlock-custom-minutes"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              autoComplete="off"
+              placeholder={t('apps.unlockCustomPlaceholder')}
+              value={unlockCustomInput}
+              onChange={(e) => applyCustomUnlockInput(e.target.value)}
+              disabled={availableBalance < 1}
+              className={cn(unlockError && 'border-red-500/50 focus:border-red-500/60')}
+            />
+            {unlockError ? (
+              <p className="text-xs text-red-400" role="alert">
+                {unlockError}
+              </p>
+            ) : (
+              <p className="text-xs text-white/35">{t('apps.unlockCustomHint')}</p>
+            )}
+          </div>
+
           <MotionButton
             fullWidth
             size="lg"
             onClick={handleUnlock}
-            disabled={unlockMinutes > screenTimeBalance || unlockMinutes < 1}
+            disabled={
+              availableBalance < 1 ||
+              unlockMinutes < 1 ||
+              unlockMinutes > availableBalance ||
+              !!unlockError
+            }
           >
-            {t('apps.unlockFor', { amount: formatMinutes(unlockMinutes) })}
+            {t('apps.unlockFor', { amount: formatMinutes(Math.max(0, unlockMinutes)) })}
           </MotionButton>
         </div>
       </Modal>

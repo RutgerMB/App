@@ -61,11 +61,11 @@ export function Slider({ min, max, step = 1, value, onChange, className, 'aria-l
       >
         <div className="absolute inset-x-0 h-2 rounded-full bg-white/10" />
         <div
-          className="absolute left-0 h-2 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 pointer-events-none"
+          className="absolute left-0 h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 pointer-events-none"
           style={{ width: `${pct}%` }}
         />
         <div
-          className="absolute w-7 h-7 -ml-3.5 rounded-full bg-white shadow-lg shadow-indigo-500/30 border-2 border-indigo-400 pointer-events-none"
+          className="absolute w-7 h-7 -ml-3.5 rounded-full bg-white shadow-lg shadow-emerald-500/30 border-2 border-emerald-400 pointer-events-none"
           style={{ left: `${pct}%` }}
         />
       </div>

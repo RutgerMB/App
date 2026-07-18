@@ -107,7 +107,7 @@ export function BlocklistPicker({
           type="button"
           onClick={() => void handleIosPick()}
           disabled={pickerLoading}
-          className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 font-semibold text-sm mb-4 hover:bg-indigo-500/30 transition-colors disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-semibold text-sm mb-4 hover:bg-emerald-500/30 transition-colors disabled:opacity-50"
         >
           {pickerLoading ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
           {apps.length > 0 ? t('apps.iosPickAppsAgain') : t('apps.iosPickAppsButton')}
@@ -171,13 +171,13 @@ export function BlocklistPicker({
                   onClick={() => toggle(app.id)}
                   className={cn(
                     'w-full flex items-center gap-3 px-4 py-3 border-b border-border/60 last:border-0 text-left transition-colors',
-                    isSelected ? 'bg-indigo-500/10' : 'hover:bg-surface-3/50'
+                    isSelected ? 'bg-emerald-500/10' : 'hover:bg-surface-3/50'
                   )}
                 >
                   <span
                     className={cn(
                       'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0',
-                      isSelected ? 'border-indigo-400 bg-indigo-500' : 'border-white/25'
+                      isSelected ? 'border-emerald-400 bg-emerald-500' : 'border-white/25'
                     )}
                   >
                     {isSelected && <Check size={12} className="text-white" strokeWidth={3} />}

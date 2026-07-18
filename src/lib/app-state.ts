@@ -1,19 +1,10 @@
 import type { AppState } from '@/types'
-import { DEFAULT_APPS, DEFAULT_DAILY_OPENINGS } from '@/types'
-
-function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
-}
+import { DEFAULT_DAILY_OPENINGS } from '@/types'
 
 export function normalizeAppState(state: AppState): AppState {
-  const apps =
-    state.apps?.length > 0
-      ? state.apps
-      : DEFAULT_APPS.map((app) => ({ ...app, id: generateId() }))
-
   return {
     ...state,
-    apps,
+    apps: state.apps ?? [],
     sessions: state.sessions ?? [],
     workoutPlanSessions: state.workoutPlanSessions ?? [],
     usageHistory: state.usageHistory ?? [],

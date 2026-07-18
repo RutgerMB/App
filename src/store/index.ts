@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { AppState, ExerciseSession, ExerciseType, LockedApp, WorkoutPlanSession } from '@/types'
-import { DEFAULT_APPS, DEFAULT_DAILY_OPENINGS, WORKOUT_PLANS } from '@/types'
+import { DEFAULT_DAILY_OPENINGS, WORKOUT_PLANS } from '@/types'
 import { localDateString } from '@/lib/dates'
 import { reconcileStreak, updateStreak } from '@/lib/streaks'
 import { canAddMoreApps, getAppLimit } from '@/lib/trial'
@@ -42,7 +42,7 @@ const initialState: AppState = {
   currentStreak: 0,
   longestStreak: 0,
   lastExerciseDate: null,
-  apps: DEFAULT_APPS.map((app) => ({ ...app, id: generateId() })),
+  apps: [],
   sessions: [],
   workoutPlanSessions: [],
   usageHistory: [],

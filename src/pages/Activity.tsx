@@ -91,13 +91,13 @@ export function ActivityPage() {
             <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
               {t('activity.workouts')}
             </h2>
-            <div className="mx-auto mt-3 h-px w-10 bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent" />
+            <div className="mx-auto mt-3 h-px w-10 bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
           </div>
 
           {sessions.length === 0 ? (
             <div className="text-center py-14">
-              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-indigo-500/10 flex items-center justify-center">
-                <Dumbbell size={28} className="text-indigo-400" />
+              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+                <Dumbbell size={28} className="text-emerald-400" />
               </div>
               <p className="text-white/40">{t('activity.noWorkouts')}</p>
               <p className="text-white/25 text-sm mt-1">{t('activity.noWorkoutsDesc')}</p>

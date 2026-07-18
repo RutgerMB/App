@@ -33,7 +33,7 @@ function mapInstalledApp(app: NativeInstalledApp): DeviceAppDefinition {
   return enrichDeviceApp({
     id: app.packageName,
     name: app.name,
-    color: '#6366F1',
+    color: '#1B8A5E',
     packageName: app.packageName,
     category: 'other',
   })
@@ -56,7 +56,7 @@ function mapIosSelectedApp(app: {
   return enrichDeviceApp({
     id: app.id,
     name,
-    color: '#6366F1',
+    color: '#1B8A5E',
     iosTokenId: app.id,
     category: 'other',
   })

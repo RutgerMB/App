@@ -57,12 +57,12 @@ export function LanguageDropdown({ value, onChange }: LanguageDropdownProps) {
               }}
               className={cn(
                 'w-full flex items-center gap-3 px-4 py-3 text-left text-sm hover:bg-white/5 transition-colors',
-                value === loc.code && 'bg-indigo-500/10'
+                value === loc.code && 'bg-emerald-500/10'
               )}
             >
               <span className="text-lg">{loc.flag}</span>
               <span className="flex-1 font-medium">{loc.label}</span>
-              {value === loc.code && <Check size={14} className="text-indigo-400" />}
+              {value === loc.code && <Check size={14} className="text-emerald-400" />}
             </button>
           ))}
         </div>,
@@ -110,7 +110,7 @@ export function LanguagePicker({
             value === loc.code
               ? isLight
                 ? 'bg-[#3B6FF5]/10 border-[#3B6FF5]/35'
-                : 'bg-indigo-500/15 border-indigo-500/40'
+                : 'bg-emerald-500/15 border-emerald-500/40'
               : isLight
                 ? 'bg-white border-slate-200 hover:border-slate-300 text-slate-900'
                 : 'bg-surface-2 border-border hover:border-border-hover'
@@ -119,7 +119,7 @@ export function LanguagePicker({
           <span className={large ? 'text-3xl' : 'text-2xl'}>{loc.flag}</span>
           <span className={cn('font-medium', large ? 'text-lg' : 'text-sm')}>{loc.label}</span>
           {value === loc.code && (
-            <span className={cn('ml-auto rounded-full bg-indigo-400', large ? 'w-2.5 h-2.5' : 'w-2 h-2')} />
+            <span className={cn('ml-auto rounded-full bg-emerald-400', large ? 'w-2.5 h-2.5' : 'w-2 h-2')} />
           )}
         </button>
       ))}

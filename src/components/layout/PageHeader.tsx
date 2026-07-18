@@ -29,7 +29,7 @@ export function PageHeader({
         )}
         <div className="relative">
           {brand && (
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-300/70 mb-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-300/70 mb-2">
               RepLock
             </p>
           )}

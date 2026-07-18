@@ -17,7 +17,7 @@ import { getFirebaseAuth, getFirebaseDb } from '@/lib/firebase'
 import { withTimeout } from '@/lib/with-timeout'
 import { stripProFieldsFromSnapshot } from '@/lib/entitlement-sanitize'
 import type { AppState } from '@/types'
-import { DEFAULT_APPS, DEFAULT_DAILY_OPENINGS } from '@/types'
+import { DEFAULT_DAILY_OPENINGS } from '@/types'
 
 export interface FirebaseAuthUser {
   id: string
@@ -27,10 +27,6 @@ export interface FirebaseAuthUser {
 
 function userDocRef(uid: string) {
   return doc(getFirebaseDb(), 'users', uid)
-}
-
-function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 }
 
 export function createEmptyAppState(name: string, email: string): AppState {
@@ -55,7 +51,7 @@ export function createEmptyAppState(name: string, email: string): AppState {
     currentStreak: 0,
     longestStreak: 0,
     lastExerciseDate: null,
-    apps: DEFAULT_APPS.map((app) => ({ ...app, id: generateId() })),
+    apps: [],
     sessions: [],
     workoutPlanSessions: [],
     usageHistory: [],

@@ -183,8 +183,8 @@ export function PricingPage() {
   return (
     <div className="min-h-dvh bg-surface-0 noise flex flex-col safe-top safe-bottom overflow-y-auto overflow-x-hidden">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[28rem] h-56 bg-indigo-500/[0.12] rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-64 h-64 bg-violet-500/8 rounded-full blur-3xl" />
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[28rem] h-56 bg-emerald-500/[0.12] rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-64 h-64 bg-teal-500/8 rounded-full blur-3xl" />
       </div>
 
       <div className="relative z-10 flex items-center justify-between px-5 pt-4">
@@ -208,7 +208,7 @@ export function PricingPage() {
                 ? 'bg-amber-500/10 border-amber-500/25'
                 : isUrgent
                   ? 'bg-orange-500/10 border-orange-500/25'
-                  : 'bg-indigo-500/10 border-indigo-500/20'
+                  : 'bg-emerald-500/10 border-emerald-500/20'
             )}
           >
             {isExpired ? (
@@ -218,7 +218,7 @@ export function PricingPage() {
               </>
             ) : (
               <>
-                <p className="text-sm font-semibold text-indigo-300">
+                <p className="text-sm font-semibold text-emerald-300">
                   {t('pricing.trialLeft', { time: trialTimeLeft })}
                 </p>
                 <p className="text-xs text-white/45 mt-1">
@@ -235,10 +235,10 @@ export function PricingPage() {
           transition={{ duration: 0.45, ease: 'easeOut' }}
           className="text-center"
         >
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-300/70 mb-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-300/70 mb-3">
             RepLock
           </p>
-          <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-xl shadow-indigo-500/30">
+          <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl shadow-emerald-500/30">
             <Sparkles size={28} className="text-white" />
           </div>
           <h1 className="text-[2rem] font-bold tracking-tight leading-none mb-2.5">
@@ -261,7 +261,7 @@ export function PricingPage() {
               className={cn(
                 'relative py-3 px-3 rounded-xl text-sm font-semibold transition-colors',
                 billingPeriod === 'yearly'
-                  ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-500/40'
+                  ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40'
                   : 'text-white/45'
               )}
             >
@@ -278,7 +278,7 @@ export function PricingPage() {
               className={cn(
                 'py-3 px-3 rounded-xl text-sm font-semibold transition-colors',
                 billingPeriod === 'monthly'
-                  ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-500/40'
+                  ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40'
                   : 'text-white/45'
               )}
             >
@@ -291,11 +291,11 @@ export function PricingPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="p-6 rounded-2xl bg-white/[0.03] border border-indigo-500/25 relative overflow-hidden"
+          className="p-6 rounded-2xl bg-white/[0.03] border border-emerald-500/25 relative overflow-hidden"
         >
           {billingPeriod === 'yearly' && (
-            <div className="absolute top-0 right-0 px-3 py-1 bg-indigo-500/20 rounded-bl-xl">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-300">
+            <div className="absolute top-0 right-0 px-3 py-1 bg-emerald-500/20 rounded-bl-xl">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">
                 {t('pricing.mostPopular')}
               </span>
             </div>
@@ -324,8 +324,8 @@ export function PricingPage() {
                 transition={{ delay: 0.15 + i * 0.05 }}
                 className="flex items-start gap-3"
               >
-                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <f.icon size={16} className="text-indigo-400" />
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <f.icon size={16} className="text-emerald-400" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-white/85">{t(f.titleKey)}</p>
@@ -352,21 +352,21 @@ export function PricingPage() {
               </li>
             </ul>
           </div>
-          <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/25">
-            <p className="font-semibold mb-1 text-indigo-300">{t('pricing.proPlan')}</p>
-            <p className="text-[10px] text-indigo-400/60 mb-3">{t('pricing.everything')}</p>
+          <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/25">
+            <p className="font-semibold mb-1 text-emerald-300">{t('pricing.proPlan')}</p>
+            <p className="text-[10px] text-emerald-400/60 mb-3">{t('pricing.everything')}</p>
             <ul className="space-y-2 text-white/60 text-xs">
               <li className="flex items-center gap-1.5">
-                <Check size={12} className="text-indigo-400" /> {t('pricing.unlimitedApps')}
+                <Check size={12} className="text-emerald-400" /> {t('pricing.unlimitedApps')}
               </li>
               <li className="flex items-center gap-1.5">
-                <Check size={12} className="text-indigo-400" /> {t('pricing.customLimits')}
+                <Check size={12} className="text-emerald-400" /> {t('pricing.customLimits')}
               </li>
               <li className="flex items-center gap-1.5">
-                <Check size={12} className="text-indigo-400" /> {t('pricing.difficultyModes')}
+                <Check size={12} className="text-emerald-400" /> {t('pricing.difficultyModes')}
               </li>
               <li className="flex items-center gap-1.5">
-                <Check size={12} className="text-indigo-400" /> {t('pricing.deepAnalytics')}
+                <Check size={12} className="text-emerald-400" /> {t('pricing.deepAnalytics')}
               </li>
             </ul>
           </div>
@@ -388,7 +388,7 @@ export function PricingPage() {
             </div>
           ) : !storeCheckout ? (
             <div className="text-center p-5 rounded-2xl bg-white/[0.03] border border-white/[0.07]">
-              <Smartphone size={28} className="mx-auto text-indigo-400 mb-3" />
+              <Smartphone size={28} className="mx-auto text-emerald-400 mb-3" />
               <p className="font-semibold text-white/80 mb-1">{t('pricing.mobileOnlyTitle')}</p>
               <p className="text-xs text-white/40 leading-relaxed">{t('pricing.mobileOnlyDesc')}</p>
             </div>
@@ -407,7 +407,7 @@ export function PricingPage() {
                 type="button"
                 onClick={handleRestore}
                 disabled={loading}
-                className="w-full text-center text-sm text-indigo-400/80 hover:text-indigo-300 py-2"
+                className="w-full text-center text-sm text-emerald-400/80 hover:text-emerald-300 py-2"
               >
                 {t('pricing.restorePurchases')}
               </button>

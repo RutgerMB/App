@@ -16,7 +16,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   if (!initialized) {
     return (
       <div className="min-h-dvh bg-surface-0 flex flex-col items-center justify-center gap-4">
-        <div className="w-10 h-10 rounded-full border-2 border-white/15 border-t-indigo-400 animate-spin" />
+        <div className="w-10 h-10 rounded-full border-2 border-white/15 border-t-emerald-400 animate-spin" />
         {error && <p className="text-sm text-red-400/80 px-6 text-center">{error}</p>}
       </div>
     )

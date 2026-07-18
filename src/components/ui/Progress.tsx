@@ -26,7 +26,7 @@ export function Progress({ value, max = 100, className, barClassName, showLabel,
         <div
           className={cn(
             'h-full rounded-full transition-all duration-500 ease-out',
-            'bg-gradient-to-r from-indigo-500 to-violet-500',
+            'bg-gradient-to-r from-emerald-500 to-teal-500',
             barClassName
           )}
           style={{ width: `${pct}%` }}
@@ -81,8 +81,8 @@ export function CircularProgress({
         />
         <defs>
           <linearGradient id="progress-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#5E6AD2" />
-            <stop offset="100%" stopColor="#8B5CF6" />
+            <stop offset="0%" stopColor="#1B8A5E" />
+            <stop offset="100%" stopColor="#147552" />
           </linearGradient>
         </defs>
       </svg>

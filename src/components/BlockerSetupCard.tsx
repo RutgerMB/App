@@ -109,7 +109,7 @@ export function BlockerSetupCard({ compact }: { compact?: boolean }) {
 
   return (
     <MotionCard
-      className={`border ${ready ? 'border-emerald-500/25 bg-emerald-500/5' : 'border-indigo-500/20 bg-indigo-500/5'} ${compact ? 'p-4 mb-4' : 'p-4 mb-6'}`}
+      className={`border ${ready ? 'border-emerald-500/25 bg-emerald-500/5' : 'border-emerald-500/20 bg-emerald-500/5'} ${compact ? 'p-4 mb-4' : 'p-4 mb-6'}`}
     >
       <div className="flex items-start gap-3">
         <div className={`w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 ${iconClass}`}>

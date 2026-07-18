@@ -14,7 +14,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       className={cn(
         'rounded-2xl bg-surface-2 border border-border',
         hover && 'hover:border-border-hover hover:bg-surface-3 transition-all duration-200 cursor-pointer',
-        glow && 'shadow-lg shadow-indigo-500/5',
+        glow && 'shadow-lg shadow-emerald-500/5',
         className
       )}
       {...props}
@@ -39,7 +39,7 @@ export function MotionCard({
       className={cn(
         'rounded-2xl bg-surface-2 border border-border',
         hover && 'hover:border-border-hover hover:bg-surface-3 transition-all duration-200 cursor-pointer',
-        glow && 'shadow-lg shadow-indigo-500/5',
+        glow && 'shadow-lg shadow-emerald-500/5',
         className
       )}
       {...props}

@@ -153,7 +153,7 @@ export function LoginPage() {
                 className="h-12 text-base"
               />
               <div className="flex justify-end -mt-1">
-                <Link to="/forgot-password" className="text-sm text-indigo-400 font-medium hover:underline">
+                <Link to="/forgot-password" className="text-sm text-emerald-400 font-medium hover:underline">
                   {t('auth.forgotPassword')}
                 </Link>
               </div>
@@ -166,7 +166,7 @@ export function LoginPage() {
 
         <p className="text-center text-sm text-white/50 mt-8">
           {t('auth.noAccount')}{' '}
-          <Link to="/register" className="text-indigo-400 font-semibold hover:underline">
+          <Link to="/register" className="text-emerald-400 font-semibold hover:underline">
             {t('auth.createAccount')}
           </Link>
         </p>
@@ -337,7 +337,7 @@ export function RegisterPage() {
             </IntroAuthButton>
             <p className="text-center text-sm text-white/50 pt-4">
               {t('auth.haveAccount')}{' '}
-              <Link to="/login" className="text-indigo-400 font-semibold hover:underline">
+              <Link to="/login" className="text-emerald-400 font-semibold hover:underline">
                 {t('auth.signIn')}
               </Link>
             </p>
@@ -394,15 +394,15 @@ export function RegisterPage() {
                   type="checkbox"
                   checked={acceptedTerms}
                   onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-1 rounded border-border text-indigo-500 focus:ring-indigo-500/40"
+                  className="mt-1 rounded border-border text-emerald-500 focus:ring-emerald-500/40"
                 />
                 <span className="text-xs text-white/50 leading-relaxed">
                   {t('auth.agreeTerms')}{' '}
-                  <button type="button" onClick={openTerms} className="text-indigo-400 font-medium">
+                  <button type="button" onClick={openTerms} className="text-emerald-400 font-medium">
                     {t('legal.termsTitle')}
                   </button>
                   {' · '}
-                  <button type="button" onClick={openPrivacy} className="text-indigo-400 font-medium">
+                  <button type="button" onClick={openPrivacy} className="text-emerald-400 font-medium">
                     {t('legal.privacyTitle')}
                   </button>
                 </span>
@@ -413,7 +413,7 @@ export function RegisterPage() {
               </IntroPrimaryButton>
               <p className="text-center text-sm text-white/50 pt-2">
                 {t('auth.haveAccount')}{' '}
-                <Link to="/login" className="text-indigo-400 font-semibold hover:underline">
+                <Link to="/login" className="text-emerald-400 font-semibold hover:underline">
                   {t('auth.signIn')}
                 </Link>
               </p>

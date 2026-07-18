@@ -17,19 +17,19 @@ export function QuickBlockCard({ compact }: { compact?: boolean }) {
       onClick={() => navigate('/exercise')}
       className={cn(
         'w-full text-left rounded-2xl',
-        'bg-gradient-to-br from-indigo-500/15 to-violet-500/5 border border-indigo-500/20',
-        'hover:border-indigo-500/35 hover:from-indigo-500/18 active:scale-[0.985] transition-all duration-200',
+        'bg-gradient-to-br from-emerald-500/15 to-teal-500/5 border border-emerald-500/20',
+        'hover:border-emerald-500/35 hover:from-emerald-500/18 active:scale-[0.985] transition-all duration-200',
         compact ? 'px-3.5 py-3 h-full' : 'px-4 py-3.5'
       )}
     >
       <div className={cn('flex items-center gap-3', compact && 'flex-col items-start gap-2')}>
         <div
           className={cn(
-            'rounded-xl bg-indigo-500/20 flex items-center justify-center shrink-0',
+            'rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0',
             compact ? 'w-9 h-9' : 'w-11 h-11'
           )}
         >
-          <Zap size={compact ? 16 : 20} className="text-indigo-400" />
+          <Zap size={compact ? 16 : 20} className="text-emerald-400" />
         </div>
         <div className="flex-1 min-w-0 w-full">
           <p className={cn('font-semibold tracking-tight', compact ? 'text-sm' : 'text-[15px]')}>
@@ -42,7 +42,7 @@ export function QuickBlockCard({ compact }: { compact?: boolean }) {
           )}
         </div>
         {!compact && (
-          <span className="text-xs font-semibold text-indigo-300 shrink-0">
+          <span className="text-xs font-semibold text-emerald-300 shrink-0">
             {t('apps.quickBlockCta')} →
           </span>
         )}
@@ -78,18 +78,18 @@ export function ActiveScheduleCard({ compact }: { compact?: boolean }) {
     <div
       className={cn(
         'rounded-2xl',
-        'bg-gradient-to-br from-violet-500/10 to-indigo-500/5 border border-violet-500/20',
+        'bg-gradient-to-br from-teal-500/10 to-emerald-500/5 border border-teal-500/20',
         compact ? 'px-3.5 py-3 h-full' : 'px-4 py-3.5'
       )}
     >
       <div className={cn('flex items-center gap-3', compact ? 'mb-2' : 'mb-3 items-start')}>
         <div
           className={cn(
-            'rounded-xl bg-violet-500/20 flex items-center justify-center shrink-0',
+            'rounded-xl bg-teal-500/20 flex items-center justify-center shrink-0',
             compact ? 'w-9 h-9' : 'w-10 h-10'
           )}
         >
-          <Calendar size={compact ? 16 : 18} className="text-violet-400" />
+          <Calendar size={compact ? 16 : 18} className="text-teal-400" />
         </div>
         <div className="flex-1 min-w-0">
           <p className={cn('font-semibold tracking-tight', compact ? 'text-sm' : 'text-[15px]')}>

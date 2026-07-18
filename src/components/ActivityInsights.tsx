@@ -44,10 +44,10 @@ function ChartTooltip({
   if (!active || !payload?.length) return null
   const minutes = Math.round(payload[0].value ?? 0)
   return (
-    <div className="rounded-xl border border-indigo-500/30 bg-surface-2/95 backdrop-blur-md px-3 py-2.5 shadow-xl shadow-black/40">
-      <p className="text-[11px] font-medium text-indigo-300/90 uppercase tracking-wider mb-1">{label}</p>
+    <div className="rounded-xl border border-emerald-500/30 bg-surface-2/95 backdrop-blur-md px-3 py-2.5 shadow-xl shadow-black/40">
+      <p className="text-[11px] font-medium text-emerald-300/90 uppercase tracking-wider mb-1">{label}</p>
       <p className="text-sm font-semibold text-white">
-        {t('activity.earned')}: <span className="text-indigo-300">{minutes}m</span>
+        {t('activity.earned')}: <span className="text-emerald-300">{minutes}m</span>
       </p>
     </div>
   )
@@ -85,7 +85,7 @@ function UsageSection({
     <div className="space-y-4 mb-4">
       <div className="rounded-2xl p-5 bg-white/[0.03] border border-white/[0.07]">
         <div className="flex items-center justify-center gap-2 mb-3">
-          <Smartphone size={14} className="text-indigo-300/80" />
+          <Smartphone size={14} className="text-emerald-300/80" />
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
             {t('activity.usageTitle')}
           </p>
@@ -100,7 +100,7 @@ function UsageSection({
               className={cn(
                 'flex-1 py-2 rounded-xl text-xs font-medium border transition-all',
                 usagePeriod === p
-                  ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
+                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
                   : 'bg-white/[0.03] border-white/[0.07] text-white/40 hover:text-white/60'
               )}
             >
@@ -110,15 +110,15 @@ function UsageSection({
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-3">
-          <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-center">
-            <p className="text-xs text-indigo-300 mb-1">{t('activity.unlockedSessionTime')}</p>
+          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+            <p className="text-xs text-emerald-300 mb-1">{t('activity.unlockedSessionTime')}</p>
             <p className="text-2xl font-bold tabular-nums">
               {formatMinutes(periodTotals.unlockedMinutes)}
             </p>
           </div>
           <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.07] text-center">
             <div className="flex items-center justify-center gap-1.5 mb-1">
-              <Clock size={12} className="text-indigo-300/70" />
+              <Clock size={12} className="text-emerald-300/70" />
               <p className="text-xs text-white/40">{t('activity.unlockOpenings')}</p>
             </div>
             <p className="text-2xl font-bold tabular-nums">{periodTotals.unlockOpenings}</p>
@@ -142,7 +142,7 @@ function UsageSection({
                   onClick={() => {
                     void requestScreenTimePermission()
                   }}
-                  className="text-xs font-medium text-indigo-300 underline underline-offset-2"
+                  className="text-xs font-medium text-emerald-300 underline underline-offset-2"
                 >
                   {t('activity.grantUsageAccess')}
                 </button>
@@ -263,9 +263,9 @@ export function ActivityInsights() {
           </h2>
           <Badge variant="default">{t('common.free')}</Badge>
         </div>
-        <div className="rounded-2xl px-6 py-8 bg-white/[0.03] border border-indigo-500/20 text-center">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-indigo-500/20 flex items-center justify-center">
-            <Lock size={22} className="text-indigo-400" />
+        <div className="rounded-2xl px-6 py-8 bg-white/[0.03] border border-emerald-500/20 text-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+            <Lock size={22} className="text-emerald-400" />
           </div>
           <h3 className="font-semibold mb-2">{t('activity.unlockInsights')}</h3>
           <p className="text-sm text-white/45 mb-5 leading-relaxed max-w-sm mx-auto">
@@ -322,8 +322,8 @@ export function ActivityInsights() {
             {t('activity.todayVsYesterday')}
           </p>
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-center">
-              <p className="text-xs text-indigo-300 mb-1">{t('activity.todayLabel')}</p>
+            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+              <p className="text-xs text-emerald-300 mb-1">{t('activity.todayLabel')}</p>
               <p className="text-2xl font-bold tabular-nums">{formatMinutes(comparison.today)}</p>
             </div>
             <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.07] text-center">
@@ -362,7 +362,7 @@ export function ActivityInsights() {
               className={cn(
                 'flex-1 py-2.5 rounded-xl text-xs font-medium border transition-all',
                 period === p
-                  ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
+                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
                   : 'bg-white/[0.03] border-white/[0.07] text-white/40 hover:text-white/60'
               )}
             >
@@ -402,7 +402,7 @@ export function ActivityInsights() {
                   {periodStats.map((entry, i) => (
                     <Cell
                       key={entry.date}
-                      fill={i === periodStats.length - 1 ? '#5E6AD2' : 'rgba(94,106,210,0.5)'}
+                      fill={i === periodStats.length - 1 ? '#1B8A5E' : 'rgba(94,106,210,0.5)'}
                     />
                   ))}
                 </Bar>
@@ -455,7 +455,7 @@ export function ActivityInsights() {
                     </div>
                     <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full"
+                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"
                         style={{ width: `${pct}%` }}
                       />
                     </div>

@@ -18,7 +18,7 @@ export function Switch({ checked, onChange, label, id }: SwitchProps) {
       onClick={() => onChange(!checked)}
       className={cn(
         'relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors',
-        checked ? 'bg-indigo-500' : 'bg-white/15'
+        checked ? 'bg-emerald-500' : 'bg-white/15'
       )}
     >
       <span

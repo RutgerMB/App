@@ -62,7 +62,7 @@ export function HomePage() {
             transition={{ duration: 0.45, ease: 'easeOut' }}
             className="relative"
           >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-300/70 mb-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-300/70 mb-2">
               RepLock
             </p>
             <p className="text-sm text-white/45 mb-1">{t('home.welcomeBack')}</p>
@@ -96,7 +96,7 @@ export function HomePage() {
                       }}
                       className={cn(
                         'inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl text-xs font-semibold transition-all duration-200',
-                        'text-indigo-300 hover:bg-indigo-500/15 active:scale-[0.98]'
+                        'text-emerald-300 hover:bg-emerald-500/15 active:scale-[0.98]'
                       )}
                     >
                       <Sparkles size={14} className="shrink-0" />
@@ -122,10 +122,10 @@ export function HomePage() {
             <div className="flex flex-col items-center gap-4">
               <CircularProgress value={screenTimeBalance} max={progressMax} size={88} strokeWidth={5}>
                 <div
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/25 to-violet-600/20 border border-white/[0.08]"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/25 to-teal-600/20 border border-white/[0.08]"
                   aria-hidden
                 >
-                  <Lock size={16} strokeWidth={2} className="text-indigo-200/80" />
+                  <Lock size={16} strokeWidth={2} className="text-emerald-200/80" />
                 </div>
               </CircularProgress>
               <p className="text-4xl font-bold tracking-tight tabular-nums gradient-text">
@@ -135,7 +135,7 @@ export function HomePage() {
             <MotionButton
               fullWidth
               size="lg"
-              className="mt-6 shadow-lg shadow-indigo-500/20"
+              className="mt-6 shadow-lg shadow-emerald-500/20"
               onClick={() => navigate('/exercise')}
             >
               <Dumbbell size={18} />
@@ -156,7 +156,7 @@ export function HomePage() {
             <button
               type="button"
               onClick={() => navigate('/apps')}
-              className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400/90"
+              className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400/90"
             >
               {t('home.viewAllApps')}
             </button>
@@ -172,11 +172,11 @@ export function HomePage() {
                 'hover:bg-white/[0.05] hover:border-white/[0.18] transition-all duration-200'
               )}
             >
-              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-violet-500/10 flex items-center justify-center">
-                <Grid3X3 size={22} className="text-violet-400" />
+              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-teal-500/10 flex items-center justify-center">
+                <Grid3X3 size={22} className="text-teal-400" />
               </div>
               <p className="font-semibold text-sm text-white/80">{t('home.noAppsYet')}</p>
-              <p className="text-xs text-indigo-400 mt-1.5 font-medium">{t('home.viewAllApps')} →</p>
+              <p className="text-xs text-emerald-400 mt-1.5 font-medium">{t('home.viewAllApps')} →</p>
             </button>
           ) : (
             <>
@@ -232,13 +232,13 @@ export function HomePage() {
               },
               {
                 icon: Dumbbell,
-                iconClass: 'text-indigo-400',
+                iconClass: 'text-emerald-400',
                 value: totalExercises,
                 label: t('home.workouts'),
               },
               {
                 icon: Grid3X3,
-                iconClass: 'text-violet-400',
+                iconClass: 'text-teal-400',
                 value: apps.length,
                 label: t('home.appsTracked'),
                 onClick: () => navigate('/apps'),

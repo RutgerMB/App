@@ -32,13 +32,13 @@ const icons = {
 const styles = {
   success: 'border-emerald-500/30 bg-emerald-500/10',
   error: 'border-red-500/30 bg-red-500/10',
-  info: 'border-indigo-500/30 bg-indigo-500/10',
+  info: 'border-emerald-500/30 bg-emerald-500/10',
 }
 
 const iconStyles = {
   success: 'text-emerald-400',
   error: 'text-red-400',
-  info: 'text-indigo-400',
+  info: 'text-emerald-400',
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {

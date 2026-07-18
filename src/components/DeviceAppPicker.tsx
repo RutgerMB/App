@@ -85,14 +85,14 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
             type="button"
             onClick={() => void handleIosPick()}
             disabled={pickerLoading}
-            className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-indigo-500/25 border border-indigo-500/40 text-indigo-200 font-semibold text-sm hover:bg-indigo-500/35 active:scale-[0.98] transition-all disabled:opacity-50 touch-manipulation"
+            className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-emerald-500/25 border border-emerald-500/40 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/35 active:scale-[0.98] transition-all disabled:opacity-50 touch-manipulation"
           >
             {pickerLoading ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
             {t('apps.iosPickAppsButton')}
           </button>
           {loading ? (
             <div className="flex items-center justify-center py-10">
-              <Loader2 className="animate-spin text-indigo-400" size={28} />
+              <Loader2 className="animate-spin text-emerald-400" size={28} />
             </div>
           ) : filtered.length === 0 ? (
             <p className="text-center text-white/40 py-8 text-sm">{t('apps.iosNoAppsPicked')}</p>
@@ -106,10 +106,10 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
                     onSelect(app)
                     onClose()
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-2 border border-border hover:border-indigo-500/40 hover:bg-surface-3 transition-all touch-manipulation text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-2 border border-border hover:border-emerald-500/40 hover:bg-surface-3 transition-all touch-manipulation text-left"
                 >
                   <span className="flex-1 text-sm font-medium text-white/80 truncate">{app.name}</span>
-                  <Plus size={16} className="text-indigo-300 shrink-0" />
+                  <Plus size={16} className="text-emerald-300 shrink-0" />
                 </button>
               ))}
             </div>
@@ -124,12 +124,12 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
               placeholder={t('apps.searchApps')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full h-11 pl-10 pr-4 rounded-xl bg-surface-3 border border-border text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+              className="w-full h-11 pl-10 pr-4 rounded-xl bg-surface-3 border border-border text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
             />
           </div>
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="animate-spin text-indigo-400" size={28} />
+              <Loader2 className="animate-spin text-emerald-400" size={28} />
             </div>
           ) : filtered.length === 0 ? (
             <p className="text-center text-white/40 py-12 text-sm">{t('apps.noInstalledApps')}</p>
@@ -143,7 +143,7 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
                     onSelect(app)
                     onClose()
                   }}
-                  className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-surface-2 border border-border hover:border-indigo-500/40 hover:bg-surface-3 transition-all"
+                  className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-surface-2 border border-border hover:border-emerald-500/40 hover:bg-surface-3 transition-all"
                 >
                   <AppBrandIcon brand={app.brand} name={app.name} color={app.color} size="md" />
                   <span className="text-[11px] font-medium text-white/70 text-center line-clamp-2 leading-tight">
@@ -156,7 +156,7 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
         </>
       ) : loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="animate-spin text-indigo-400" size={28} />
+          <Loader2 className="animate-spin text-emerald-400" size={28} />
         </div>
       ) : filtered.length === 0 ? (
         <p className="text-center text-white/40 py-12 text-sm">{t('apps.noAppsFound')}</p>
@@ -170,7 +170,7 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
                 onSelect(app)
                 onClose()
               }}
-              className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-surface-2 border border-border hover:border-indigo-500/40 hover:bg-surface-3 transition-all"
+              className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-surface-2 border border-border hover:border-emerald-500/40 hover:bg-surface-3 transition-all"
             >
               <AppBrandIcon brand={app.brand} name={app.name} color={app.color} size="md" />
               <span className="text-[11px] font-medium text-white/70 text-center line-clamp-2 leading-tight">

@@ -130,7 +130,7 @@ export async function loadUsageInsights(options: {
       apps.push({
         id: `pkg:${row.packageName}`,
         name: row.label || row.packageName,
-        color: '#5E6AD2',
+        color: '#1B8A5E',
         screenMinutes: usageByPackage.has(row.packageName)
           ? Math.round(usageByPackage.get(row.packageName)!.minutes)
           : null,

@@ -38,7 +38,7 @@ export function ExerciseDemoVideo({ type, className }: ExerciseDemoVideoProps) {
           <p className="text-sm font-semibold text-white/90">{t('exercise.watchDemo')}</p>
           <p className="text-xs text-white/45 mt-1 leading-relaxed">{t('exercise.watchDemoHint')}</p>
         </div>
-        <span className="inline-flex items-center gap-1.5 text-xs text-indigo-300 font-medium">
+        <span className="inline-flex items-center gap-1.5 text-xs text-emerald-300 font-medium">
           MuscleWiki
           <ExternalLink size={12} />
         </span>

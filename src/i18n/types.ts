@@ -398,6 +398,10 @@ export interface Translations {
     unlockDesc: string
     balance: string
     unlockFor: string
+    unlockCustomLabel: string
+    unlockCustomPlaceholder: string
+    unlockCustomHint: string
+    unlockInvalidMinutes: string
     notEnoughBalance: string
     openingsLimitReached: string
     unlockedFor: string

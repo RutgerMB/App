@@ -50,7 +50,7 @@ export function RevealComparison({
   return (
     <div className="flex flex-col items-center text-center w-full max-w-sm mx-auto">
       <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 mb-5">
-        <span className="w-2 h-2 rounded-full bg-indigo-300" />
+        <span className="w-2 h-2 rounded-full bg-emerald-300" />
         <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
           {t('intro.revealRealityCheck')}
         </span>
@@ -79,7 +79,7 @@ export function RevealComparison({
             <button
               type="button"
               onClick={onShowDeviceReport}
-              className="mb-8 text-sm font-semibold text-indigo-300 underline underline-offset-4"
+              className="mb-8 text-sm font-semibold text-emerald-300 underline underline-offset-4"
             >
               {t('intro.revealShowScreenTime')}
             </button>
@@ -101,7 +101,7 @@ export function RevealComparison({
             <button
               type="button"
               onClick={onShowDeviceReport}
-              className="mb-8 text-sm font-semibold text-indigo-300 underline underline-offset-4"
+              className="mb-8 text-sm font-semibold text-emerald-300 underline underline-offset-4"
             >
               {t('intro.revealShowScreenTime')}
             </button>
@@ -124,7 +124,7 @@ export function RevealComparison({
             fromDevice
               ? 'bg-emerald-500/10 border-emerald-500/25'
               : sawNativeReport
-                ? 'bg-indigo-500/10 border-indigo-500/25'
+                ? 'bg-emerald-500/10 border-emerald-500/25'
                 : 'bg-white/[0.03] border-white/[0.07]'
           )}
         >
@@ -137,7 +137,7 @@ export function RevealComparison({
               fromDevice
                 ? 'text-emerald-400'
                 : sawNativeReport
-                  ? 'text-indigo-300'
+                  ? 'text-emerald-300'
                   : 'text-white/30'
             )}
           >
@@ -232,7 +232,7 @@ function BarRow({
           className={cn(
             'absolute inset-y-0 left-0 rounded-xl flex items-center px-3 text-sm font-semibold',
             variant === 'bad' && 'bg-gradient-to-r from-rose-600/90 to-orange-500/80 text-white',
-            variant === 'good' && 'bg-gradient-to-r from-indigo-500 to-violet-500 text-white'
+            variant === 'good' && 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white'
           )}
         >
           {display}
@@ -319,7 +319,7 @@ export function HoldLogoButton({ onComplete }: { onComplete: () => void }) {
         onPointerUp={clear}
         onPointerLeave={clear}
         onPointerCancel={clear}
-        className="relative w-24 h-24 rounded-[1.75rem] bg-gradient-to-br from-indigo-500 to-violet-600 shadow-2xl shadow-indigo-500/35 flex items-center justify-center select-none touch-none active:scale-[0.97] transition-transform"
+        className="relative w-24 h-24 rounded-[1.75rem] bg-gradient-to-br from-emerald-500 to-teal-600 shadow-2xl shadow-emerald-500/35 flex items-center justify-center select-none touch-none active:scale-[0.97] transition-transform"
         aria-label={t('intro.holdLogo')}
       >
         <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
@@ -345,9 +345,9 @@ export function HoldLogoButton({ onComplete }: { onComplete: () => void }) {
 }
 
 const BLOCK_PREVIEWS = [
-  { key: 'workout', bg: 'from-indigo-950 to-violet-950', icon: Dumbbell, accent: 'indigo' },
+  { key: 'workout', bg: 'from-emerald-950 to-teal-950', icon: Dumbbell, accent: 'emerald' },
   { key: 'streak', bg: 'from-emerald-950 to-teal-950', icon: Sparkles, accent: 'emerald' },
-  { key: 'focus', bg: 'from-slate-900 to-indigo-950', icon: Lock, accent: 'violet' },
+  { key: 'focus', bg: 'from-slate-900 to-emerald-950', icon: Lock, accent: 'teal' },
 ] as const
 
 export function BlockPreviewCarousel() {
@@ -389,7 +389,7 @@ export function BlockPreviewCarousel() {
             onClick={() => setIndex(i)}
             className={cn(
               'h-2 rounded-full transition-all',
-              i === index ? 'bg-indigo-400 w-5' : 'bg-white/20 w-2'
+              i === index ? 'bg-emerald-400 w-5' : 'bg-white/20 w-2'
             )}
             aria-label={`Preview ${i + 1}`}
           />
@@ -412,7 +412,7 @@ export function YearsInsight({
 
   return (
     <div className="text-center">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-300/70 mb-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300/70 mb-3">
         RepLock
       </p>
       <p className="text-sm text-white/55 mb-1">

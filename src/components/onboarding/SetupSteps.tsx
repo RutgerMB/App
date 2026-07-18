@@ -45,13 +45,13 @@ export function DistractorAppsGrid({
             className={cn(
               'relative flex items-center gap-2 px-3 py-3 rounded-2xl border transition-all text-left',
               isSelected
-                ? 'bg-indigo-500/15 border-indigo-500/40'
+                ? 'bg-emerald-500/15 border-emerald-500/40'
                 : 'bg-surface-2 border-border hover:border-border-hover'
             )}
             aria-pressed={isSelected}
           >
             {isSelected && (
-              <span className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center">
+              <span className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
                 <Check size={12} className="text-white" strokeWidth={3} />
               </span>
             )}
@@ -139,8 +139,8 @@ export function GoalCreatedCard({
 
       <div className="w-full rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-            <Zap size={16} className="text-indigo-400" />
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+            <Zap size={16} className="text-emerald-400" />
           </div>
           <div>
             <p className="text-sm font-semibold">{t('onboarding.goalActiveLabel')}</p>
@@ -160,7 +160,7 @@ export function GoalCreatedCard({
 }
 
 const MOCK_NOTIFICATIONS = [
-  { key: 'workout', icon: Dumbbell, color: 'text-indigo-400', bg: 'bg-indigo-500/15' },
+  { key: 'workout', icon: Dumbbell, color: 'text-emerald-400', bg: 'bg-emerald-500/15' },
   { key: 'streak', icon: Flame, color: 'text-orange-400', bg: 'bg-orange-500/15' },
   { key: 'earned', icon: Sparkles, color: 'text-emerald-400', bg: 'bg-emerald-500/15' },
 ] as const
@@ -205,19 +205,19 @@ export function TrialTimeline() {
 
   return (
     <div className="relative pl-6 space-y-6">
-      <div className="absolute left-[11px] top-2 bottom-2 w-px bg-gradient-to-b from-indigo-500/50 via-violet-500/30 to-white/10" />
+      <div className="absolute left-[11px] top-2 bottom-2 w-px bg-gradient-to-b from-emerald-500/50 via-teal-500/30 to-white/10" />
       {TRIAL_STEPS.map((step, i) => (
         <div key={step} className="relative flex gap-4">
           <div
             className={cn(
               'absolute -left-6 w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0',
-              i === 0 ? 'bg-indigo-500 border-indigo-400' : 'bg-surface-2 border-border'
+              i === 0 ? 'bg-emerald-500 border-emerald-400' : 'bg-surface-2 border-border'
             )}
           >
             {i === 0 && <Check size={12} className="text-white" strokeWidth={3} />}
           </div>
           <div className="pb-1">
-            <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wide mb-0.5">
+            <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wide mb-0.5">
               {t(`onboarding.trialSteps.${step}.when`)}
             </p>
             <p className="text-sm font-semibold">{t(`onboarding.trialSteps.${step}.title`)}</p>

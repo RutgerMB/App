@@ -32,7 +32,7 @@ import { Slider } from '@/components/ui/Slider'
 import { DEVICE_APPS } from '@/data/device-apps'
 import { SetupIntroIllustration, ScreenTimePermissionStep } from '@/components/onboarding/OnboardingVisuals'
 import type { DeviceAppDefinition } from '@/data/device-apps'
-import { getDeviceApps, isNativeIos, usesIosActivityPicker } from '@/lib/device-apps'
+import { getDeviceApps } from '@/lib/device-apps'
 import {
   checkScreenTimePermission,
   requestScreenTimePermission,
@@ -120,7 +120,7 @@ function PrivacySheet({ open, onClose }: { open: boolean; onClose: () => void })
           ].map((card) => (
             <div key={card.title} className="rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4">
               <div className="flex items-start gap-3">
-                <Shield size={18} className="text-indigo-400 shrink-0 mt-0.5" />
+                <Shield size={18} className="text-emerald-400 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold text-sm">{card.title}</p>
                   <p className="text-xs text-white/45 mt-1 leading-relaxed">{card.desc}</p>
@@ -178,7 +178,7 @@ function ScreenTimeSlider({ value, onChange }: { value: number; onChange: (v: nu
             className={cn(
               'px-4 py-2 rounded-xl text-sm font-semibold border transition-colors',
               value === h
-                ? 'bg-indigo-500/25 border-indigo-400/50 text-indigo-200'
+                ? 'bg-emerald-500/25 border-emerald-400/50 text-emerald-200'
                 : 'bg-white/[0.03] border-white/[0.07] text-white/55 hover:border-white/[0.12]'
             )}
           >
@@ -194,7 +194,7 @@ function PrimerBeat({ icon: Icon, label }: { icon: typeof Scale; label: string }
   return (
     <div className="flex flex-col items-center text-center w-full max-w-xs mx-auto py-8">
       <div className="w-16 h-16 rounded-[1.75rem] border border-white/[0.08] bg-white/[0.04] flex items-center justify-center mb-6">
-        <Icon size={28} className="text-indigo-300" />
+        <Icon size={28} className="text-emerald-300" />
       </div>
       <p className="text-xl font-semibold text-white/85 leading-snug">{label}</p>
     </div>
@@ -214,9 +214,9 @@ function ScreenTimeReportPrompt({
 
   return (
     <div className="w-full max-w-sm mx-auto">
-      <div className="rounded-[28px] border border-white/[0.08] bg-gradient-to-br from-indigo-500/10 via-white/[0.03] to-violet-500/10 p-5 text-center">
+      <div className="rounded-[28px] border border-white/[0.08] bg-gradient-to-br from-emerald-500/10 via-white/[0.03] to-teal-500/10 p-5 text-center">
         <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 mb-4">
-          <Eye size={14} className="text-indigo-300" />
+          <Eye size={14} className="text-emerald-300" />
           <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55">
             {t('intro.reportRevealBadge')}
           </span>
@@ -255,9 +255,7 @@ export function OnboardingPage() {
   const [name, setName] = useState('')
   const [selectedLocale, setSelectedLocale] = useState<Locale>(useStore.getState().profile.locale)
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('medium')
-  const [selectedApps, setSelectedApps] = useState<Set<string>>(() =>
-    isNativeIos() ? new Set() : new Set(DEFAULT_SELECTED_APPS)
-  )
+  const [selectedApps, setSelectedApps] = useState<Set<string>>(() => new Set())
   const [actualScreenHours, setActualScreenHours] = useState<number | null>(null)
   /** iOS: user saw the native DeviceActivityReport sheet (numeric export usually unavailable). */
   const [sawNativeScreenTimeReport, setSawNativeScreenTimeReport] = useState(false)
@@ -366,10 +364,7 @@ export function OnboardingPage() {
     if (step !== STEP.SELECT_APPS) return
     void getDeviceApps().then((apps) => {
       setAppCatalog(apps)
-      if (apps.length > 0 && !usesIosActivityPicker()) {
-        const socialIds = apps.filter((a) => a.category === 'social').map((a) => a.id)
-        if (socialIds.length > 0) setSelectedApps(new Set(socialIds.slice(0, 3)))
-      }
+      // Do not auto-select social apps — users choose explicitly (or tap popular defaults).
     })
   }, [step])
 

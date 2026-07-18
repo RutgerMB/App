@@ -10,7 +10,7 @@ import { openUpgradeOrFallback } from '@/lib/replock-revenuecat-native'
 
 export const DIFFICULTY_META: Record<Difficulty, { icon: string; gradient: string }> = {
   easy: { icon: '🌱', gradient: 'from-emerald-500 to-teal-500' },
-  medium: { icon: '⚖️', gradient: 'from-indigo-500 to-violet-500' },
+  medium: { icon: '⚖️', gradient: 'from-emerald-500 to-teal-500' },
   hard: { icon: '🔥', gradient: 'from-orange-500 to-red-500' },
   unstoppable: { icon: '💀', gradient: 'from-red-600 to-rose-700' },
 }
@@ -55,7 +55,7 @@ export function DifficultyPicker({ value, onChange, compact, large, pricingNavig
               'flex items-center rounded-2xl border text-left transition-all relative',
               large ? 'gap-5 p-5' : 'gap-3 p-4',
               selected
-                ? 'bg-indigo-500/15 border-indigo-500/40'
+                ? 'bg-emerald-500/15 border-emerald-500/40'
                 : locked
                   ? 'bg-surface-2/50 border-border opacity-80'
                   : 'bg-surface-2 border-border hover:border-border-hover'
@@ -83,7 +83,7 @@ export function DifficultyPicker({ value, onChange, compact, large, pricingNavig
                 {t(`difficulty.${d}.desc`)}
               </p>
               {!compact && (
-                <p className={cn('text-indigo-400/80 mt-1.5', large ? 'text-sm' : 'text-[10px]')}>
+                <p className={cn('text-emerald-400/80 mt-1.5', large ? 'text-sm' : 'text-[10px]')}>
                   {t('difficulty.earnRate', { value: Math.round(mult * 100) })}
                 </p>
               )}
@@ -91,7 +91,7 @@ export function DifficultyPicker({ value, onChange, compact, large, pricingNavig
             {locked ? (
               <Lock size={large ? 18 : 14} className="text-white/25 shrink-0" />
             ) : selected ? (
-              <span className={cn('rounded-full bg-indigo-400 shrink-0', large ? 'w-2.5 h-2.5' : 'w-2 h-2')} />
+              <span className={cn('rounded-full bg-emerald-400 shrink-0', large ? 'w-2.5 h-2.5' : 'w-2 h-2')} />
             ) : null}
           </button>
         )

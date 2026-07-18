@@ -7,7 +7,7 @@ const variants: Record<BadgeVariant, string> = {
   success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
   warning: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
   danger: 'bg-red-500/10 text-red-400 border-red-500/20',
-  pro: 'bg-gradient-to-r from-indigo-500/20 to-violet-500/20 text-indigo-300 border-indigo-500/30',
+  pro: 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border-emerald-500/30',
 }
 
 interface BadgeProps {
