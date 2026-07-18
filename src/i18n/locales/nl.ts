@@ -329,6 +329,7 @@ export const nl = {
   home: {
     welcomeBack: 'Welkom terug',
     availableScreenTime: 'Beschikbare schermtijd',
+    ofDailyMax: 'van {hours}u dagelijks max',
     earnMore: 'Verdien meer tijd',
     streak: 'Streak',
     workouts: 'Workouts',
@@ -633,6 +634,8 @@ export const nl = {
     language: 'Taal',
     difficulty: 'Moeilijkheidsgraad',
     difficultyUpdated: 'Moeilijkheidsgraad bijgewerkt',
+    maxDailyHours: 'Max uren per dag',
+    maxDailyHoursUpdated: 'Max uren per dag bijgewerkt',
     lifetimeEarned: 'Totaal verdiend',
     memberSince: 'Lid sinds',
     upgradePro: 'Upgrade naar Pro',

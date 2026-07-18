@@ -327,6 +327,7 @@ export const es = {
   home: {
     welcomeBack: 'Bienvenido de nuevo',
     availableScreenTime: 'Tiempo de pantalla disponible',
+    ofDailyMax: 'de {hours} h máx. al día',
     earnMore: 'Gana más tiempo',
     streak: 'Racha',
     workouts: 'Entrenamientos',
@@ -628,6 +629,8 @@ export const es = {
     language: 'Idioma',
     difficulty: 'Dificultad',
     difficultyUpdated: 'Dificultad actualizada',
+    maxDailyHours: 'Horas máx. al día',
+    maxDailyHoursUpdated: 'Horas máx. al día actualizadas',
     lifetimeEarned: 'Total ganado',
     memberSince: 'Miembro desde',
     upgradePro: 'Mejorar a Pro',

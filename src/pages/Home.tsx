@@ -14,16 +14,12 @@ import { DIFFICULTY_META } from '@/components/DifficultyPicker'
 import { ProPromo } from '@/components/ProPromo'
 import { useStore } from '@/store'
 import { ExerciseIcon } from '@/components/ExerciseIcons'
-import { DEFAULT_MAX_DAILY_HOURS, EXERCISES } from '@/types'
+import { EXERCISES } from '@/types'
 import { formatMinutes, cn } from '@/lib/utils'
 import { useTranslation } from '@/i18n/context'
 import type { Difficulty } from '@/types'
 import { openUpgradeOrFallback } from '@/lib/replock-revenuecat-native'
-import { localDateString } from '@/lib/dates'
-import {
-  dailyEarnCapMinutes,
-  earnedMinutesTodayFor,
-} from '@/lib/daily-earn-cap'
+import { clampMaxDailyHours, dailyEarnCapMinutes } from '@/lib/daily-earn-cap'
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -40,14 +36,9 @@ export function HomePage() {
   const recentSession = sessions[0]
   const lockedApps = apps.filter((a) => a.isLocked)
   const unlockedApps = apps.filter((a) => !a.isLocked)
-  const today = localDateString()
-  const maxDailyHours = profile.maxDailyHours ?? DEFAULT_MAX_DAILY_HOURS
+  // Ring matches the balance shown below — fill vs daily max allowance (hours × 60).
+  const maxDailyHours = clampMaxDailyHours(profile.maxDailyHours)
   const progressMax = dailyEarnCapMinutes(maxDailyHours)
-  const earnedToday = earnedMinutesTodayFor(
-    profile.earnedMinutesToday,
-    profile.earnedDate,
-    today
-  )
   const difficulty = profile.difficulty ?? 'medium'
   const difficultyMeta = DIFFICULTY_META[difficulty as Difficulty]
   const [difficultyOpen, setDifficultyOpen] = useState(false)
@@ -132,7 +123,12 @@ export function HomePage() {
               {t('home.availableScreenTime')}
             </p>
             <div className="flex flex-col items-center gap-4">
-              <CircularProgress value={earnedToday} max={progressMax} size={88} strokeWidth={5}>
+              <CircularProgress
+                value={screenTimeBalance}
+                max={progressMax}
+                size={88}
+                strokeWidth={5}
+              >
                 <div
                   className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/25 to-teal-600/20 border border-white/[0.08]"
                   aria-hidden
@@ -140,9 +136,14 @@ export function HomePage() {
                   <Lock size={16} strokeWidth={2} className="text-emerald-200/80" />
                 </div>
               </CircularProgress>
-              <p className="text-4xl font-bold tracking-tight tabular-nums gradient-text">
-                {formatMinutes(screenTimeBalance)}
-              </p>
+              <div>
+                <p className="text-4xl font-bold tracking-tight tabular-nums gradient-text">
+                  {formatMinutes(screenTimeBalance)}
+                </p>
+                <p className="mt-1.5 text-[11px] text-white/35 tabular-nums">
+                  {t('home.ofDailyMax', { hours: maxDailyHours })}
+                </p>
+              </div>
             </div>
             <MotionButton
               fullWidth

@@ -298,6 +298,7 @@ export interface Translations {
   home: {
     welcomeBack: string
     availableScreenTime: string
+    ofDailyMax: string
     earnMore: string
     streak: string
     workouts: string
@@ -576,6 +577,8 @@ export interface Translations {
     language: string
     difficulty: string
     difficultyUpdated: string
+    maxDailyHours: string
+    maxDailyHoursUpdated: string
     lifetimeEarned: string
     memberSince: string
     upgradePro: string

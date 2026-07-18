@@ -107,7 +107,7 @@ export interface UserProfile {
   openingsDate?: string | null
   /**
    * Max hours of screen time that can be *earned* in a calendar day (1–12).
-   * Caps daily earn toward balance; home ring uses this as 100% fill.
+   * Caps daily earn toward balance; home ring 100% = this × 60 minutes vs balance.
    */
   maxDailyHours?: number
   /** Minutes credited from exercise today (toward maxDailyHours cap). */

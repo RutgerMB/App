@@ -341,6 +341,7 @@ export const en: Translations = {
   home: {
     welcomeBack: 'Welcome back',
     availableScreenTime: 'Available screen time',
+    ofDailyMax: 'of {hours}h daily max',
     earnMore: 'Earn more time',
     streak: 'Streak',
     workouts: 'Workouts',
@@ -767,6 +768,8 @@ export const en: Translations = {
     language: 'Language',
     difficulty: 'Difficulty',
     difficultyUpdated: 'Difficulty updated',
+    maxDailyHours: 'Max daily hours',
+    maxDailyHoursUpdated: 'Max daily hours updated',
     lifetimeEarned: 'Total earned',
     memberSince: 'Member since',
     upgradePro: 'Upgrade to Pro',

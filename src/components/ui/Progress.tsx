@@ -51,7 +51,9 @@ export function CircularProgress({
   strokeWidth = 6,
   children,
 }: CircularProgressProps) {
-  const pct = Math.min(100, Math.max(0, (value / max) * 100))
+  const safeMax = max > 0 && Number.isFinite(max) ? max : 1
+  const safeValue = Number.isFinite(value) ? Math.max(0, value) : 0
+  const pct = Math.min(100, Math.max(0, (safeValue / safeMax) * 100))
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (pct / 100) * circumference

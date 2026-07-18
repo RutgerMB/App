@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { LanguageDropdown } from '@/components/LanguagePicker'
 import { DifficultyPicker } from '@/components/DifficultyPicker'
+import { MaxDailyHoursInput } from '@/components/onboarding/SetupSteps'
 import { ProPromo } from '@/components/ProPromo'
 import { BlockerSetupCard } from '@/components/BlockerSetupCard'
 import { Switch } from '@/components/ui/Switch'
@@ -38,6 +39,7 @@ import {
   syncLocalReminders,
 } from '@/lib/planned-notifications'
 import { useTranslation } from '@/i18n/context'
+import { clampMaxDailyHours } from '@/lib/daily-earn-cap'
 
 export function SettingsPage() {
   const navigate = useNavigate()
@@ -51,6 +53,7 @@ export function SettingsPage() {
     resetDailyUsage,
     setLocale,
     setDifficulty,
+    setMaxDailyHours,
     setNotificationsEnabled,
   } = useStore()
   const user = useAuthStore((s) => s.user)
@@ -302,6 +305,11 @@ export function SettingsPage() {
       showDifficulty: true,
     },
     {
+      title: t('settings.maxDailyHours'),
+      items: [],
+      showMaxDailyHours: true,
+    },
+    {
       title: t('settings.legal'),
       items: [
         {
@@ -435,6 +443,19 @@ export function SettingsPage() {
                 }}
                 compact
               />
+            ) : 'showMaxDailyHours' in section && section.showMaxDailyHours ? (
+              <div className="rounded-2xl p-4 bg-white/[0.03] border border-white/[0.07]">
+                <p className="text-xs text-white/40 leading-relaxed mb-4 px-1">
+                  {t('onboarding.maxDailyHoursDesc')}
+                </p>
+                <MaxDailyHoursInput
+                  value={clampMaxDailyHours(profile.maxDailyHours)}
+                  onChange={(hours) => {
+                    setMaxDailyHours(hours)
+                    toast(t('settings.maxDailyHoursUpdated'), 'info')
+                  }}
+                />
+              </div>
             ) : (
               <div className="rounded-2xl divide-y divide-white/[0.06] bg-white/[0.03] border border-white/[0.07] overflow-hidden">
                 {section.items.map((item) => (
