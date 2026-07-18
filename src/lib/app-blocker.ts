@@ -126,7 +126,8 @@ export async function syncAppBlockingRules(apps: LockedApp[]): Promise<void> {
     const status = await getBlockerStatus()
     if (!status.ready) return
     const rules = buildIosBlockerRules(apps)
-    if (rules.length === 0) return
+    // Empty rules must still apply — native clears ManagedSettings shields.
+    // (Previously an early return left removed apps blocked until next picker save.)
     await syncIosBlockingRules(rules)
     return
   }

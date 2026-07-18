@@ -39,6 +39,11 @@ interface RepLockControlsPlugin {
   presentSelectedAppsSheet(): Promise<{ count: number; apps: IosSelectedApp[] }>
   getSelectedApps(): Promise<{ apps: IosSelectedApp[] }>
   setDisplayNames(options: { names: Record<string, string> }): Promise<{ ok: boolean }>
+  removeTokens(options: { tokenIds: string[] }): Promise<{
+    ok: boolean
+    removed?: number
+    apps?: IosSelectedApp[]
+  }>
   applyRules(options: { rules: IosBlockerRule[] }): Promise<{ ok: boolean }>
   clearShields(): Promise<{ ok: boolean }>
   getDailyScreenTimeHours(options?: {
@@ -270,6 +275,22 @@ export async function setIosDisplayNames(names: Record<string, string>): Promise
     await RepLockControlsNative.setDisplayNames({ names })
   } catch {
     // Non-fatal — web store still keeps the rename.
+  }
+}
+
+/**
+ * Remove opaque tokens from FamilyActivitySelection + ManagedSettings shields.
+ * Must run when the user deletes an app from the lock list so the block lifts
+ * immediately (picker save already rewrites selection; trash did not).
+ */
+export async function removeIosTokens(tokenIds: string[]): Promise<void> {
+  if (!isIosControlsAvailable()) return
+  const ids = tokenIds.map((id) => id.trim()).filter(Boolean)
+  if (ids.length === 0) return
+  try {
+    await RepLockControlsNative.removeTokens({ tokenIds: ids })
+  } catch (err) {
+    console.warn('[RepLockControls] removeTokens failed', pluginErrorMeta(err))
   }
 }
 

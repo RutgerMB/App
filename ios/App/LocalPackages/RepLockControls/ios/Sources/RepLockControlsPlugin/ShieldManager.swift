@@ -29,6 +29,20 @@ enum ShieldManager {
         }
     }
 
+    /// Immediately lift shields for specific tokens (trash / remove) without
+    /// waiting for a full rules rebuild from JS.
+    static func unshield(tokens: Set<ApplicationToken>) {
+        guard !tokens.isEmpty else { return }
+        let store = ManagedSettingsStore()
+        guard var current = store.shield.applications, !current.isEmpty else { return }
+        current.subtract(tokens)
+        if current.isEmpty {
+            store.shield.applications = nil as Set<ApplicationToken>?
+        } else {
+            store.shield.applications = current
+        }
+    }
+
     static func clearShields() {
         let store = ManagedSettingsStore()
         store.clearAllSettings()

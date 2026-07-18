@@ -38,6 +38,28 @@ final class SelectionStore {
         pruneDisplayNames(to: selection)
     }
 
+    /// Drop opaque ApplicationTokens by stable id (JS lock-list remove / trash).
+    /// Returns the tokens that were removed so ManagedSettings can clear them.
+    @discardableResult
+    func removeApplicationTokens(ids: Set<String>) -> Set<ApplicationToken> {
+        guard !ids.isEmpty else { return [] }
+        var selection = loadSelection()
+        let map = tokenIdMap(from: selection)
+        var removed = Set<ApplicationToken>()
+        var kept = Set<ApplicationToken>()
+        for (id, token) in map {
+            if ids.contains(id) {
+                removed.insert(token)
+            } else {
+                kept.insert(token)
+            }
+        }
+        guard !removed.isEmpty else { return [] }
+        selection.applicationTokens = kept
+        saveSelection(selection)
+        return removed
+    }
+
     func stableTokenId(for token: ApplicationToken) -> String? {
         guard let data = try? JSONEncoder().encode(token) else { return nil }
         return data.base64EncodedString()

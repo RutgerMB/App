@@ -50,6 +50,7 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "presentSelectedAppsSheet", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getSelectedApps", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setDisplayNames", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "removeTokens", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "applyRules", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearShields", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getDailyScreenTimeHours", returnType: CAPPluginReturnPromise),
@@ -268,6 +269,50 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         store.saveDisplayNames(merged)
         call.resolve(["ok": true])
+    }
+
+    /// Remove opaque tokens from FamilyActivitySelection + ManagedSettings shields.
+    /// Called when the user deletes an app from the Apps tab (trash) so the block
+    /// lifts immediately — not only after the next picker save.
+    @objc func removeTokens(_ call: CAPPluginCall) {
+        guard #available(iOS 16.0, *) else {
+            call.resolve(["ok": true, "removed": 0])
+            return
+        }
+
+        Task { @MainActor in
+            let rawIds: [String]
+            if let arr = call.getArray("tokenIds", String.self) {
+                rawIds = arr
+            } else if let options = call.options["tokenIds"] as? [Any] {
+                rawIds = options.compactMap { $0 as? String }
+            } else {
+                repLockReject(call, "tokenIds array required")
+                return
+            }
+
+            let ids = Set(rawIds.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty })
+            guard !ids.isEmpty else {
+                call.resolve(["ok": true, "removed": 0])
+                return
+            }
+
+            let store = SelectionStore.shared
+            let removedTokens = store.removeApplicationTokens(ids: ids)
+            ShieldManager.unshield(tokens: removedTokens)
+
+            // If nothing remains selected, clear all ManagedSettings (same as empty lock list).
+            let selection = store.loadSelection()
+            if selection.applicationTokens.isEmpty {
+                ShieldManager.clearShields()
+            }
+
+            call.resolve([
+                "ok": true,
+                "removed": removedTokens.count,
+                "apps": store.selectedAppsPayload(from: selection),
+            ])
+        }
     }
 
     @objc func applyRules(_ call: CAPPluginCall) {

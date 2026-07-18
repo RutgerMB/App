@@ -365,6 +365,7 @@ export const useStore = create<AppState & StoreActions>()(
               : a
           ),
         }))
+        scheduleBlockingSync()
         return true
       },
 
@@ -403,11 +404,22 @@ export const useStore = create<AppState & StoreActions>()(
           unlockedUntil: null,
         }
         set((s) => ({ apps: [...s.apps, newApp] }))
+        scheduleBlockingSync()
         return true
       },
 
-      removeApp: (appId) =>
-        set((s) => ({ apps: s.apps.filter((a) => a.id !== appId) })),
+      removeApp: (appId) => {
+        const removed = get().apps.find((a) => a.id === appId)
+        set((s) => ({ apps: s.apps.filter((a) => a.id !== appId) }))
+        // Same path as picker save: rebuild shields from the remaining lock list.
+        scheduleBlockingSync()
+        // Prune FamilyActivitySelection + clear ManagedSettings for this opaque token.
+        if (removed?.iosTokenId) {
+          void import('@/lib/replock-controls').then(({ removeIosTokens }) =>
+            removeIosTokens([removed.iosTokenId!])
+          )
+        }
+      },
 
       updateAppLimit: (appId, limit) =>
         set((s) => ({
