@@ -1,3 +1,4 @@
+import AppLauncherPlugin
 import AppPlugin
 import LocalNotificationsPlugin
 import NativePurchasesPlugin
@@ -15,6 +16,7 @@ enum CapAppLocalPlugins {
         _ = RepLockRevenueCatPlugin.self
         _ = LocalNotificationsPlugin.self
         _ = AppPlugin.self
+        _ = AppLauncherPlugin.self
     }
 
     static func linkAndReturnTrue() -> Bool {

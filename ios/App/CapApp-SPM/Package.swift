@@ -17,7 +17,7 @@ let package = Package(
         .package(name: "RevenuecatPurchasesCapacitor", path: "../LocalPackages/RevenuecatPurchasesCapacitor"),
         .package(name: "CapgoNativePurchases", path: "../LocalPackages/CapgoNativePurchases"),
         .package(name: "CapacitorApp", path: "../LocalPackages/CapacitorApp"),
-        .package(name: "CapacitorAppLauncher", path: "../../../node_modules/@capacitor/app-launcher"),
+        .package(name: "CapacitorAppLauncher", path: "../LocalPackages/CapacitorAppLauncher"),
         .package(name: "CapacitorLocalNotifications", path: "../LocalPackages/CapacitorLocalNotifications")
     ],
     targets: [

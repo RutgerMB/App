@@ -2,7 +2,7 @@
 /**
  * Post-process iOS project after `npx cap sync ios`.
  * - Removes Stripe/StatusBar/SplashScreen/PushNotifications SPM entries (unused / Cap 8 SPM broken on Xcode 15.4)
- * - Redirects LocalNotifications + CapacitorApp to vendored LocalPackages (Xcode 15.4 patches)
+ * - Redirects LocalNotifications + CapacitorApp + CapacitorAppLauncher to vendored LocalPackages (Xcode 15.4 patches)
  * - Re-injects RepLockControls + CapgoNativePurchases + RepLockRevenueCat (cap sync wipes local SPM plugins)
  * - Ensures CapApp-SPM.swift imports + force-links plugin classes
  * - Ensures packageClassList has local plugins and NEVER PushNotificationsPlugin
@@ -26,6 +26,7 @@ const LOCAL_REPLOCK_REVENUECAT_PATH = '../LocalPackages/RepLockRevenueCat'
 const LOCAL_REVENUECAT_PURCHASES_CAPACITOR_PATH = '../LocalPackages/RevenuecatPurchasesCapacitor'
 const LOCAL_LOCAL_NOTIFICATIONS_PATH = '../LocalPackages/CapacitorLocalNotifications'
 const LOCAL_CAPACITOR_APP_PATH = '../LocalPackages/CapacitorApp'
+const LOCAL_CAPACITOR_APP_LAUNCHER_PATH = '../LocalPackages/CapacitorAppLauncher'
 
 const REQUIRED_LOCAL_PACKAGES = [
   { name: 'RepLockControls', path: LOCAL_REPLOCK_CONTROLS_PATH },
@@ -34,6 +35,7 @@ const REQUIRED_LOCAL_PACKAGES = [
   { name: 'RevenuecatPurchasesCapacitor', path: LOCAL_REVENUECAT_PURCHASES_CAPACITOR_PATH },
   { name: 'CapacitorLocalNotifications', path: LOCAL_LOCAL_NOTIFICATIONS_PATH },
   { name: 'CapacitorApp', path: LOCAL_CAPACITOR_APP_PATH },
+  { name: 'CapacitorAppLauncher', path: LOCAL_CAPACITOR_APP_LAUNCHER_PATH },
 ]
 
 const REQUIRED_PRODUCTS = [
@@ -43,6 +45,7 @@ const REQUIRED_PRODUCTS = [
   { product: 'RevenuecatPurchasesCapacitor', package: 'RevenuecatPurchasesCapacitor' },
   { product: 'CapacitorLocalNotifications', package: 'CapacitorLocalNotifications' },
   { product: 'CapacitorApp', package: 'CapacitorApp' },
+  { product: 'CapacitorAppLauncher', package: 'CapacitorAppLauncher' },
 ]
 
 /** ObjC @objc names Capacitor looks up in packageClassList */
@@ -53,6 +56,7 @@ const REQUIRED_PACKAGE_CLASS_LIST = [
   'RepLockRevenueCatPlugin',
   'LocalNotificationsPlugin',
   'AppPlugin',
+  'AppLauncherPlugin',
 ]
 
 /** Must never remain after sync — Cap 8 SPM fails on Xcode 15.4 */
@@ -148,6 +152,7 @@ enum CapAppLocalPlugins {
         _ = RepLockRevenueCatPlugin.self
         _ = LocalNotificationsPlugin.self
         _ = AppPlugin.self
+        _ = AppLauncherPlugin.self
     }
 
     static func linkAndReturnTrue() -> Bool {
@@ -169,6 +174,7 @@ function ensureCapAppSpmImports() {
     'import RepLockRevenueCatPlugin',
     'import LocalNotificationsPlugin',
     'import AppPlugin',
+    'import AppLauncherPlugin',
   ]
   let content = readFileSync(capAppSpmSwiftPath, 'utf8')
   const before = content
@@ -178,6 +184,7 @@ function ensureCapAppSpmImports() {
     .replace(/^import RepLockControls\r?\n/gm, '')
     .replace(/^import CapacitorLocalNotifications\r?\n/gm, '')
     .replace(/^import CapacitorApp\r?\n/gm, '')
+    .replace(/^import CapacitorAppLauncher\r?\n/gm, '')
     // Never leave Push force-link / imports after package strip (dangling product deps)
     .replace(/^import\s+PushNotificationsPlugin\r?\n/gm, '')
     .replace(/^import\s+CapacitorPushNotifications\r?\n/gm, '')
@@ -218,7 +225,7 @@ function ensureCapAppSpmImports() {
 
   if (content !== before) {
     writeFileSync(capAppSpmSwiftPath, content)
-    console.log('Patched CapApp-SPM.swift (imports + force-link including LocalNotifications + App)')
+    console.log('Patched CapApp-SPM.swift (imports + force-link including LocalNotifications + App + AppLauncher)')
     return true
   }
 
@@ -352,7 +359,7 @@ if (existsSync(spmPackagePath)) {
   if (pkg !== before) {
     writeFileSync(spmPackagePath, pkg)
     console.log(
-      'Patched CapApp-SPM/Package.swift (stripped Push; LocalNotifications+App → LocalPackages; local plugins; iOS 16+)'
+      'Patched CapApp-SPM/Package.swift (stripped Push/StatusBar/Splash; Cap plugins → LocalPackages; local plugins; iOS 16+)'
     )
     changed = true
   } else {
@@ -371,11 +378,24 @@ if (existsSync(spmPackagePath)) {
   } else {
     console.log('Verified: CapApp-SPM/Package.swift has no Push package or product')
   }
+  // Never compile unpatched official Cap plugins from node_modules (Xcode 15.4 Cap 8 SPM)
+  const hasNodeModulesCapPlugin = /\.package\s*\([^)]*node_modules\/@capacitor\//i.test(verify)
+  if (hasNodeModulesCapPlugin) {
+    console.error(
+      'ERROR: CapApp-SPM still references node_modules/@capacitor/* — vendor-patch or strip before build'
+    )
+    process.exitCode = 1
+  } else {
+    console.log('Verified: CapApp-SPM/Package.swift has no node_modules/@capacitor packages')
+  }
   if (!/LocalPackages\/CapacitorLocalNotifications/.test(verify)) {
     console.warn('WARN: CapacitorLocalNotifications is not pointing at LocalPackages')
   }
-  if (!/LocalPackages\/CapacitorApp/.test(verify)) {
+  if (!/LocalPackages\/CapacitorApp"/.test(verify)) {
     console.warn('WARN: CapacitorApp is not pointing at LocalPackages')
+  }
+  if (!/LocalPackages\/CapacitorAppLauncher/.test(verify)) {
+    console.warn('WARN: CapacitorAppLauncher is not pointing at LocalPackages')
   }
 } else {
   console.log('No ios/App/CapApp-SPM/Package.swift — skip SPM patch')
@@ -415,5 +435,5 @@ if (changed) {
 }
 
 console.log(
-  '\nNote: LocalNotifications + App are vendored under ios/App/LocalPackages (Xcode 15.4 Cap 8 SPM patches). PushNotifications is stripped.'
+  '\nNote: LocalNotifications + App + AppLauncher are vendored under ios/App/LocalPackages (Xcode 15.4 Cap 8 SPM patches). Push/StatusBar/Splash are stripped.'
 )
