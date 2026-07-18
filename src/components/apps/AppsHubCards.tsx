@@ -1,139 +1,146 @@
-import { useNavigate } from 'react-router-dom'
-import { Calendar, Zap } from 'lucide-react'
+import { useState } from 'react'
+import { Pencil } from 'lucide-react'
 import { Progress } from '@/components/ui/Progress'
+import { Modal } from '@/components/ui/Modal'
+import { Input } from '@/components/ui/Input'
+import { Button, MotionButton } from '@/components/ui/Button'
 import { useStore } from '@/store'
 import { DEFAULT_DAILY_OPENINGS } from '@/types'
 import { localDateString } from '@/lib/dates'
 import { useTranslation } from '@/i18n/context'
+import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
 
-export function QuickBlockCard({ compact }: { compact?: boolean }) {
-  const navigate = useNavigate()
-  const { t } = useTranslation()
-
-  return (
-    <button
-      type="button"
-      onClick={() => navigate('/exercise')}
-      className={cn(
-        'w-full text-left rounded-2xl',
-        'bg-gradient-to-br from-emerald-500/15 to-teal-500/5 border border-emerald-500/20',
-        'hover:border-emerald-500/35 hover:from-emerald-500/18 active:scale-[0.985] transition-all duration-200',
-        compact ? 'px-3.5 py-3 h-full' : 'px-4 py-3.5'
-      )}
-    >
-      <div className={cn('flex items-center gap-3', compact && 'flex-col items-start gap-2')}>
-        <div
-          className={cn(
-            'rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0',
-            compact ? 'w-9 h-9' : 'w-11 h-11'
-          )}
-        >
-          <Zap size={compact ? 16 : 20} className="text-emerald-400" />
-        </div>
-        <div className="flex-1 min-w-0 w-full">
-          <p className={cn('font-semibold tracking-tight', compact ? 'text-sm' : 'text-[15px]')}>
-            {t('apps.quickBlockTitle')}
-          </p>
-          {!compact && (
-            <p className="text-xs text-white/45 mt-0.5 leading-relaxed truncate">
-              {t('apps.quickBlockDesc')}
-            </p>
-          )}
-        </div>
-        {!compact && (
-          <span className="text-xs font-semibold text-emerald-300 shrink-0">
-            {t('apps.quickBlockCta')} →
-          </span>
-        )}
-      </div>
-    </button>
-  )
+function openingsUsedToday(openingsDate: string | null | undefined, used: number | undefined) {
+  const today = localDateString()
+  if (openingsDate !== today) return 0
+  return used ?? 0
 }
 
-export function ActiveScheduleCard({ compact }: { compact?: boolean }) {
+export function ActiveScheduleCard() {
   const { t } = useTranslation()
+  const { toast } = useToast()
   const profile = useStore((s) => s.profile)
   const apps = useStore((s) => s.apps)
+  const setOpeningsLeftToday = useStore((s) => s.setOpeningsLeftToday)
 
-  const openings = profile.dailyOpenings ?? DEFAULT_DAILY_OPENINGS
+  const dailyOpenings = profile.dailyOpenings ?? DEFAULT_DAILY_OPENINGS
+  const used = openingsUsedToday(profile.openingsDate, profile.openingsUsedToday)
+  const left = Math.max(0, dailyOpenings - used)
   const minutesPerOpening = profile.minutesPerOpening ?? 5
 
-  if (openings < 1 || apps.length === 0) return null
+  const [editOpen, setEditOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [draftLeft, setDraftLeft] = useState(left)
 
-  const weekday = (() => {
-    const day = new Date().getDay()
-    const keys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const
-    return t(`onboarding.weekdays.${keys[day]}`)
-  })()
+  if (apps.length === 0) return null
 
-  const usedOpenings = (() => {
-    const today = localDateString()
-    if (profile.openingsDate !== today) return 0
-    return profile.openingsUsedToday ?? 0
-  })()
-  const progressOpenings = Math.min(openings, usedOpenings)
+  const openEdit = () => {
+    setDraftLeft(left)
+    setEditOpen(true)
+  }
 
-  return (
-    <div
-      className={cn(
-        'rounded-2xl',
-        'bg-gradient-to-br from-teal-500/10 to-emerald-500/5 border border-teal-500/20',
-        compact ? 'px-3.5 py-3 h-full' : 'px-4 py-3.5'
-      )}
-    >
-      <div className={cn('flex items-center gap-3', compact ? 'mb-2' : 'mb-3 items-start')}>
-        <div
-          className={cn(
-            'rounded-xl bg-teal-500/20 flex items-center justify-center shrink-0',
-            compact ? 'w-9 h-9' : 'w-10 h-10'
-          )}
-        >
-          <Calendar size={compact ? 16 : 18} className="text-teal-400" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className={cn('font-semibold tracking-tight', compact ? 'text-sm' : 'text-[15px]')}>
-            {t('apps.activeScheduleTitle')}
-          </p>
-          <p className="text-[11px] text-white/40 mt-0.5 truncate">
-            {compact
-              ? t('apps.activeScheduleCompact', {
-                  openings,
-                  minutes: minutesPerOpening,
-                })
-              : t('onboarding.goalSchedule', {
-                  day: weekday,
-                  openings,
-                  minutes: minutesPerOpening,
-                })}
-          </p>
-        </div>
-      </div>
-      <div className="flex items-center justify-between text-[11px] text-white/40 mb-1.5">
-        <span className="tabular-nums">
-          {progressOpenings}/{openings}
-        </span>
-      </div>
-      <Progress value={progressOpenings} max={openings} size="sm" />
-    </div>
-  )
-}
+  const requestConfirm = () => {
+    const next = Math.max(0, Math.min(20, Math.floor(Number(draftLeft)) || 0))
+    setDraftLeft(next)
+    if (next === left) {
+      setEditOpen(false)
+      return
+    }
+    setEditOpen(false)
+    setConfirmOpen(true)
+  }
 
-/** Quick Block + Active Schedule on one compact row when schedule is visible. */
-export function AppsHubRow() {
-  const profile = useStore((s) => s.profile)
-  const apps = useStore((s) => s.apps)
-  const openings = profile.dailyOpenings ?? DEFAULT_DAILY_OPENINGS
-  const showSchedule = openings >= 1 && apps.length > 0
-
-  if (!showSchedule) {
-    return <QuickBlockCard />
+  const applyChange = () => {
+    const next = Math.max(0, Math.min(20, Math.floor(Number(draftLeft)) || 0))
+    setOpeningsLeftToday(next)
+    setConfirmOpen(false)
+    toast(t('apps.unlocksLeftUpdated', { count: next }), 'success')
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2.5">
-      <QuickBlockCard compact />
-      <ActiveScheduleCard compact />
-    </div>
+    <>
+      <button
+        type="button"
+        onClick={openEdit}
+        className={cn(
+          'w-full text-left rounded-2xl px-5 py-5',
+          'bg-gradient-to-br from-teal-500/12 to-emerald-500/5 border border-teal-500/20',
+          'hover:border-teal-500/35 active:scale-[0.99] transition-all duration-200'
+        )}
+      >
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="min-w-0">
+            <p className="text-[15px] font-semibold tracking-tight text-white/90">
+              {t('apps.activeScheduleTitle')}
+            </p>
+            <p className="text-xs text-white/40 mt-1 leading-relaxed">
+              {t('apps.unlocksLeftHint', { minutes: minutesPerOpening })}
+            </p>
+          </div>
+          <span className="shrink-0 p-2 rounded-lg bg-teal-500/15 text-teal-300">
+            <Pencil size={15} />
+          </span>
+        </div>
+
+        <div className="flex items-end gap-2 mb-3">
+          <span className="text-4xl font-semibold tabular-nums tracking-tight text-white">
+            {left}
+          </span>
+          <span className="text-sm text-white/35 mb-1.5">
+            / {dailyOpenings}
+          </span>
+        </div>
+
+        <Progress value={used} max={Math.max(1, dailyOpenings)} size="sm" />
+      </button>
+
+      <Modal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        title={t('apps.unlocksLeftEditTitle')}
+        position="center"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-white/50 leading-relaxed">{t('apps.unlocksLeftEditDesc')}</p>
+          <Input
+            id="unlocks-left-today"
+            label={t('apps.unlocksLeftLabel')}
+            type="number"
+            min={0}
+            max={20}
+            value={draftLeft}
+            onChange={(e) => setDraftLeft(Number(e.target.value))}
+          />
+          <MotionButton fullWidth size="lg" onClick={requestConfirm}>
+            {t('apps.unlocksLeftContinue')}
+          </MotionButton>
+        </div>
+      </Modal>
+
+      <Modal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title={t('apps.unlocksLeftConfirmTitle')}
+        position="center"
+      >
+        <p className="text-sm text-white/50 mb-4 leading-relaxed">
+          {t('apps.unlocksLeftConfirmDesc', { count: draftLeft })}
+        </p>
+        <div className="flex gap-3">
+          <Button variant="secondary" className="flex-1" onClick={() => setConfirmOpen(false)}>
+            {t('common.cancel')}
+          </Button>
+          <Button className="flex-1" onClick={applyChange}>
+            {t('apps.unlocksLeftConfirmCta')}
+          </Button>
+        </div>
+      </Modal>
+    </>
   )
+}
+
+/** Unlocks-left card when the user has a blocking goal and apps. */
+export function AppsHubRow() {
+  return <ActiveScheduleCard />
 }

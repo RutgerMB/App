@@ -455,6 +455,15 @@ export interface Translations {
     quickBlockCta: string
     activeScheduleTitle: string
     activeScheduleCompact: string
+    unlocksLeftHint: string
+    unlocksLeftEditTitle: string
+    unlocksLeftEditDesc: string
+    unlocksLeftLabel: string
+    unlocksLeftContinue: string
+    unlocksLeftConfirmTitle: string
+    unlocksLeftConfirmDesc: string
+    unlocksLeftConfirmCta: string
+    unlocksLeftUpdated: string
     appsTrackedLabel: string
     templatesTitle: string
     templateComingSoon: string

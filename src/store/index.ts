@@ -67,6 +67,8 @@ interface StoreActions {
     dailyLimitMinutes?: number
   ) => { synced: number; truncated: boolean }
   setBlockingGoal: (openings: number, minutesPerOpening?: number) => void
+  /** Set how many blocked-app openings remain today (adjusts dailyOpenings around openingsUsedToday). */
+  setOpeningsLeftToday: (remaining: number) => void
   completeExercise: (type: ExerciseType, amount: number, durationSeconds: number) => number
   unlockApp: (appId: string, minutes: number) => boolean
   useAppTime: (appId: string, minutes: number) => void
@@ -230,6 +232,30 @@ export const useStore = create<AppState & StoreActions>()(
             dailyLimitMinutes: openings * minutesPerOpening,
           })),
         })),
+
+      setOpeningsLeftToday: (remaining) => {
+        const today = localDateString()
+        const { profile } = get()
+        const used =
+          profile.openingsDate === today ? (profile.openingsUsedToday ?? 0) : 0
+        const left = Math.max(0, Math.min(20, Math.floor(Number(remaining)) || 0))
+        const minutesPerOpening = profile.minutesPerOpening ?? 5
+        // remaining = dailyOpenings − used → keep used, raise/lower the daily cap
+        const dailyOpenings = used + left
+        set((s) => ({
+          profile: {
+            ...s.profile,
+            dailyOpenings,
+            minutesPerOpening,
+            openingsUsedToday: used,
+            openingsDate: today,
+          },
+          apps: s.apps.map((a) => ({
+            ...a,
+            dailyLimitMinutes: dailyOpenings * minutesPerOpening,
+          })),
+        }))
+      },
 
       getEarnedMinutes: (type, amount) => {
         const { profile } = get()

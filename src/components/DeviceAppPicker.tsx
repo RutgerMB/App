@@ -117,11 +117,7 @@ export function DeviceAppPicker({
             </div>
           ) : filtered.length === 0 ? (
             <p className="text-center text-white/40 py-8 text-sm">{t('apps.iosNoAppsPicked')}</p>
-          ) : onIosPicked ? (
-            <p className="text-center text-white/45 py-4 text-sm leading-relaxed">
-              {t('apps.iosPickAppsHint')}
-            </p>
-          ) : (
+          ) : onIosPicked ? null : (
             <div className="space-y-2 max-h-64 overflow-y-auto pb-2">
               {filtered.map((app) => (
                 <button
