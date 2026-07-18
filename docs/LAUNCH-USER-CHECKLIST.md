@@ -33,13 +33,14 @@ open ios/App/App.xcodeproj
 
 **Screen Time / “Authorize Screen Time” / app picker:**
 
-1. In [Apple Developer](https://developer.apple.com) → Identifiers → your App ID → enable **Family Controls** (request approval from Apple if prompted; wellbeing / parental-controls style justification).
-2. In Xcode → Signing & Capabilities: **Family Controls** + App Group `group.com.replock.fitness` must be present (see `App.entitlements`).
-3. Always sync with `npm run cap:ios:sync` (not bare `npx cap sync`) so `RepLockControls` stays linked **and** `RepLockControlsPlugin` is injected into `capacitor.config.json` → `packageClassList` (required for Capacitor to load it).
-4. Test on a **physical iPhone** (Simulator cannot authorize Screen Time).
-5. If you tapped **Allow** but the app still says denied: return to RepLock and tap **Authorize** again; or **Settings → Screen Time** → allow RepLock, then Authorize in-app. After approval you still must use the **app picker** (that is not a denial).
+1. In [Apple Developer](https://developer.apple.com) → Identifiers → your App ID → enable **Family Controls** (this checkbox = **Development**). There is usually **no “distribution” label** on that screen.
+2. For **TestFlight / App Store**, Account Holder requests the separate distribution entitlement: [Family Controls distribution](https://developer.apple.com/contact/request/family-controls-distribution) (or App ID → **Capability Requests** → Family Controls). Check status until **Assigned** + App Store provisioning. Repeat for extension App IDs. Full explanation: `IOS_SETUP.md`.
+3. In Xcode → Signing & Capabilities: **Family Controls** + App Group `group.com.replock.fitness` must be present (see `App.entitlements`).
+4. Always sync with `npm run cap:ios:sync` (not bare `npx cap sync`) so `RepLockControls` stays linked **and** `RepLockControlsPlugin` is injected into `capacitor.config.json` → `packageClassList` (required for Capacitor to load it).
+5. Test on a **physical iPhone** (Simulator cannot authorize Screen Time). Development builds can work after step 1; store builds need step 2.
+6. If you tapped **Allow** but the app still says denied: return to RepLock and tap **Authorize** again; or **Settings → Screen Time** → allow RepLock, then Authorize in-app. After approval you still must use the **app picker** (that is not a denial).
 
-Without Apple’s Family Controls approval on the App ID, Authorize and the app picker will appear to do nothing or fail immediately.
+Without Family Controls on the App ID (dev) or distribution approval (store), Authorize and the app picker will appear to do nothing or fail immediately.
 
 ### 4b. DeviceActivityReport extension (daily Screen Time totals)
 

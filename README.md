@@ -63,6 +63,7 @@ Dev device builds (LAN API): `npm run cap:ios:sync` — see **[IOS_SETUP.md](./I
 | `npm run dev` | Client (5173) + API (3001) |
 | `npm run build` | Production web build |
 | `npm test` | Vitest |
+| `npm run check:env` | Report `.env` keys set/missing (never prints secrets) |
 | `npm run cap:ios:sync` | Dev iPhone sync (LAN IP) |
 | `npm run cap:ios:prod` | Production bake + iOS sync (requires `VITE_API_URL`) |
 | `npm run cap:android` | Open Android Studio |
@@ -72,11 +73,12 @@ Dev device builds (LAN API): `npm run cap:ios:sync` — see **[IOS_SETUP.md](./I
 
 ```
 src/          React UI + Zustand
-server/       Express API (auth, sync, webhooks, IAP)
+server/       Express API (JWT fallback auth, Pro entitlement, RevenueCat webhooks, review account)
 ios/          Capacitor + Family Controls plugins / extensions
 android/      Capacitor + usage / blocker plugins
 ```
 
+Primary sign-in/sync is **Firebase** when configured; Express remains required for billing webhooks and store bake (`VITE_API_URL`).
 ## License
 
 MIT

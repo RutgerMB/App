@@ -19,6 +19,7 @@
     "marketing:subscription-screenshot": "node scripts/generate-subscription-screenshot.mjs",
     "preview": "vite preview",
     "test": "vitest run",
+    "check:env": "node scripts/check-env.mjs",
     "start": "tsx server/index.ts",
     "start:prod": "NODE_ENV=production tsx server/index.ts"
   },

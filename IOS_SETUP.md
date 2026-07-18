@@ -276,14 +276,19 @@ Apple does **not** let the main app process read OS Screen Time totals as number
 
 1. Open [developer.apple.com/account](https://developer.apple.com/account) → **Identifiers**.
 2. Confirm App ID `app.replock.bleeker` has:
-  - **Family Controls** (request approval if not yet granted; wellbeing / Screen Time justification)
+  - **Family Controls** (checkbox on the App ID — this alone is **Development**, not App Store/TestFlight)
   - **App Groups** → `group.com.replock.fitness`
 3. **+** → Register a new **App ID** (type: App) if missing:
   - Description: `RepLock Device Activity Report`
   - Bundle ID (Explicit): **`app.replock.bleeker.RepLockDeviceActivityReport`** (must match Xcode `PRODUCT_BUNDLE_IDENTIFIER`)
   - Capabilities: **Family Controls**, **App Groups** → same group `group.com.replock.fitness`
 4. If you use manual provisioning profiles, create a Development (and later Distribution) profile for the new App ID. With **Automatic Signing** in Xcode this is usually unnecessary.
-5. **Family Controls Development** (Xcode 15.4): for local device builds, Development Family Controls is enough once the capability is on both App IDs. Production/TestFlight still needs Apple’s Family Controls entitlement approval for the main app (and typically the extension).
+5. **Family Controls Development vs Distribution (important):**
+  - Turning on the **Family Controls** capability checkbox on the App ID (or adding it in Xcode) only unlocks **local Development** builds on a registered device. There is often **no label that says “distribution”** on that same checkbox screen — that is expected.
+  - For **TestFlight / App Store**, Apple’s Account Holder must request the separate **Family Controls distribution** entitlement (managed capability). Official request form: [Family Controls distribution](https://developer.apple.com/contact/request/family-controls-distribution). You can also start from **Certificates, Identifiers & Profiles** → your App ID → **Capability Requests** → Family Controls (see [Capability requests](https://developer.apple.com/help/account/capabilities/capability-requests/)).
+  - Submit the **same request for each Screen Time extension** App ID (e.g. `…RepLockDeviceActivityReport`, and Shield targets if you add them).
+  - **How to know you’re approved for distribution:** Capability Requests shows Family Controls as **Assigned**. Open the capability info and confirm **Provisioning Support** lists App Store / distribution methods you need. Apple may also email the Account Holder. Until then, Development device builds can work while Archive / TestFlight signing fails or Screen Time fails on store builds.
+  - Apple doc: [Requesting the Family Controls entitlement](https://developer.apple.com/documentation/familycontrols/requesting-the-family-controls-entitlement).
 
 Optional later (schedules / thresholds only — **not** needed for daily totals UI):
 

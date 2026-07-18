@@ -32,4 +32,4 @@ npm run cap:ios:prod
 open ios/App/App.xcodeproj   # Archive
 ```
 
-Family Controls **distribution** approval, physical device QA, store listing, and production API secrets are **you** — see LAUNCH-NOW.
+Family Controls **distribution** approval ([request form](https://developer.apple.com/contact/request/family-controls-distribution)), physical device QA, store listing, and production API secrets are **you** — see LAUNCH-NOW. Enabling the App ID checkbox alone is Development-only.

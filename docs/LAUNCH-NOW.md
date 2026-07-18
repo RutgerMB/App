@@ -29,7 +29,7 @@ App code, security controls, legal paths, and production bake scripts are in the
 
 ## Blocked on you
 
-1. **Apple Family Controls distribution approval** — Developer portal → App ID `app.replock.bleeker` (and extension IDs). Without this, blocking / authorize fails on TestFlight/App Store. *Why:* Apple must approve the entitlement for distribution.
+1. **Apple Family Controls distribution approval** — Enabling the App ID checkbox is **Development only**. Account Holder must request distribution at [Family Controls distribution](https://developer.apple.com/contact/request/family-controls-distribution) (or App ID → **Capability Requests**). Status should show **Assigned** with App Store provisioning. Do this for `app.replock.bleeker` and each Screen Time extension ID. Without this, blocking / authorize fails on TestFlight/App Store. Details: `IOS_SETUP.md` → Apple Developer portal.
 2. **Set production secrets + redeploy API** — On your API host: `JWT_SECRET`, `REVENUECAT_WEBHOOK_SECRET`, `APP_REVIEW_*`, `CLIENT_URL`, `TRUST_PROXY=1`, then restart (`npm run start:prod` or your process manager). *Why:* phones need a live HTTPS API and webhooks.
 3. **Set `VITE_API_URL` and Archive** — In Mac `.env`: `VITE_API_URL=https://YOUR-API-DOMAIN` + `VITE_REVENUECAT_API_KEY_IOS=appl_…`, then `npm run cap:ios:prod` → Xcode Archive. *Why:* store builds must not use LAN/`127.0.0.1`.
 4. **Physical iPhone QA** — Authorize Screen Time, pick apps, exercise unlock, sandbox IAP (monthly + yearly + restore). *Why:* Simulator cannot do Family Controls / real StoreKit sandbox.
