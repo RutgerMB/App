@@ -1,12 +1,15 @@
 # App Store Review Guide — RepLock
 
-Use this document when submitting to **Apple App Store Connect** and as a pre-submission checklist.
+Use this when submitting to **App Store Connect** and as a pre-submission checklist.
+
+**Bundle ID:** `app.replock.bleeker`  
+**Billing:** Apple In-App Purchase via RevenueCat (not Stripe on iOS)
 
 ---
 
 ## Demo login (required in Review Notes)
 
-Paste this into **App Review Information → Notes**:
+Paste into **App Review Information → Notes**:
 
 ```
 Demo account (email login):
@@ -18,19 +21,22 @@ How to test:
 2. Tap Exercise → pick any workout → complete sets
 3. Settings → Subscription shows Pro status on review account
 4. Settings → Delete account is available (do not delete review account during review)
+5. Manage / cancel subscription: Settings or Pricing → Manage or cancel subscription (opens Apple subscription management)
 
 No AI-generated content in this app. Exercise demos open MuscleWiki in Safari.
-Subscriptions on iOS use Apple In-App Purchase (product ID: replock_pro_monthly).
+Subscriptions on iOS use Apple In-App Purchase via RevenueCat
+(product IDs: replock_pro_monthly, replock_pro_yearly).
 ```
 
 ### Server setup
 
-Add to production `.env`:
+Add to production `.env` on the API host:
 
 ```env
 APP_REVIEW_EMAIL=RepLockIssue@outlook.com
 APP_REVIEW_PASSWORD=ChooseAStrongReviewPassword1!
 JWT_SECRET=generate-a-long-random-secret
+REVENUECAT_WEBHOOK_SECRET=from-revenuecat-webhook-auth-header
 ```
 
 The server auto-creates this account on startup with onboarding complete and Pro enabled.
@@ -44,118 +50,113 @@ The server auto-creates this account on startup with onboarding complete and Pro
 - [x] Demo credentials documented for reviewers
 - [x] **Delete account** in Settings (password required)
 - [x] No Google login → Sign in with Apple not required
-- [ ] Remove `VITE_ENABLE_DEV_LOGIN` from production builds
+- [ ] Confirm `VITE_ENABLE_DEV_LOGIN` / `VITE_ENABLE_DEV_LOGIN_NATIVE` are **unset** in store builds
 
-### Payments
-- [x] **iOS**: Stripe disabled; Apple IAP flow in app
-- [x] **Android EU**: Stripe Payment Sheet allowed
-- [x] **Web**: Stripe Checkout
-- [ ] Create subscription in **App Store Connect** → product ID `replock_pro_monthly`
-- [ ] Install native IAP plugin: `@capgo/native-purchases` + `npx cap sync ios`
-- [ ] Implement Apple Server API receipt verification (production)
-- [ ] No “buy on our website” links in iOS app
+### Payments (iOS)
+- [x] Stripe **disabled** on iOS; Apple IAP via RevenueCat (+ Capgo fallback)
+- [x] Products: `replock_pro_monthly`, `replock_pro_yearly`
+- [x] Auto-renew disclosure on pricing screen
+- [ ] Attach both subscriptions to version 1.0 in App Store Connect
+- [ ] Sandbox IAP test on physical iPhone (purchase + restore)
+- [ ] No “buy on our website” links in the iOS app
 
 ### Legal
-- [x] Privacy Policy at `/privacy` (link in Settings + Registration)
-- [x] Terms of Service at `/terms`
-- [x] Auto-renew subscription disclosure on pricing screen (iOS)
+- [x] Privacy: https://rutgermb.github.io/App/legal/privacy.html
+- [x] Terms: https://rutgermb.github.io/App/legal/terms.html
+- [x] Support: https://rutgermb.github.io/App/legal/support.html
+- [x] Delete account + cancel subscription paths documented in-app and on legal pages
 
-### Honest UI (no placeholder / false claims)
-- [x] Onboarding no longer claims OS-level app blocking
-- [x] Settings explains in-app tracking vs system blocking
-- [x] Help links to support, not Stripe test docs
-- [x] Removed fake star “social proof” from pricing
-- [x] Notifications labeled as in-app (push coming later)
-- [x] No “Coming soon” buttons that do nothing
-
-### Permissions
-- [ ] After `npx cap add ios`, add only needed `Info.plist` keys
-- [ ] Current app: **no camera, microphone, or location** requested
-- [ ] If adding push later: `NSUserNotificationsUsageDescription` with clear reason
+### Permissions (`Info.plist`)
+- [x] `NSUserNotificationsUsageDescription` — local reminders for exercise / screen-time habits
+- [x] No camera, microphone, or location requested
+- [x] Family Controls / Screen Time — justified for wellbeing app blocking (Apple approval required)
 
 ### Screenshots
-- [ ] Screenshots must match **actual** app UI
-- [ ] Do not show OS blocking that does not exist
+- [ ] Match **actual** app UI
 - [ ] Do not show features not in the build
-
-### AI content
-- [x] No AI generation — disclose in review notes if asked
+- [ ] Show Screen Time / blocking only if the archived build includes working Family Controls
 
 ---
 
-## iOS project setup
+## iOS project (already in repo)
 
-```powershell
-cd C:\Users\Admin\Documents\GitHub\App
-npm.cmd run build
-npx cap add ios
-npx cap sync ios
-npm.cmd run cap:ios
+```bash
+# On Mac — production Archive path
+# 1. Set in .env:
+#    VITE_API_URL=https://YOUR-API-DOMAIN
+#    VITE_REVENUECAT_API_KEY_IOS=appl_…
+npm install
+npm run cap:ios:prod
+open ios/App/App.xcodeproj
+# Signing: Team + Family Controls + App Group group.com.replock.fitness
+# Product → Archive → App Store Connect
 ```
 
-In Xcode:
-1. Set **Bundle ID**: `app.replock.bleeker` (already set in `ios/App/App.xcodeproj`)
-2. Signing & Capabilities → your team
-3. Add **In-App Purchase** capability
-4. Create subscription product `replock_pro_monthly` in App Store Connect
+Dev device builds (LAN API): see `IOS_SETUP.md` / `npm run cap:ios:sync`.
 
 ---
 
-## Android (Google Play)
+## Android (Google Play) — later
 
-- Stripe is acceptable for digital subscriptions on Android (including EU).
-- Set `VITE_STRIPE_PUBLISHABLE_KEY` and `STRIPE_SECRET_KEY`.
-- Remove `android:usesCleartextTraffic="true"` for production API (HTTPS only).
+- Package: `com.replock.app`
+- Billing: RevenueCat + Play Billing (not Stripe for digital subscriptions on Play)
+- See `docs/LAUNCH-USER-CHECKLIST.md` Phase 4
 
 ---
 
 ## Environment variables (production)
 
 ```env
-# Required
+# API host (server)
 JWT_SECRET=
 APP_REVIEW_EMAIL=RepLockIssue@outlook.com
 APP_REVIEW_PASSWORD=
+REVENUECAT_WEBHOOK_SECRET=
+CLIENT_URL=https://YOUR-API-DOMAIN
+TRUST_PROXY=1
 
-# iOS
+# Client bake-in (before cap:ios:prod / vite build)
+VITE_API_URL=https://YOUR-API-DOMAIN
+VITE_REVENUECAT_API_KEY_IOS=appl_xxx
+VITE_REVENUECAT_API_KEY_ANDROID=goog_xxx
 VITE_APPLE_PRODUCT_ID=replock_pro_monthly
 
-# Android / web payments
-VITE_STRIPE_PUBLISHABLE_KEY=
-STRIPE_SECRET_KEY=
-
-# Legal (optional — defaults to GitHub Pages URLs in production builds)
+# Legal (optional — defaults to GitHub Pages)
 VITE_PRIVACY_URL=https://rutgermb.github.io/App/legal/privacy.html
 VITE_TERMS_URL=https://rutgermb.github.io/App/legal/terms.html
 VITE_SUPPORT_URL=https://rutgermb.github.io/App/legal/support.html
 VITE_SUPPORT_EMAIL=RepLockIssue@outlook.com
 
-# Do NOT set in production:
+# Do NOT set in store builds:
 # VITE_ENABLE_DEV_LOGIN
+# VITE_ENABLE_DEV_LOGIN_NATIVE
 ```
+
+Legacy Stripe keys may remain on the server for old web/dev routes; they are **not** used for iOS store billing.
 
 ---
 
 ## What Apple reviewers test (~90 seconds)
 
-1. Tap buttons — nothing broken or placeholder
+1. Tap through — nothing broken or placeholder
 2. Log in with demo account
-3. Subscription uses **Apple IAP** on iOS (not Stripe)
-4. Permission prompts justified (we request none today)
+3. Subscription uses **Apple IAP** (not Stripe)
+4. Permission prompts justified (`NSUserNotificationsUsageDescription` + Family Controls)
 5. Screenshots match app
 6. Account deletion works in Settings
 7. Privacy policy accessible
 
 ---
 
-## Remaining before submit
+## Remaining before submit (ops — not code)
 
 | Item | Priority |
 |------|----------|
-| `npx cap add ios` + signing | Blocker |
-| App Store Connect IAP product | Blocker |
-| `@capgo/native-purchases` native sync | Blocker |
-| Apple receipt server verification | High |
-| Host privacy/terms on replock.app | High |
-| Production API on HTTPS | High |
-| Stripe webhooks for Android | Medium |
+| Family Controls **distribution** approval on App ID | Blocker |
+| `VITE_API_URL` + `npm run cap:ios:prod` + Archive | Blocker |
+| App Store Connect products + attach to v1.0 | Blocker |
+| Sandbox IAP on physical iPhone | Blocker |
+| Screenshots / listing / Submit for Review | Blocker |
+| RevenueCat webhook + production API secrets | Blocker |
+
+Full user steps: `docs/LAUNCH-USER-CHECKLIST.md` · Status: `docs/LAUNCH-NOW.md`

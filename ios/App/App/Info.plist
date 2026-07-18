@@ -54,7 +54,10 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<!-- Injected by npm run cap:ios:sync from VITE_REVENUECAT_API_KEY_IOS (must be appl_…) -->
+	<!-- Local reminders (Capacitor Local Notifications) — required when requesting notification permission -->
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>RepLock sends local reminders to help you stay consistent with your exercise goals and screen-time balance.</string>
+	<!-- Injected by npm run cap:ios:sync / cap:ios:prod from VITE_REVENUECAT_API_KEY_IOS (must be appl_…) -->
 	<key>REVENUECAT_API_KEY</key>
 	<string>appl_wyLXhwBjmEYyTyYSCiIgBfRfuhR</string>
 </dict>

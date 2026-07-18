@@ -24,7 +24,8 @@ Follow **every step** below on your **Mac** (not Windows).
 | ------------------------------ | ------------------------------------------------------------------------------------- |
 | Login / API                    | Works (`npm run cap:ios:sync`)                                                        |
 | Screen Time / app blocking     | Native (`RepLockControls` local SPM plugin)                                           |
-| Daily Screen Time totals (iOS) | Needs **DeviceActivityReport** extension target in Xcode (sources in repo; see below) |
+| Daily Screen Time totals (iOS) | **DeviceActivityReport** target already in `App.xcodeproj` (confirm signing on Mac; see below) |
+| Branded shield UI | Sources in repo; **Shield** Xcode targets still need one-time Mac add (see below) |
 | Apple In-App Purchase          | Native (`CapgoNativePurchases` local SPM plugin)                                      |
 
 

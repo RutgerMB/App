@@ -42,8 +42,8 @@ function XIcon({ className }: { className?: string }) {
 
 export function AppBrandIcon({
   brand,
-  name,
-  color,
+  name: _name,
+  color: _color,
   size = 'md',
   className,
 }: {
@@ -53,6 +53,8 @@ export function AppBrandIcon({
   size?: 'sm' | 'md' | 'lg'
   className?: string
 }) {
+  void _name
+  void _color
   const sizes = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-12 h-12 text-base' }
   const iconSizes = { sm: 'w-4 h-4', md: 'w-5 h-5', lg: 'w-6 h-6' }
 

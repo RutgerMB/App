@@ -1,15 +1,15 @@
 # RepLock Launch Readiness
 
-Last verified: **2026-07-14** — run `npm test && npm run build && npx tsc --noEmit` before submission.
+Last verified: **2026-07-18** — see **`docs/LAUNCH-NOW.md`** for the live verdict.
 
-## Launch readiness: **Almost ready**
+## Launch readiness: **NOT READY** (code ready, ops not)
 
-Code, tests, and polish are complete. **Physical device QA and store configuration** remain before App Store / Play submission.
+Code, tests, docs, and production bake path are in repo. **Family Controls distribution approval, production API URL/secrets, physical device QA, and App Store Connect** remain before submit.
 
 | Score | Meaning |
 |-------|---------|
-| **Not ready** | Blockers in core flows |
-| **Almost ready** ← current | Code ready; needs device QA + store wiring |
+| **Not ready** ← current (ops) | Blockers outside the repo |
+| **Almost ready** | Code ready; needs device QA + store wiring |
 | **Ready** | Sandbox IAP verified on real devices, listings complete |
 
 ---
@@ -20,85 +20,51 @@ Code, tests, and polish are complete. **Physical device QA and store configurati
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Onboarding + auth | ✓ | 15 effective steps (POTENTIAL + WEEK_ONE skipped at runtime); explicit app selection or “Use popular defaults” |
-| Home screen | ✓ | Apps strip, single primary upsell (TrialBanner), header upgrade chip |
-| Pro entitlement | ✓ | Server-authoritative; Success page fails on refresh error |
-| Mobile billing | ✓ | RevenueCat (iOS + Android) with Capgo/Apple fallback |
-| Yearly plan | ✓ | €59.99/yr (37% off monthly) |
+| Onboarding + auth | ✓ | Explicit app selection or popular defaults |
+| Home / Pro entitlement | ✓ | Server-authoritative |
+| Mobile billing | ✓ | RevenueCat (iOS + Android) with Capgo fallback |
+| Yearly plan | ✓ | €59.99/yr |
 | Screen Time blocking | ✓ | RepLockControls (iOS 16+) |
-| Apps page | ✓ | Pro/trial custom daily limits UI; trial expiry toast when apps trimmed |
-| Settings | ✓ | Notifications toggle requests push permission; honest “scheduled reminders coming” copy |
-| Dev login | ✓ | Disabled in production builds (`dev-auth.ts`) |
-| i18n | ✓ | en + nl/de/fr/es — activity insights + exercise/workout keys synced |
+| Delete account | ✓ | Settings + API |
+| Cancel subscription | ✓ | Manage or cancel → Apple/Google subscription URL |
 | Legal pages | ✓ | GitHub Pages privacy, terms, support |
-| Tests / build | ✓ | `npm test`, `npm run build`, `npx tsc --noEmit` |
-| Docs | ✓ | `docs/LAUNCH-USER-CHECKLIST.md` for Mac/ASC/RevenueCat steps |
+| API security | ✓ | Rate limits, JSON-only, validation, IP ban |
+| Notifications plist | ✓ | `NSUserNotificationsUsageDescription` |
+| Production bake | ✓ | `npm run cap:ios:prod` |
+| Dev login | ✓ | Disabled in production builds |
+| i18n | ✓ | en + nl/de/fr/es |
+| Docs | ✓ | LAUNCH-NOW, checklist, review, RevenueCat (correct bundle IDs) |
 
-### USER-MUST-DO (cannot automate)
+### USER-MUST-DO
 
-See **`docs/LAUNCH-USER-CHECKLIST.md`** for numbered copy-paste steps.
-
-| Priority | Task | Where |
-|----------|------|-------|
-| P0 | Xcode archive + upload build v1.0 | Mac + Xcode |
-| P0 | Attach subscriptions to v1.0 | App Store Connect |
-| P0 | Sandbox IAP test (monthly, yearly, restore) | Physical iPhone |
-| P0 | RevenueCat production API keys + webhook URL | RevenueCat dashboard |
-| P0 | Entitlement `pro` + publish paywall | RevenueCat dashboard |
-| P1 | Screenshots, description, App Privacy, submit | App Store Connect |
-| P1 | Play listing, billing, permissions | Google Play Console |
-| P1 | Deploy server with `REVENUECAT_WEBHOOK_SECRET` | Your API host |
+See **`docs/LAUNCH-NOW.md`** and **`docs/LAUNCH-USER-CHECKLIST.md`**.
 
 ### DEFERRED (not launch blockers)
 
 | Item | Notes |
 |------|-------|
-| Stripe web checkout | Dev/legacy only; mobile uses IAP |
-| Web PWA subscriptions | Testing surface only |
-| iOS daily usage totals from Screen Time | Blocking works via shield UI |
-| Push notification scheduling | Permission requested; local/push scheduling planned |
-| Workout templates on Apps page | “Coming soon” placeholder |
-| Onboarding further shortening | 15 steps kept for conversion (permission + goal setup + trial CTA) |
+| Stripe web checkout | Legacy/dev only; mobile uses IAP |
+| Web subscriptions | Testing surface only |
+| Shield Xcode targets | Sources ready; add on Mac for branded shield |
+| Push scheduling beyond local reminders | Permission + local notifications in place |
+| Google Play full launch | Can follow iOS |
 
 ---
 
-## Why onboarding has ~15 steps
-
-Internal step IDs go up to 17, but **POTENTIAL (7) and WEEK_ONE (8) are skipped** after YEARS — users see **~15 screens**. Remaining steps are intentional:
-
-1. **Trust & personalization** — language, screen-time estimate, years-on-phone reveal  
-2. **Permissions** — Screen Time / usage access (required for blocking)  
-3. **Setup** — app picker (explicit selection or confirmed defaults), daily goal  
-4. **Conversion** — notifications permission, trial/pricing fork, difficulty, name  
-
-Removing permission or goal steps would break blocking or leave users without apps configured.
-
----
-
-## Launch model
-
-**Mobile-only.** RepLock ships on App Store + Google Play. The web build is for development and testing — subscriptions are not offered on web.
-
-## Pricing (recommended)
-
-| Plan | Price |
-|------|-------|
-| Monthly | €7.99/mo |
-| Yearly | €59.99/yr (~€5/mo) |
-
-## Production env
+## Production env (summary)
 
 ```env
-JWT_SECRET=<strong-random>
-CLIENT_URL=https://your-api-domain.com
+# Client bake-in
+VITE_API_URL=https://YOUR-API-DOMAIN
 VITE_REVENUECAT_API_KEY_IOS=appl_xxx
-VITE_REVENUECAT_API_KEY_ANDROID=goog_xxx
-REVENUECAT_WEBHOOK_SECRET=<from RevenueCat dashboard>
+
+# API host
+JWT_SECRET=<strong-random>
+CLIENT_URL=https://YOUR-API-DOMAIN
+REVENUECAT_WEBHOOK_SECRET=<from RevenueCat>
 ```
 
 **Do not set** `VITE_ENABLE_DEV_LOGIN` or `VITE_ENABLE_DEV_LOGIN_NATIVE` in store builds.
-
-Deploy `firestore.rules` if using Firebase.
 
 ## Legal / support (live)
 
@@ -109,6 +75,8 @@ Deploy `firestore.rules` if using Firebase.
 
 ## Related docs
 
+- **Verdict:** `docs/LAUNCH-NOW.md`
 - **User steps:** `docs/LAUNCH-USER-CHECKLIST.md`
 - **RevenueCat:** `docs/REVENUECAT_SETUP.md`
 - **iOS build:** `IOS_SETUP.md`
+- **Review:** `APP_STORE_REVIEW.md`

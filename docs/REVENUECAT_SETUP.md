@@ -1,16 +1,24 @@
 # RevenueCat Setup (Mobile Launch)
 
-RepLock uses **RevenueCat** for iOS + Android subscriptions. Web is dev-only — no web checkout.
+RepLock uses **RevenueCat** for iOS + Android subscriptions. Web is dev/testing only — no web checkout for launch.
+
+## Bundle IDs (must match stores + RevenueCat apps)
+
+| Platform | Bundle / application ID |
+|----------|-------------------------|
+| **iOS** | `app.replock.bleeker` |
+| **Android** | `com.replock.app` |
 
 ## 1. RevenueCat dashboard
 
 1. Create project **RepLock**
-2. Add iOS app (`com.replock.app`) and Android app (`com.replock.app`)
-3. Create entitlement: `pro`
-4. Add products:
+2. Add **iOS** app with bundle ID `app.replock.bleeker`
+3. Add **Android** app with package name `com.replock.app`
+4. Create entitlement: `pro`
+5. Add products:
    - iOS: `replock_pro_monthly`, `replock_pro_yearly`
    - Android: `replock_pro` with base plans `monthly-plan`, `yearly-plan`
-5. Create offering `default`:
+6. Create offering `default`:
    - `$rc_annual` → yearly product (**default package**)
    - `$rc_monthly` → monthly product
 
@@ -40,7 +48,7 @@ REVENUECAT_WEBHOOK_SECRET=your_webhook_authorization_header_value
 | `test_…` | RevenueCat **Test Store** only (simulated catalog) — empty offerings on a real device |
 | `goog_…` | Android Play Store |
 
-`npm run cap:ios:sync` refuses to bake a `test_` key and injects `appl_…` into `.env.iphone-dev` + `Info.plist` `REVENUECAT_API_KEY` so JS (`Purchases.configure`) and native (`RepLockRevenueCat`) share the same key.
+`npm run cap:ios:sync` / `npm run cap:ios:prod` refuse to bake a `test_` key and inject `appl_…` into `Info.plist` `REVENUECAT_API_KEY` so JS (`Purchases.configure`) and native (`RepLockRevenueCat`) share the same key.
 
 ## 4. Webhook
 
@@ -54,8 +62,8 @@ REVENUECAT_WEBHOOK_SECRET=your_webhook_authorization_header_value
 ## 5. Fallback (no RevenueCat keys)
 
 - **iOS:** Capgo native purchases + server Apple verify (sandbox)
-- **Android:** Legacy Stripe native (dev only) — configure RevenueCat before Play launch
+- **Android:** Configure RevenueCat before Play launch (do not rely on legacy Stripe for store builds)
 
-## 6. Pricing rationale
+## 6. Pricing
 
-Pricing: **€7.99/mo**, **€59.99/yr** (37% annual discount).
+**€7.99/mo**, **€59.99/yr** (37% annual discount).

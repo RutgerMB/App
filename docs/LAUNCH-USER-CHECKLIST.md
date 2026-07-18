@@ -61,13 +61,22 @@ Until the `.appex` is embedded and you rebuild on a physical iPhone, onboarding 
 | **Release / production** with `VITE_API_URL=https://YOUR-DEPLOYED-API` baked in | **No** — phone talks to the deployed API |
 | **Dev** (`npm run cap:ios:sync` / LAN IP in `.env.iphone-dev`) | **Yes** — Mac/PC must run the API on port 3001, same Wi‑Fi |
 
-For App Store / TestFlight / production device builds, set in `.env` (or CI secrets) before `vite build` / `npm run build:mobile`:
+For App Store / TestFlight / production device builds, set in `.env` (gitignored) on your Mac:
 
 ```env
 VITE_API_URL=https://YOUR-API-DOMAIN
+VITE_REVENUECAT_API_KEY_IOS=appl_…
 ```
 
-Do **not** ship builds that only have `VITE_API_URL_NATIVE=http://127.0.0.1:3001` or a LAN IP — those require your computer to be online.
+Then bake + sync (fails closed if URL/key missing):
+
+```bash
+npm run cap:ios:prod
+open ios/App/App.xcodeproj
+# Product → Archive
+```
+
+Do **not** ship builds that only have `VITE_API_URL_NATIVE=http://127.0.0.1:3001` or a LAN IP — those require your computer to be online. Do **not** use `npm run cap:ios:sync` for store archives (that is the LAN dev path).
 
 Webhook URL (RevenueCat): `https://YOUR-API-DOMAIN/api/webhooks/revenuecat`
 
@@ -214,18 +223,24 @@ npx tsc --noEmit
 ## Quick reference — env vars
 
 ```env
+# API host
 JWT_SECRET=<strong-random>
 CLIENT_URL=https://your-api-domain.com
+REVENUECAT_WEBHOOK_SECRET=<from RevenueCat>
+
+# Client bake-in (before npm run cap:ios:prod)
+VITE_API_URL=https://your-api-domain.com
 VITE_REVENUECAT_API_KEY_IOS=appl_xxx
 VITE_REVENUECAT_API_KEY_ANDROID=goog_xxx
-REVENUECAT_WEBHOOK_SECRET=<from RevenueCat>
 ```
 
 **Never** set `VITE_ENABLE_DEV_LOGIN` or `VITE_ENABLE_DEV_LOGIN_NATIVE` in store builds.
+
+Full template: `.env.example` · Status: `docs/LAUNCH-NOW.md`
 
 ---
 
 ## Support
 
 - Issues: RepLockIssue@outlook.com  
-- Status doc: `docs/LAUNCH-READY.md`
+- Status doc: `docs/LAUNCH-NOW.md`

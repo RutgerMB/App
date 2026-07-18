@@ -2,90 +2,80 @@
 
 **Replace doomscrolling with exercise.** Do push-ups, squats, or planks to earn screen time and unlock your apps.
 
-A production-quality mobile-first PWA built with React, Tailwind CSS, and Stripe.
+Native **iOS + Android** apps (Capacitor) with Screen Time / usage blocking and **RevenueCat** subscriptions. The web build is for development and testing only.
+
+| Platform | ID |
+|----------|-----|
+| iOS | `app.replock.bleeker` |
+| Android | `com.replock.app` |
 
 ## Features
 
-- **Exercise to earn** — 9 workouts from jumping jacks to burpees, with varying earn rates
-- **App locking** — Manage distracting apps, spend earned screen time to unlock them (in-app tracking)
-- **Streak tracking** — Build daily exercise habits with streak counters
-- **RepLock Pro** — €7.99/mo subscription with unlimited apps, custom limits, streak protection
+- **Exercise to earn** — workouts with varying earn rates
+- **OS-level app locking** — Family Controls (iOS) / Usage Access (Android)
+- **Streak tracking** — daily exercise habits
+- **RepLock Pro** — €7.99/mo or €59.99/yr (unlimited apps, custom limits, insights)
 - **5 languages** — English, Dutch, German, French, Spanish
-- **Premium UI** — Dark, polished interface inspired by Linear, Stripe, and Arc
 
-## Quick start
+## Quick start (dev)
 
 ```bash
-# Install dependencies
 npm install
-
-# Copy environment file (optional — works in demo mode without Stripe)
 cp .env.example .env
-
-# Start dev server (client + API)
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) on your phone or desktop.
+Open [http://localhost:5173](http://localhost:5173). API runs on port 3001.
 
-## Stripe setup (test mode)
+## Production iOS (App Store / TestFlight)
 
-1. Create a [Stripe account](https://dashboard.stripe.com/register)
-2. Copy your **test** secret key from [API keys](https://dashboard.stripe.com/test/apikeys)
-3. Add to `.env`:
-   ```
-   STRIPE_SECRET_KEY=sk_test_...
-   CLIENT_URL=http://localhost:5173
-   ```
-4. Use test card `4242 4242 4242 4242` with any future expiry and CVC
+On a **Mac**, set secrets in `.env` (never commit real values):
 
-Pro is **€7.99/month** (EUR).
+```env
+VITE_API_URL=https://YOUR-API-DOMAIN
+VITE_REVENUECAT_API_KEY_IOS=appl_YOUR_KEY
+```
 
-Without Stripe keys, the app runs in **demo mode** — checkout redirects to success automatically.
-
-## Mobile app (Capacitor)
-
-Build and sync to native projects:
+Then:
 
 ```bash
-npm run build:mobile    # build web + sync to android/
-npm run cap:android     # open Android Studio (Samsung/Google Play)
-npm run cap:ios         # open Xcode (requires Mac — App Store)
+npm run cap:ios:prod
+open ios/App/App.xcodeproj
+# Product → Archive
 ```
 
-The `android/` folder is ready for Android Studio. See **[LAUNCH.md](./LAUNCH.md)** for store submission steps.
+Dev device builds (LAN API): `npm run cap:ios:sync` — see **[IOS_SETUP.md](./IOS_SETUP.md)**.
 
+## Launch docs
 
-## Architecture
-
-```
-src/
-├── components/     # UI primitives (Button, Card, Modal, etc.)
-├── pages/          # Route pages (Home, Exercise, Apps, etc.)
-├── store/          # Zustand state with localStorage persistence
-├── lib/            # Utilities and API helpers
-└── types/          # TypeScript definitions
-
-server/
-└── index.ts        # Express API (Stripe checkout, verification)
-```
+| Doc | Purpose |
+|-----|---------|
+| **[docs/LAUNCH-NOW.md](./docs/LAUNCH-NOW.md)** | Done in repo · blocked on you · verdict |
+| [docs/LAUNCH-USER-CHECKLIST.md](./docs/LAUNCH-USER-CHECKLIST.md) | Numbered Mac / ASC / RevenueCat steps |
+| [APP_STORE_REVIEW.md](./APP_STORE_REVIEW.md) | Review notes + checklist |
+| [docs/REVENUECAT_SETUP.md](./docs/REVENUECAT_SETUP.md) | RevenueCat dashboard |
+| [docs/API-SECURITY.md](./docs/API-SECURITY.md) | Rate limits, bans, deploy notes |
 
 ## Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start client (5173) + server (3001) |
-| `npm run build` | Production build |
-| `npm start` | Serve production build |
+| `npm run dev` | Client (5173) + API (3001) |
+| `npm run build` | Production web build |
+| `npm test` | Vitest |
+| `npm run cap:ios:sync` | Dev iPhone sync (LAN IP) |
+| `npm run cap:ios:prod` | Production bake + iOS sync (requires `VITE_API_URL`) |
+| `npm run cap:android` | Open Android Studio |
+| `npm run start:prod` | Run API with `NODE_ENV=production` |
 
-## Tech stack
+## Architecture
 
-- React 19 + TypeScript
-- Tailwind CSS 4
-- Framer Motion
-- Zustand (persisted state)
-- Express + Stripe Checkout
-- Vite
+```
+src/          React UI + Zustand
+server/       Express API (auth, sync, webhooks, IAP)
+ios/          Capacitor + Family Controls plugins / extensions
+android/      Capacitor + usage / blocker plugins
+```
 
 ## License
 
