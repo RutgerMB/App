@@ -402,3 +402,63 @@ VITE_REVENUECAT_API_KEY_IOS=appl_YOUR_KEY_HERE
 1. Re-run `npm run cap:ios:sync` — it copies the key into the Vite build and `Info.plist` so JS and native Swift use the same key. Sync **fails** if the key is missing or starts with `test_`.
 
 Xcode warning *"Using a Test Store API key"* / *"No packages could be found for offering defaults"* means a `test_` key was still baked — fix the env and sync again.
+
+---
+
+## Shield Configuration & Action extensions (blocked-app screen branding)
+
+When a shielded app is opened, iOS shows a system **shield**. You can customize title / subtitle / icon / buttons with two app extensions (same Family Controls + App Group pattern as DeviceActivityReport).
+
+### What is already in the repo
+
+| Path | Role |
+|------|------|
+| `ios/App/RepLockShieldConfiguration/` | `ShieldConfigurationDataSource` — RepLock title, earn-minutes copy, green primary button |
+| `ios/App/RepLockShieldAction/` | `ShieldActionDelegate` — primary writes App Group handoff + closes shield |
+| `RepLockControls.consumeShieldHandoff` | Main app reads/clears the handoff; JS routes to `/exercise` |
+
+**Xcode targets are not yet in `App.xcodeproj`** — add them once on Mac (steps below). Sources + entitlements + Info.plist are committed.
+
+### Honest Apple limitation
+
+Shield Action **cannot** reliably `openURL` / deep-link into RepLock. Apple has stated there is no supported API to launch the containing app from a shield. RepLock therefore:
+
+1. Shows **Earn minutes** on the shield
+2. Writes `replock.shield.pendingEarnMinutes` to `group.com.replock.fitness`
+3. Closes the shield (`.close`)
+4. When the user opens RepLock, `ShieldHandoffSync` navigates to Exercise
+
+### A. Apple Developer portal
+
+1. Register App IDs (Explicit) if missing:
+   - `app.replock.bleeker.RepLockShieldConfiguration`
+   - `app.replock.bleeker.RepLockShieldAction`
+2. Enable **Family Controls** + **App Groups** → `group.com.replock.fitness` on both.
+
+### B. Mac / Xcode (add targets)
+
+```bash
+cd ~/Documents/GitHub/App
+git pull
+npm run cap:ios:sync
+open ios/App/App.xcodeproj
+```
+
+For **each** of Configuration and Action:
+
+1. **File → New → Target…** → **App Extension** → **Shield Configuration Extension** / **Shield Action Extension** (or blank App Extension and set the extension point in Info.plist).
+2. Product Name / Bundle ID:
+   - `RepLockShieldConfiguration` → `app.replock.bleeker.RepLockShieldConfiguration`
+   - `RepLockShieldAction` → `app.replock.bleeker.RepLockShieldAction`
+3. Replace generated Swift with the committed sources under `ios/App/RepLockShieldConfiguration/` and `ios/App/RepLockShieldAction/`.
+4. Point **Info.plist** and **Code Signing Entitlements** at the committed files (or copy their keys).
+5. Signing & Capabilities: same Team as **App**; **Family Controls** + **App Groups** → `group.com.replock.fitness`.
+6. App target → **Build Phases → Embed Foundation Extensions** (or Embed App Extensions): both `.appex` present, **Embed & Sign**.
+7. Optional: add an imageset named **`ShieldLogo`** to the Configuration target's asset catalog (uses SF Symbol fallback otherwise).
+8. **Product → Clean Build Folder**, Run **App** scheme on a **physical iPhone**.
+
+### Verify
+
+1. Authorize Screen Time → pick apps → Save nicknames → Apps tab lists them.
+2. Open a blocked app → shield shows **RepLock** + **Earn minutes**.
+3. Tap Earn minutes → shield closes → open RepLock → lands on Exercise.

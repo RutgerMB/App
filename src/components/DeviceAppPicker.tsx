@@ -16,10 +16,21 @@ interface DeviceAppPickerProps {
   open: boolean
   onClose: () => void
   onSelect: (app: DeviceAppDefinition) => void
+  /**
+   * iOS: after FamilyActivityPicker + nickname Save, commit the full selection
+   * into the lock list (no per-app "Add" step).
+   */
+  onIosPicked?: (apps: DeviceAppDefinition[]) => void
   excludeIds: string[]
 }
 
-export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceAppPickerProps) {
+export function DeviceAppPicker({
+  open,
+  onClose,
+  onSelect,
+  onIosPicked,
+  excludeIds,
+}: DeviceAppPickerProps) {
   const { t } = useTranslation()
   const { toast } = useToast()
   const [apps, setApps] = useState<DeviceAppDefinition[]>([])
@@ -55,6 +66,13 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
       setApps(result.apps)
       if (result.apps.length === 0) {
         toast(t('apps.iosNoAppsPicked'), 'info')
+        return
+      }
+      // Nicknames were required in the native confirmation sheet — commit now.
+      if (onIosPicked) {
+        onIosPicked(result.apps)
+        onClose()
+        return
       }
     } catch {
       toast(t('apps.iosPickError_failed'), 'error')
@@ -64,7 +82,10 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
   }
 
   const filtered = apps.filter((app) => {
-    if (excludeIds.includes(app.id) || excludeIds.includes(app.packageName ?? '')) return false
+    // Never treat empty strings as exclude keys (brand/package can be blank on iOS).
+    if (app.id && excludeIds.includes(app.id)) return false
+    if (app.packageName && excludeIds.includes(app.packageName)) return false
+    if (app.iosTokenId && excludeIds.includes(app.iosTokenId)) return false
     if (search && !app.name.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
@@ -96,6 +117,10 @@ export function DeviceAppPicker({ open, onClose, onSelect, excludeIds }: DeviceA
             </div>
           ) : filtered.length === 0 ? (
             <p className="text-center text-white/40 py-8 text-sm">{t('apps.iosNoAppsPicked')}</p>
+          ) : onIosPicked ? (
+            <p className="text-center text-white/45 py-4 text-sm leading-relaxed">
+              {t('apps.iosPickAppsHint')}
+            </p>
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto pb-2">
               {filtered.map((app) => (

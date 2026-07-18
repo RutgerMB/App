@@ -57,6 +57,15 @@ interface StoreActions {
   setDifficulty: (difficulty: Difficulty) => void
   setNotificationsEnabled: (enabled: boolean) => void
   setOnboardingApps: (selectedApps: DeviceAppDefinition[], dailyLimitMinutes: number) => void
+  /**
+   * Merge Apple FamilyActivityPicker results (with nicknames) into the lock list.
+   * Replaces prior iOS-token apps; keeps Android/package apps untouched.
+   * Returns how many apps ended up in the iOS lock set (capped by plan limit).
+   */
+  syncIosPickedApps: (
+    picked: DeviceAppDefinition[],
+    dailyLimitMinutes?: number
+  ) => { synced: number; truncated: boolean }
   setBlockingGoal: (openings: number, minutesPerOpening?: number) => void
   completeExercise: (type: ExerciseType, amount: number, durationSeconds: number) => number
   unlockApp: (appId: string, minutes: number) => boolean
@@ -144,6 +153,73 @@ export const useStore = create<AppState & StoreActions>()(
             setIosDisplayNames(names)
           )
         }
+      },
+
+      syncIosPickedApps: (picked, dailyLimitMinutes) => {
+        const state = get()
+        const limitMins =
+          dailyLimitMinutes ??
+          (state.profile.dailyOpenings ?? DEFAULT_DAILY_OPENINGS) *
+            (state.profile.minutesPerOpening ?? 5)
+
+        const nonIos = state.apps.filter((a) => !a.iosTokenId)
+        const byToken = new Map(
+          state.apps.filter((a) => a.iosTokenId).map((a) => [a.iosTokenId!, a])
+        )
+
+        const nextIos: LockedApp[] = []
+        const names: Record<string, string> = {}
+
+        for (const appData of picked) {
+          const tokenId = appData.iosTokenId || appData.id
+          if (!tokenId) continue
+          const rawName = (appData.name || '').trim()
+          const isPlaceholder = /^App \d+$/i.test(rawName)
+          const name = isPlaceholder ? rawName : rawName || 'App'
+          const existing = byToken.get(tokenId)
+          if (existing) {
+            nextIos.push({
+              ...existing,
+              name: isPlaceholder ? existing.name : name,
+              color: appData.color || existing.color,
+              brand: appData.brand ?? existing.brand,
+            })
+          } else {
+            nextIos.push({
+              id: generateId(),
+              name,
+              icon: '',
+              brand: appData.brand,
+              packageName: appData.packageName,
+              iosTokenId: tokenId,
+              color: appData.color,
+              dailyLimitMinutes: limitMins,
+              usedMinutes: 0,
+              isLocked: true,
+              unlockedUntil: null,
+            })
+          }
+          if (!isPlaceholder && name) names[tokenId] = name
+        }
+
+        const planLimit = getAppLimit(state.profile)
+        const roomForIos =
+          planLimit === Infinity
+            ? nextIos.length
+            : Math.max(0, planLimit - nonIos.length)
+        const truncated = nextIos.length > roomForIos
+        const cappedIos = nextIos.slice(0, roomForIos)
+
+        set({ apps: [...nonIos, ...cappedIos] })
+        scheduleBlockingSync()
+
+        if (Object.keys(names).length > 0) {
+          void import('@/lib/replock-controls').then(({ setIosDisplayNames }) =>
+            setIosDisplayNames(names)
+          )
+        }
+
+        return { synced: cappedIos.length, truncated }
       },
 
       setBlockingGoal: (openings, minutesPerOpening = 5) =>

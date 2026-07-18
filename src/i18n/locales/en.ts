@@ -578,10 +578,11 @@ export const en: Translations = {
     deviceAppsNative: 'Only apps installed on your phone are shown.',
     deviceAppsWeb: 'Browse sample apps for the web demo. On Android, your installed apps appear here.',
     deviceAppsIos: 'Pick apps with Apple\'s Screen Time picker — RepLock cannot list installed apps.',
-    iosPickAppsHint: 'Apple requires you to choose apps in the system Screen Time picker. After picking, type a nickname for each app so it shows up in RepLock (Apple blocks reading real names into the web UI).',
+    iosPickAppsHint: 'Apple requires you to choose apps in the system Screen Time picker. After picking, type a nickname for each app and tap Save — they are added to your blocked list automatically (Apple blocks reading real names into the web UI).',
     iosPickAppsButton: 'Choose apps to block',
     iosPickAppsAgain: 'Change selected apps',
     iosNoAppsPicked: 'No apps selected yet. Tap the button above to pick distractions.',
+    iosSynced: 'Added {count} apps to your blocked list',
     iosViewSystemLabels: 'Edit nicknames',
     iosNativeLabelsDone: 'Nicknames synced from system sheet',
     iosNamePrivacyNote:

@@ -451,6 +451,7 @@ export const nl = {
     iosPickAppsButton: 'Kies apps om te blokkeren',
     iosPickAppsAgain: 'Geselecteerde apps wijzigen',
     iosNoAppsPicked: 'Nog geen apps gekozen. Tik op de knop hierboven.',
+    iosSynced: '{count} apps toegevoegd aan je blokkeerlijst',
     iosViewSystemLabels: 'Bijnamen bewerken',
     iosNativeLabelsDone: 'Bijnamen gesynchroniseerd',
     iosNamePrivacyNote:

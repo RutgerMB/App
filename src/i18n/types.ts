@@ -415,6 +415,7 @@ export interface Translations {
     iosPickAppsButton: string
     iosPickAppsAgain: string
     iosNoAppsPicked: string
+    iosSynced: string
     iosViewSystemLabels: string
     iosNativeLabelsDone: string
     iosNamePrivacyNote: string

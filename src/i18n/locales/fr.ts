@@ -448,6 +448,7 @@ export const fr = {
     iosPickAppsButton: 'Choose apps to block',
     iosPickAppsAgain: 'Change selected apps',
     iosNoAppsPicked: 'No apps selected yet.',
+    iosSynced: 'Added {count} apps to your blocked list',
     iosViewSystemLabels: 'Modifier les surnoms',
     iosNativeLabelsDone: 'Surnoms synchronisés',
     iosNamePrivacyNote:

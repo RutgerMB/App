@@ -56,6 +56,8 @@ interface RepLockControlsPlugin {
     source?: string
   }>
   presentDailyScreenTimeReport(): Promise<{ ok: boolean; presented?: boolean }>
+  /** True when user tapped Earn minutes on a shield (App Group handoff). */
+  consumeShieldHandoff(): Promise<{ pendingEarnMinutes: boolean }>
 }
 
 const RepLockControlsNative = registerPlugin<RepLockControlsPlugin>('RepLockControls')
@@ -281,6 +283,22 @@ export async function syncIosBlockingRules(rules: IosBlockerRule[]): Promise<voi
 export async function clearIosShields(): Promise<void> {
   if (!isIosControlsAvailable()) return
   await RepLockControlsNative.clearShields()
+}
+
+/**
+ * Consume App Group flag written by Shield Action ("Earn minutes").
+ * Apple cannot open RepLock from the shield — user opens the app; we route to Exercise.
+ */
+export async function consumeIosShieldHandoff(): Promise<boolean> {
+  if (!isIosControlsAvailable()) return false
+  try {
+    const ready = await isRepLockControlsPluginReady()
+    if (!ready) return false
+    const { pendingEarnMinutes } = await RepLockControlsNative.consumeShieldHandoff()
+    return pendingEarnMinutes === true
+  } catch {
+    return false
+  }
 }
 
 /**

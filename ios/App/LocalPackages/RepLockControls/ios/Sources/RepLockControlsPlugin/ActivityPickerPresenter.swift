@@ -67,7 +67,7 @@ struct RepLockSelectedAppsConfirmView: View {
             List {
                 Section {
                     Text(
-                        "Apple shows each app’s real name and icon below. RepLock cannot read those into the app UI — type a nickname for every app so it shows up in the Apps tab."
+                        "Apple shows each app’s real name and icon below. RepLock cannot read those into the app UI — type a nickname for every app, then tap Save. Saved apps appear on the Apps tab ready to unlock."
                     )
                     .font(.footnote)
                     .foregroundStyle(.secondary)

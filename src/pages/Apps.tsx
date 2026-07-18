@@ -35,6 +35,7 @@ export function AppsPage() {
     screenTimeBalance,
     unlockApp,
     addApp,
+    syncIosPickedApps,
     removeApp,
     updateAppLimit,
     renameApp,
@@ -87,12 +88,12 @@ export function AppsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onIos, apps.length])
 
-  const existingIds = apps.flatMap((a) => [
-    a.brand ?? '',
-    a.packageName ?? '',
-    a.iosTokenId ?? '',
-    a.name.toLowerCase(),
-  ])
+  // Only real ids — empty brand/package used to exclude every iOS token via "".
+  const existingIds = apps.flatMap((a) =>
+    [a.brand, a.packageName, a.iosTokenId, a.name.toLowerCase()].filter(
+      (v): v is string => Boolean(v && v.trim())
+    )
+  )
 
   const availableBalance = Math.max(0, Math.floor(screenTimeBalance))
 
@@ -162,6 +163,29 @@ export function AppsPage() {
     const looksLikePlaceholder = /^App \d+$/i.test(app.name.trim())
     setPendingName(looksLikePlaceholder ? '' : app.name)
     setDailyLimit(30)
+  }
+
+  /** iOS: native picker + nickname Save → lock list (no second Add modal). */
+  const handleIosPicked = (picked: DeviceAppDefinition[]) => {
+    const { synced, truncated } = syncIosPickedApps(picked)
+    if (synced === 0) {
+      const msg =
+        trialStatus === 'expired'
+          ? t('apps.limitReachedExpired', { limit: FREE_APP_LIMIT })
+          : t('apps.limitReached')
+      toast(msg, 'error')
+      void openUpgradeOrFallback(() => navigate('/pricing'))
+      return
+    }
+    toast(t('apps.iosSynced', { count: synced }), 'success')
+    if (truncated) {
+      const msg =
+        trialStatus === 'expired'
+          ? t('apps.limitReachedExpired', { limit: FREE_APP_LIMIT })
+          : t('apps.limitReached')
+      toast(msg, 'error')
+      void openUpgradeOrFallback(() => navigate('/pricing'))
+    }
   }
 
   const handleConfirmAdd = () => {
@@ -374,13 +398,13 @@ export function AppsPage() {
                 <Grid3X3 size={26} className="text-teal-400" />
               </div>
               <p className="text-white/45">{t('apps.noApps')}</p>
-              {!onIos && (
+              {canAddApps && (
                 <Button
                   variant="secondary"
                   className="mt-4 border-white/10 bg-white/[0.04]"
                   onClick={() => setShowPicker(true)}
                 >
-                  {t('apps.addFirst')}
+                  {onIos ? t('apps.iosPickAppsButton') : t('apps.addFirst')}
                 </Button>
               )}
             </div>
@@ -411,6 +435,7 @@ export function AppsPage() {
         open={showPicker}
         onClose={() => setShowPicker(false)}
         onSelect={handleSelectApp}
+        onIosPicked={handleIosPicked}
         excludeIds={existingIds}
       />
 

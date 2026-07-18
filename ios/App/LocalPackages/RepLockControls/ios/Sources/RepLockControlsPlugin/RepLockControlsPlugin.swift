@@ -54,6 +54,7 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "clearShields", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getDailyScreenTimeHours", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "presentDailyScreenTimeReport", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "consumeShieldHandoff", returnType: CAPPluginReturnPromise),
     ]
 
     @objc func isSupported(_ call: CAPPluginCall) {
@@ -299,6 +300,18 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         ShieldManager.clearShields()
         call.resolve(["ok": true])
+    }
+
+    /// Reads + clears App Group flag set by RepLockShieldAction ("Earn minutes").
+    @objc func consumeShieldHandoff(_ call: CAPPluginCall) {
+        let defaults = UserDefaults(suiteName: RepLockControlsConstants.appGroupId)
+        let pending = defaults?.bool(forKey: "replock.shield.pendingEarnMinutes") ?? false
+        if pending {
+            defaults?.removeObject(forKey: "replock.shield.pendingEarnMinutes")
+            defaults?.removeObject(forKey: "replock.shield.pendingEarnAt")
+            defaults?.synchronize()
+        }
+        call.resolve(["pendingEarnMinutes": pending])
     }
 
     /// Best-effort App Group read only — never presents UI.
