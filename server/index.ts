@@ -41,6 +41,14 @@ import {
   verifyRevenueCatAuthorization,
   type RevenueCatWebhookPayload,
 } from './revenuecat-webhook.js'
+import {
+  apiRateLimiter,
+  authRateLimiter,
+  ipBanMiddleware,
+  jsonBodyErrorHandler,
+  requireJsonContentType,
+  webhookRateLimiter,
+} from './security.js'
 
 const stripeKey = process.env.STRIPE_SECRET_KEY
 const isLiveStripe = !!stripeKey?.startsWith('sk_live')
@@ -132,11 +140,21 @@ async function refreshEntitlementFromStripe(
 const corsOptions =
   process.env.NODE_ENV === 'production' ? { origin: clientUrl } : {}
 
+// Behind nginx/Caddy/Cloudflare set TRUST_PROXY=1 so rate limits and IP bans see the real client IP.
+if (process.env.TRUST_PROXY === '1' || process.env.TRUST_PROXY === 'true') {
+  app.set('trust proxy', 1)
+} else if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1)
+}
+
 app.use(cors(corsOptions))
+app.use(ipBanMiddleware)
+app.use('/api', apiRateLimiter)
 
 app.post(
   '/api/webhooks/stripe',
-  express.raw({ type: 'application/json' }),
+  webhookRateLimiter,
+  express.raw({ type: 'application/json', limit: '256kb' }),
   async (req, res) => {
     if (!stripe) {
       return res.status(503).json({ error: 'Stripe is not configured' })
@@ -170,9 +188,11 @@ app.post(
   }
 )
 
-app.use(express.json())
+app.use(requireJsonContentType)
+app.use(express.json({ type: 'application/json', limit: '256kb' }))
+app.use(jsonBodyErrorHandler)
 
-app.post('/api/webhooks/revenuecat', async (req, res) => {
+app.post('/api/webhooks/revenuecat', webhookRateLimiter, async (req, res) => {
   const webhookSecret = process.env.REVENUECAT_WEBHOOK_SECRET
   if (!webhookSecret) {
     console.warn('REVENUECAT_WEBHOOK_SECRET is not set — RevenueCat webhooks are rejected')
@@ -196,8 +216,8 @@ app.post('/api/webhooks/revenuecat', async (req, res) => {
   }
 })
 
-app.post('/api/auth/register', handleRegister)
-app.post('/api/auth/login', handleLogin)
+app.post('/api/auth/register', authRateLimiter, handleRegister)
+app.post('/api/auth/login', authRateLimiter, handleLogin)
 app.get('/api/auth/sync', authMiddleware, handleGetSync)
 app.put('/api/auth/sync', authMiddleware, handlePutSync)
 app.delete('/api/auth/account', authMiddleware, handleDeleteAccount)
