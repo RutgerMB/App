@@ -107,13 +107,21 @@ export interface UserProfile {
   openingsDate?: string | null
   /**
    * Max hours of screen time that can be *earned* in a calendar day (1–12).
-   * Caps daily earn toward balance; home ring 100% = this × 60 minutes vs balance.
+   * Fractional hours allowed (minute precision). Caps daily earn toward balance;
+   * home ring 100% = this × 60 minutes vs balance.
    */
   maxDailyHours?: number
   /** Minutes credited from exercise today (toward maxDailyHours cap). */
   earnedMinutesToday?: number
   /** Local YYYY-MM-DD for earnedMinutesToday. */
   earnedDate?: string | null
+  /**
+   * Pro streak-restore tokens remaining this month (0–5). Free users stay at 0.
+   * Refills to 5 on the 1st of each local calendar month for Pro.
+   */
+  streakResetTokens?: number
+  /** Local YYYY-MM when streakResetTokens were last refilled / checked. */
+  streakResetTokensMonth?: string | null
   createdAt: number
 }
 
@@ -142,6 +150,11 @@ export interface AppState {
   currentStreak: number
   longestStreak: number
   lastExerciseDate: string | null
+  /**
+   * Streak value lost when a break was detected (only when previous streak > 1).
+   * Cleared after restore or when starting a fresh streak without restore.
+   */
+  lastLostStreak: number
   apps: LockedApp[]
   sessions: ExerciseSession[]
   workoutPlanSessions: WorkoutPlanSession[]

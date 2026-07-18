@@ -55,6 +55,7 @@ export function SettingsPage() {
     setDifficulty,
     setMaxDailyHours,
     setNotificationsEnabled,
+    ensureStreakTokensRefilled,
   } = useStore()
   const user = useAuthStore((s) => s.user)
   const token = useAuthStore((s) => s.token)
@@ -86,7 +87,8 @@ export function SettingsPage() {
 
   useEffect(() => {
     void refreshOsPermission()
-  }, [])
+    ensureStreakTokensRefilled()
+  }, [ensureStreakTokensRefilled])
 
   const handleNotificationsToggle = async (enabled: boolean) => {
     if (!enabled) {
@@ -373,6 +375,14 @@ export function SettingsPage() {
               {formatMinutes(screenTimeBalance)} · {currentStreak}
               {t('common.days')}
             </p>
+            {profile.isPro && (
+              <p className="text-white/40 text-xs mt-2">
+                {t('settings.streakTokensLeft', {
+                  count: profile.streakResetTokens ?? 0,
+                  max: 5,
+                })}
+              </p>
+            )}
 
             {!profile.isPro && (
               <Button

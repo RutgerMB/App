@@ -36,23 +36,43 @@ describe('updateStreak', () => {
   const yesterday = '2026-07-13'
 
   it('keeps streak when already exercised today', () => {
-    expect(updateStreak(today, 5, 10, today)).toEqual({ streak: 5, longest: 10 })
+    expect(updateStreak(today, 5, 10, today)).toEqual({
+      streak: 5,
+      longest: 10,
+      lostStreak: null,
+    })
   })
 
   it('increments streak when last exercise was yesterday', () => {
-    expect(updateStreak(yesterday, 4, 8, today)).toEqual({ streak: 5, longest: 8 })
+    expect(updateStreak(yesterday, 4, 8, today)).toEqual({
+      streak: 5,
+      longest: 8,
+      lostStreak: null,
+    })
   })
 
   it('resets streak after a skipped day', () => {
-    expect(updateStreak('2026-07-12', 9, 12, today)).toEqual({ streak: 1, longest: 12 })
+    expect(updateStreak('2026-07-12', 9, 12, today)).toEqual({
+      streak: 1,
+      longest: 12,
+      lostStreak: 9,
+    })
   })
 
   it('starts streak at 1 when no prior exercise date', () => {
-    expect(updateStreak(null, 0, 0, today)).toEqual({ streak: 1, longest: 1 })
+    expect(updateStreak(null, 0, 0, today)).toEqual({
+      streak: 1,
+      longest: 1,
+      lostStreak: null,
+    })
   })
 
   it('updates longest when new streak exceeds prior record', () => {
-    expect(updateStreak(yesterday, 11, 11, today)).toEqual({ streak: 12, longest: 12 })
+    expect(updateStreak(yesterday, 11, 11, today)).toEqual({
+      streak: 12,
+      longest: 12,
+      lostStreak: null,
+    })
   })
 })
 
@@ -61,18 +81,34 @@ describe('reconcileStreak', () => {
   const yesterday = '2026-07-13'
 
   it('keeps streak when last exercise was today', () => {
-    expect(reconcileStreak(today, 5, 10, today)).toEqual({ streak: 5, longest: 10 })
+    expect(reconcileStreak(today, 5, 10, today)).toEqual({
+      streak: 5,
+      longest: 10,
+      justLostStreak: null,
+    })
   })
 
   it('keeps streak when last exercise was yesterday (still active until end of today)', () => {
-    expect(reconcileStreak(yesterday, 4, 8, today)).toEqual({ streak: 4, longest: 8 })
+    expect(reconcileStreak(yesterday, 4, 8, today)).toEqual({
+      streak: 4,
+      longest: 8,
+      justLostStreak: null,
+    })
   })
 
   it('resets displayed streak to 0 when a day was skipped', () => {
-    expect(reconcileStreak('2026-07-12', 9, 12, today)).toEqual({ streak: 0, longest: 12 })
+    expect(reconcileStreak('2026-07-12', 9, 12, today)).toEqual({
+      streak: 0,
+      longest: 12,
+      justLostStreak: 9,
+    })
   })
 
   it('shows 0 when there is no prior exercise date', () => {
-    expect(reconcileStreak(null, 3, 5, today)).toEqual({ streak: 0, longest: 5 })
+    expect(reconcileStreak(null, 3, 5, today)).toEqual({
+      streak: 0,
+      longest: 5,
+      justLostStreak: null,
+    })
   })
 })

@@ -245,6 +245,8 @@ export interface Translations {
     maxDailyHoursTitle: string
     maxDailyHoursDesc: string
     maxDailyHoursLabel: string
+    maxDailyHoursHoursAria: string
+    maxDailyHoursMinutesAria: string
     maxDailyHoursHint: string
     goalCreatedTitle: string
     goalCreatedDesc: string
@@ -515,6 +517,19 @@ export interface Translations {
     bestStreak: string
     dayStreak: string
     keepGoing: string
+    streakLost: string
+    streakRestoreCta: string
+    streakRestoreProCta: string
+    streakTokensLeft: string
+    streakRestored: string
+    streakRestoreNoTokens: string
+    calendarTitle: string
+    calendarPrev: string
+    calendarNext: string
+    calendarLess: string
+    calendarMore: string
+    calendarDaySummary: string
+    calendarEmptyDay: string
     noWorkouts: string
     noWorkoutsDesc: string
     today: string
@@ -579,6 +594,7 @@ export interface Translations {
     difficultyUpdated: string
     maxDailyHours: string
     maxDailyHoursUpdated: string
+    streakTokensLeft: string
     lifetimeEarned: string
     memberSince: string
     upgradePro: string

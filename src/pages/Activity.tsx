@@ -1,26 +1,51 @@
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Badge } from '@/components/ui/Badge'
-import { Flame, Dumbbell } from 'lucide-react'
+import { Flame } from 'lucide-react'
 import { ActivityInsights } from '@/components/ActivityInsights'
-import { ExerciseIcon } from '@/components/ExerciseIcons'
+import { ActivityCalendar } from '@/components/ActivityCalendar'
 import { ProPromo } from '@/components/ProPromo'
+import { MotionButton } from '@/components/ui/Button'
 import { useStore } from '@/store'
-import { EXERCISES } from '@/types'
-import { formatMinutes, formatDate, cn } from '@/lib/utils'
+import { formatMinutes, cn } from '@/lib/utils'
 import { useTranslation } from '@/i18n/context'
+import { openUpgradeOrFallback } from '@/lib/replock-revenuecat-native'
+import { useToast } from '@/components/ui/Toast'
+import { STREAK_RESET_TOKENS_MAX } from '@/lib/streak-tokens'
 
 export function ActivityPage() {
-  const { sessions, totalEarnedMinutes, totalExercises, currentStreak, longestStreak } = useStore()
+  const navigate = useNavigate()
+  const { toast } = useToast()
+  const {
+    totalEarnedMinutes,
+    totalExercises,
+    currentStreak,
+    longestStreak,
+    lastLostStreak,
+    profile,
+    restoreLostStreak,
+    ensureStreakTokensRefilled,
+  } = useStore()
   const { t } = useTranslation()
 
-  const grouped = sessions.reduce<Record<string, typeof sessions>>((acc, s) => {
-    const date = new Date(s.completedAt).toDateString()
-    if (!acc[date]) acc[date] = []
-    acc[date].push(s)
-    return acc
-  }, {})
+  const showRestore = currentStreak === 0 && lastLostStreak > 1
+  const tokensLeft = profile.streakResetTokens ?? 0
+
+  const handleRestore = () => {
+    if (!profile.isPro) {
+      void openUpgradeOrFallback(() => navigate('/pricing'))
+      return
+    }
+    const lost = lastLostStreak
+    ensureStreakTokensRefilled()
+    const ok = restoreLostStreak()
+    if (ok) {
+      toast(t('activity.streakRestored', { count: lost }), 'success')
+    } else {
+      toast(t('activity.streakRestoreNoTokens'), 'error')
+    }
+  }
 
   return (
     <AppShell>
@@ -66,17 +91,47 @@ export function ActivityPage() {
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl px-4 py-3.5 bg-orange-500/[0.06] border border-orange-500/15 flex items-center gap-3.5"
+            className="rounded-2xl px-4 py-3.5 bg-orange-500/[0.06] border border-orange-500/15 flex flex-col items-center text-center gap-1.5"
           >
-            <div className="w-11 h-11 rounded-xl bg-orange-500/15 flex items-center justify-center shrink-0">
+            <div className="w-11 h-11 rounded-xl bg-orange-500/15 flex items-center justify-center">
               <Flame size={20} className="text-orange-400" />
             </div>
-            <div className="min-w-0">
-              <p className="font-semibold text-[15px] tracking-tight">
-                {t('activity.dayStreak', { count: currentStreak })}
-              </p>
-              <p className="text-xs text-white/45 mt-0.5">{t('activity.keepGoing')}</p>
+            <p className="font-semibold text-[15px] tracking-tight">
+              {t('activity.dayStreak', { count: currentStreak })}
+            </p>
+            <p className="text-xs text-white/45">{t('activity.keepGoing')}</p>
+          </motion.div>
+        )}
+
+        {showRestore && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl px-4 py-4 bg-orange-500/[0.06] border border-orange-500/15 flex flex-col items-center text-center gap-3"
+          >
+            <div className="w-11 h-11 rounded-xl bg-orange-500/15 flex items-center justify-center">
+              <Flame size={20} className="text-orange-400" />
             </div>
+            <div>
+              <p className="font-semibold text-[15px] tracking-tight">
+                {t('activity.streakLost', { count: lastLostStreak })}
+              </p>
+              {profile.isPro && (
+                <p className="text-xs text-white/45 mt-1">
+                  {t('activity.streakTokensLeft', {
+                    count: tokensLeft,
+                    max: STREAK_RESET_TOKENS_MAX,
+                  })}
+                </p>
+              )}
+            </div>
+            <MotionButton
+              size="sm"
+              onClick={handleRestore}
+              disabled={profile.isPro && tokensLeft < 1}
+            >
+              {profile.isPro ? t('activity.streakRestoreCta') : t('activity.streakRestoreProCta')}
+            </MotionButton>
           </motion.div>
         )}
 
@@ -86,77 +141,7 @@ export function ActivityPage() {
           <ProPromo variant="activity" compact />
         </div>
 
-        <section>
-          <div className="text-center mb-4">
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-              {t('activity.workouts')}
-            </h2>
-            <div className="mx-auto mt-3 h-px w-10 bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
-          </div>
-
-          {sessions.length === 0 ? (
-            <div className="text-center py-14">
-              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
-                <Dumbbell size={28} className="text-emerald-400" />
-              </div>
-              <p className="text-white/40">{t('activity.noWorkouts')}</p>
-              <p className="text-white/25 text-sm mt-1">{t('activity.noWorkoutsDesc')}</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {Object.entries(grouped).map(([date, daySessions]) => (
-                <div key={date}>
-                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40 mb-3 text-center">
-                    {date === new Date().toDateString()
-                      ? t('activity.today')
-                      : formatDate(daySessions[0].completedAt)}
-                  </h3>
-                  <div className="space-y-2">
-                    {daySessions.map((session, i) => {
-                      const ex = EXERCISES[session.type]
-                      return (
-                        <motion.div
-                          key={session.id}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.03 }}
-                          className={cn(
-                            'rounded-2xl px-4 py-3.5',
-                            'bg-white/[0.03] border border-white/[0.07]'
-                          )}
-                        >
-                          <div className="flex items-center gap-3.5">
-                            <div
-                              className={cn(
-                                'w-11 h-11 rounded-xl bg-gradient-to-br flex items-center justify-center text-white shrink-0 shadow-lg shadow-black/30',
-                                ex.gradient
-                              )}
-                            >
-                              <ExerciseIcon type={session.type} size={18} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-[15px] tracking-tight truncate">
-                                {t(`exercises.${session.type}.name`)}
-                              </p>
-                              <p className="text-xs text-white/40 mt-0.5 truncate">
-                                {session.amount}{' '}
-                                {ex.unit === 'reps' ? t('common.reps') : t('common.seconds')} ·{' '}
-                                {formatDate(session.completedAt)}
-                              </p>
-                            </div>
-                            <Badge variant="success">
-                              +{formatMinutes(session.earnedMinutes)}
-                            </Badge>
-                          </div>
-                        </motion.div>
-                      )
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+        <ActivityCalendar />
       </motion.div>
     </AppShell>
   )

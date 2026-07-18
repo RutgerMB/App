@@ -92,7 +92,7 @@ export function ExerciseSessionPage() {
     }, 1000)
   }
 
-  const setsValid = setCount >= 1 && setCount <= 20
+  const setsValid = setCount >= 1 && setCount <= Math.min(50, totalAmount)
   const setsError = setsTouched && !setsValid ? t('exercise.setsRequired') : undefined
 
   const beginWorkout = () => {
@@ -228,31 +228,44 @@ export function ExerciseSessionPage() {
               <div className="space-y-4">
                 <Input
                   id="total-amount"
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="off"
                   min={1}
                   label={isTimer ? t('exercise.totalSeconds') : t('exercise.totalReps')}
                   value={totalAmount}
-                  onChange={(e) => setTotalAmount(Math.max(1, Number(e.target.value) || 1))}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '').slice(0, 3)
+                    if (!digits) {
+                      setTotalAmount(1)
+                      return
+                    }
+                    setTotalAmount(Math.min(500, Math.max(1, Number.parseInt(digits, 10) || 1)))
+                  }}
                   className="h-14 text-lg"
                 />
                 <Input
                   id="set-count"
-                  type="number"
+                  type="text"
                   inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="off"
                   min={0}
-                  max={20}
+                  max={50}
                   label={t('exercise.numberOfSets')}
                   value={setCount === 0 ? '' : setCount}
                   placeholder="0"
                   error={setsError}
                   onChange={(e) => {
                     setSetsTouched(true)
-                    const raw = e.target.value
+                    const raw = e.target.value.replace(/\D/g, '').slice(0, 2)
                     if (raw === '') {
                       setSetCount(0)
                       return
                     }
-                    setSetCount(Math.max(0, Math.min(20, Number(raw) || 0)))
+                    const maxSets = Math.max(1, Math.min(50, totalAmount))
+                    setSetCount(Math.max(0, Math.min(maxSets, Number.parseInt(raw, 10) || 0)))
                   }}
                   className="h-14 text-lg"
                 />

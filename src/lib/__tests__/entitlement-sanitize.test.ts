@@ -24,6 +24,7 @@ function makeAppState(profileOverrides: Partial<AppState['profile']> = {}): AppS
     currentStreak: 1,
     longestStreak: 4,
     lastExerciseDate: null,
+    lastLostStreak: 0,
     apps: [],
     sessions: [],
     workoutPlanSessions: [],

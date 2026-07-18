@@ -35,6 +35,7 @@ export function getAppStateSnapshot(): AppState {
     currentStreak: s.currentStreak,
     longestStreak: s.longestStreak,
     lastExerciseDate: s.lastExerciseDate,
+    lastLostStreak: s.lastLostStreak ?? 0,
     apps: s.apps,
     sessions: s.sessions,
     workoutPlanSessions: s.workoutPlanSessions,

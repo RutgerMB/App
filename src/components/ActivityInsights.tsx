@@ -181,16 +181,11 @@ function UsageSection({
         )}
       </div>
 
-      {hasAppRows && (
+          {hasAppRows && (
         <div className="rounded-2xl p-4 bg-white/[0.03] border border-white/[0.07]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40 mb-3 text-center">
             {t('activity.byApp')}
           </p>
-          {usagePeriod !== 'day' && (
-            <p className="text-[10px] text-white/30 text-center mb-3 leading-relaxed">
-              {t('activity.byAppUnlockNote')}
-            </p>
-          )}
           <div className="space-y-3">
             {appRows.slice(0, 8).map((app) => {
               const daySource =
@@ -380,22 +375,25 @@ export function ActivityInsights() {
         </div>
 
         {/* Chart */}
-        <div className="rounded-2xl p-4 mb-4 bg-white/[0.03] border border-white/[0.07]">
+        <div className="rounded-2xl p-4 mb-4 bg-white/[0.03] border border-white/[0.07] select-none">
           <p className="text-[10px] text-white/35 uppercase tracking-wider mb-2 text-center">
             {t('activity.minutesEarned')}
           </p>
-          <div className="h-48">
+          <div className="h-48 chart-no-select outline-none focus:outline-none [&_*]:outline-none [&_svg]:outline-none">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={periodStats}
-                margin={{ top: 8, right: 8, left: 4, bottom: 4 }}
+                margin={{ top: 8, right: 8, left: 4, bottom: period === 'year' ? 8 : 4 }}
+                style={{ outline: 'none', userSelect: 'none', WebkitUserSelect: 'none' }}
+                tabIndex={-1}
               >
                 <XAxis
                   dataKey="label"
-                  tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }}
+                  tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: period === 'year' ? 10 : 11 }}
                   axisLine={{ stroke: 'rgba(255,255,255,0.12)' }}
                   tickLine={false}
-                  interval={period === 'year' ? 'preserveStartEnd' : 0}
+                  interval={0}
+                  minTickGap={period === 'year' ? 0 : 8}
                 />
                 <YAxis
                   tick={{ fill: 'rgba(255,255,255,0.55)', fontSize: 11 }}
@@ -407,7 +405,7 @@ export function ActivityInsights() {
                   allowDataOverflow={false}
                 />
                 <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(27,138,94,0.08)' }} />
-                <Bar dataKey="earnedMinutes" radius={[4, 4, 0, 0]}>
+                <Bar dataKey="earnedMinutes" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                   {periodStats.map((entry, i) => (
                     <Cell
                       key={entry.date}

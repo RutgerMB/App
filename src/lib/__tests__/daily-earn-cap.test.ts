@@ -21,10 +21,11 @@ describe('clampMaxDailyHours', () => {
     expect(clampMaxDailyHours(NaN)).toBe(DEFAULT_MAX_DAILY_HOURS)
   })
 
-  it('clamps to 1–12 integer hours', () => {
+  it('clamps to 1–12 hours at minute precision', () => {
     expect(clampMaxDailyHours(0)).toBe(MIN_MAX_DAILY_HOURS)
     expect(clampMaxDailyHours(99)).toBe(MAX_MAX_DAILY_HOURS)
-    expect(clampMaxDailyHours(3.7)).toBe(4)
+    expect(clampMaxDailyHours(4.5)).toBe(4.5)
+    expect(clampMaxDailyHours(3 + 30 / 60)).toBe(3.5)
   })
 })
 

@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { AppState, ExerciseSession, ExerciseType, LockedApp, WorkoutPlanSession } from '@/types'
 import { DEFAULT_DAILY_OPENINGS, DEFAULT_MAX_DAILY_HOURS, WORKOUT_PLANS } from '@/types'
 import { localDateString } from '@/lib/dates'
-import { reconcileStreak, updateStreak } from '@/lib/streaks'
+import { reconcileStreak, restoredStreakState, updateStreak } from '@/lib/streaks'
 import { canAddMoreApps, getAppLimit } from '@/lib/trial'
 import { detectLocale } from '@/i18n'
 import { computeEarnedMinutes, FREE_DIFFICULTY } from '@/lib/earning'
@@ -15,6 +15,13 @@ import {
   buildUsageByApp,
 } from '@/lib/usage-history'
 import { applyDailyEarnCap, clampMaxDailyHours } from '@/lib/daily-earn-cap'
+import { clampUnlocksLeft } from '@/lib/numeric-input'
+import {
+  consumeStreakResetToken,
+  localMonthKey,
+  refillStreakResetTokensIfNeeded,
+  STREAK_RESET_TOKENS_MAX,
+} from '@/lib/streak-tokens'
 import type { DeviceAppDefinition } from '@/data/device-apps'
 import type { Locale, Difficulty } from '@/types'
 
@@ -43,6 +50,8 @@ const initialState: AppState = {
     maxDailyHours: DEFAULT_MAX_DAILY_HOURS,
     earnedMinutesToday: 0,
     earnedDate: null,
+    streakResetTokens: 0,
+    streakResetTokensMonth: localMonthKey(),
     createdAt: Date.now(),
   },
   screenTimeBalance: 0,
@@ -51,6 +60,7 @@ const initialState: AppState = {
   currentStreak: 0,
   longestStreak: 0,
   lastExerciseDate: null,
+  lastLostStreak: 0,
   apps: [],
   sessions: [],
   workoutPlanSessions: [],
@@ -78,8 +88,15 @@ interface StoreActions {
   setBlockingGoal: (openings: number, minutesPerOpening?: number) => void
   /** Set how many blocked-app openings remain today (adjusts dailyOpenings around openingsUsedToday). */
   setOpeningsLeftToday: (remaining: number) => void
-  /** Cap on minutes earnable per calendar day (integer hours 1–12). */
+  /** Cap on minutes earnable per calendar day (1–12h, minute precision). */
   setMaxDailyHours: (hours: number) => void
+  /** Ensure Pro streak-reset tokens are refilled for the current local month. */
+  ensureStreakTokensRefilled: () => void
+  /**
+   * Restore lastLostStreak for Pro users (consumes 1 token). Returns false if not allowed.
+   * Free users should be sent to pricing by the UI instead.
+   */
+  restoreLostStreak: () => boolean
   completeExercise: (type: ExerciseType, amount: number, durationSeconds: number) => number
   unlockApp: (appId: string, minutes: number) => boolean
   useAppTime: (appId: string, minutes: number) => void
@@ -249,7 +266,7 @@ export const useStore = create<AppState & StoreActions>()(
         const { profile } = get()
         const used =
           profile.openingsDate === today ? (profile.openingsUsedToday ?? 0) : 0
-        const left = Math.max(0, Math.min(20, Math.floor(Number(remaining)) || 0))
+        const left = clampUnlocksLeft(Number(remaining) || 1)
         const minutesPerOpening = profile.minutesPerOpening ?? 5
         // remaining = dailyOpenings − used → keep used, raise/lower the daily cap
         const dailyOpenings = used + left
@@ -277,6 +294,55 @@ export const useStore = create<AppState & StoreActions>()(
         }))
       },
 
+      ensureStreakTokensRefilled: () => {
+        const { profile } = get()
+        const next = refillStreakResetTokensIfNeeded({
+          isPro: profile.isPro,
+          tokens: profile.streakResetTokens,
+          tokensMonth: profile.streakResetTokensMonth,
+        })
+        if (
+          next.tokens !== (profile.streakResetTokens ?? 0) ||
+          next.tokensMonth !== (profile.streakResetTokensMonth ?? null)
+        ) {
+          set((s) => ({
+            profile: {
+              ...s.profile,
+              streakResetTokens: next.tokens,
+              streakResetTokensMonth: next.tokensMonth,
+            },
+          }))
+        }
+      },
+
+      restoreLostStreak: () => {
+        const state = get()
+        const lost = state.lastLostStreak
+        if (lost <= 1 || state.currentStreak > 0) return false
+        if (!state.profile.isPro) return false
+
+        const refilled = refillStreakResetTokensIfNeeded({
+          isPro: true,
+          tokens: state.profile.streakResetTokens,
+          tokensMonth: state.profile.streakResetTokensMonth,
+        })
+        if (refilled.tokens < 1) return false
+
+        const restored = restoredStreakState(lost)
+        set((s) => ({
+          currentStreak: restored.streak,
+          longestStreak: Math.max(s.longestStreak, restored.streak),
+          lastExerciseDate: restored.lastExerciseDate,
+          lastLostStreak: 0,
+          profile: {
+            ...s.profile,
+            streakResetTokens: consumeStreakResetToken(refilled.tokens),
+            streakResetTokensMonth: refilled.tokensMonth,
+          },
+        }))
+        return true
+      },
+
       getEarnedMinutes: (type, amount) => {
         const { profile } = get()
         const difficulty = profile.isPro ? (profile.difficulty ?? FREE_DIFFICULTY) : FREE_DIFFICULTY
@@ -286,8 +352,13 @@ export const useStore = create<AppState & StoreActions>()(
       completeExercise: (type, amount, durationSeconds) => {
         const rawEarned = get().getEarnedMinutes(type, amount)
         const today = localDateString()
-        const { lastExerciseDate, currentStreak, longestStreak, profile } = get()
-        const { streak, longest } = updateStreak(lastExerciseDate, currentStreak, longestStreak, today)
+        const { lastExerciseDate, currentStreak, longestStreak, lastLostStreak, profile } = get()
+        const { streak, longest, lostStreak } = updateStreak(
+          lastExerciseDate,
+          currentStreak,
+          longestStreak,
+          today,
+        )
         const capped = applyDailyEarnCap({
           rawEarned,
           earnedMinutesToday: profile.earnedMinutesToday,
@@ -313,6 +384,12 @@ export const useStore = create<AppState & StoreActions>()(
           currentStreak: lastExerciseDate === today ? currentStreak : streak,
           longestStreak: Math.max(longestStreak, longest),
           lastExerciseDate: today,
+          lastLostStreak:
+            lastExerciseDate === today
+              ? lastLostStreak
+              : lostStreak != null
+                ? lostStreak
+                : 0,
           sessions: [session, ...s.sessions].slice(0, 100),
           profile: {
             ...s.profile,
@@ -329,8 +406,13 @@ export const useStore = create<AppState & StoreActions>()(
         if (!plan) return { total: 0, bonus: 0 }
 
         const today = localDateString()
-        const { lastExerciseDate, currentStreak, longestStreak, profile } = get()
-        const { streak, longest } = updateStreak(lastExerciseDate, currentStreak, longestStreak, today)
+        const { lastExerciseDate, currentStreak, longestStreak, lastLostStreak, profile } = get()
+        const { streak, longest, lostStreak } = updateStreak(
+          lastExerciseDate,
+          currentStreak,
+          longestStreak,
+          today,
+        )
 
         let base = 0
         const uncappedSessions: ExerciseSession[] = results.map((r) => {
@@ -381,6 +463,12 @@ export const useStore = create<AppState & StoreActions>()(
           currentStreak: lastExerciseDate === today ? currentStreak : streak,
           longestStreak: Math.max(longestStreak, longest),
           lastExerciseDate: today,
+          lastLostStreak:
+            lastExerciseDate === today
+              ? lastLostStreak
+              : lostStreak != null
+                ? lostStreak
+                : 0,
           sessions: [...newSessions, ...s.sessions].slice(0, 150),
           workoutPlanSessions: [planSession, ...s.workoutPlanSessions].slice(0, 50),
           profile: {
@@ -536,16 +624,27 @@ export const useStore = create<AppState & StoreActions>()(
       },
 
       setProStatus: (isPro, customerId, subscriptionId, status) =>
-        set((s) => ({
-          profile: {
-            ...s.profile,
+        set((s) => {
+          const tokens = refillStreakResetTokensIfNeeded({
             isPro,
-            difficulty: isPro ? s.profile.difficulty : FREE_DIFFICULTY,
-            stripeCustomerId: customerId ?? s.profile.stripeCustomerId,
-            subscriptionId: subscriptionId ?? s.profile.subscriptionId,
-            subscriptionStatus: status ?? (isPro ? 'active' : null),
-          },
-        })),
+            tokens: isPro
+              ? (s.profile.streakResetTokens ?? STREAK_RESET_TOKENS_MAX)
+              : 0,
+            tokensMonth: s.profile.streakResetTokensMonth,
+          })
+          return {
+            profile: {
+              ...s.profile,
+              isPro,
+              difficulty: isPro ? s.profile.difficulty : FREE_DIFFICULTY,
+              stripeCustomerId: customerId ?? s.profile.stripeCustomerId,
+              subscriptionId: subscriptionId ?? s.profile.subscriptionId,
+              subscriptionStatus: status ?? (isPro ? 'active' : null),
+              streakResetTokens: isPro ? tokens.tokens : 0,
+              streakResetTokensMonth: tokens.tokensMonth,
+            },
+          }
+        }),
 
       resetDailyUsage: () =>
         set((s) => {
@@ -570,7 +669,7 @@ export const useStore = create<AppState & StoreActions>()(
     }),
     {
       name: 'replock-storage',
-      version: 12,
+      version: 13,
       migrate: (persisted, version) => {
         const state = persisted as AppState
         if (version < 2) {
@@ -662,6 +761,19 @@ export const useStore = create<AppState & StoreActions>()(
             buildUsageByApp(state.apps ?? [])
           )
         }
+        if (version < 13) {
+          const tokens = refillStreakResetTokensIfNeeded({
+            isPro: state.profile.isPro,
+            tokens: state.profile.isPro ? STREAK_RESET_TOKENS_MAX : 0,
+            tokensMonth: null,
+          })
+          state.lastLostStreak = Math.max(0, Math.floor(state.lastLostStreak ?? 0))
+          state.profile = {
+            ...state.profile,
+            streakResetTokens: tokens.tokens,
+            streakResetTokensMonth: tokens.tokensMonth,
+          }
+        }
         return state as AppState & StoreActions
       },
       onRehydrateStorage: () => (state) => {
@@ -670,13 +782,28 @@ export const useStore = create<AppState & StoreActions>()(
           if (trimmed.length !== state.apps.length) {
             state.apps = trimmed
           }
-          const { streak, longest } = reconcileStreak(
+          const { streak, longest, justLostStreak } = reconcileStreak(
             state.lastExerciseDate,
             state.currentStreak,
             state.longestStreak,
           )
           state.currentStreak = streak
           state.longestStreak = longest
+          if (justLostStreak != null) {
+            state.lastLostStreak = justLostStreak
+          } else {
+            state.lastLostStreak = Math.max(0, Math.floor(state.lastLostStreak ?? 0))
+          }
+          const tokens = refillStreakResetTokensIfNeeded({
+            isPro: state.profile.isPro,
+            tokens: state.profile.streakResetTokens,
+            tokensMonth: state.profile.streakResetTokensMonth,
+          })
+          state.profile = {
+            ...state.profile,
+            streakResetTokens: tokens.tokens,
+            streakResetTokensMonth: tokens.tokensMonth,
+          }
           const boundary = applyUsageDayBoundary(state)
           state.profile = boundary.profile
           state.apps = boundary.apps
@@ -692,13 +819,39 @@ if (typeof window !== 'undefined') {
   setInterval(() => {
     const state = useStore.getState()
     const now = Date.now()
-    const { streak, longest } = reconcileStreak(
+    const { streak, longest, justLostStreak } = reconcileStreak(
       state.lastExerciseDate,
       state.currentStreak,
       state.longestStreak,
     )
-    if (streak !== state.currentStreak || longest !== state.longestStreak) {
-      useStore.setState({ currentStreak: streak, longestStreak: longest })
+    const tokens = refillStreakResetTokensIfNeeded({
+      isPro: state.profile.isPro,
+      tokens: state.profile.streakResetTokens,
+      tokensMonth: state.profile.streakResetTokensMonth,
+    })
+    const tokenChanged =
+      tokens.tokens !== (state.profile.streakResetTokens ?? 0) ||
+      tokens.tokensMonth !== (state.profile.streakResetTokensMonth ?? null)
+    if (
+      streak !== state.currentStreak ||
+      longest !== state.longestStreak ||
+      justLostStreak != null ||
+      tokenChanged
+    ) {
+      useStore.setState({
+        currentStreak: streak,
+        longestStreak: longest,
+        ...(justLostStreak != null ? { lastLostStreak: justLostStreak } : {}),
+        ...(tokenChanged
+          ? {
+              profile: {
+                ...state.profile,
+                streakResetTokens: tokens.tokens,
+                streakResetTokensMonth: tokens.tokensMonth,
+              },
+            }
+          : {}),
+      })
     }
     // Timed unlocks set isLocked:false with unlockedUntil; expiry must not require isLocked.
     const needsUpdate = state.apps.some((a) => {

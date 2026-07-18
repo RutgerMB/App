@@ -10,6 +10,13 @@ import { localDateString } from '@/lib/dates'
 import { useTranslation } from '@/i18n/context'
 import { useToast } from '@/components/ui/Toast'
 import { cn } from '@/lib/utils'
+import {
+  clampUnlocksLeft,
+  digitsOnly,
+  MAX_UNLOCKS_LEFT,
+  MIN_UNLOCKS_LEFT,
+  parseDigitInt,
+} from '@/lib/numeric-input'
 
 function openingsUsedToday(openingsDate: string | null | undefined, used: number | undefined) {
   const today = localDateString()
@@ -31,18 +38,23 @@ export function ActiveScheduleCard() {
 
   const [editOpen, setEditOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [draftLeft, setDraftLeft] = useState(left)
+  const [draftLeft, setDraftLeft] = useState(String(Math.max(MIN_UNLOCKS_LEFT, left)))
 
   if (apps.length === 0) return null
 
   const openEdit = () => {
-    setDraftLeft(left)
+    setDraftLeft(String(clampUnlocksLeft(Math.max(MIN_UNLOCKS_LEFT, left))))
     setEditOpen(true)
   }
 
+  const parsedDraft = (): number => {
+    const n = parseDigitInt(draftLeft)
+    return clampUnlocksLeft(n ?? MIN_UNLOCKS_LEFT)
+  }
+
   const requestConfirm = () => {
-    const next = Math.max(0, Math.min(20, Math.floor(Number(draftLeft)) || 0))
-    setDraftLeft(next)
+    const next = parsedDraft()
+    setDraftLeft(String(next))
     if (next === left) {
       setEditOpen(false)
       return
@@ -52,7 +64,7 @@ export function ActiveScheduleCard() {
   }
 
   const applyChange = () => {
-    const next = Math.max(0, Math.min(20, Math.floor(Number(draftLeft)) || 0))
+    const next = parsedDraft()
     setOpeningsLeftToday(next)
     setConfirmOpen(false)
     toast(t('apps.unlocksLeftUpdated', { count: next }), 'success')
@@ -106,11 +118,14 @@ export function ActiveScheduleCard() {
           <Input
             id="unlocks-left-today"
             label={t('apps.unlocksLeftLabel')}
-            type="number"
-            min={0}
-            max={20}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="off"
+            min={MIN_UNLOCKS_LEFT}
+            max={MAX_UNLOCKS_LEFT}
             value={draftLeft}
-            onChange={(e) => setDraftLeft(Number(e.target.value))}
+            onChange={(e) => setDraftLeft(digitsOnly(e.target.value, 3))}
           />
           <MotionButton fullWidth size="lg" onClick={requestConfirm}>
             {t('apps.unlocksLeftContinue')}
@@ -125,7 +140,7 @@ export function ActiveScheduleCard() {
         position="center"
       >
         <p className="text-sm text-white/50 mb-4 leading-relaxed">
-          {t('apps.unlocksLeftConfirmDesc', { count: draftLeft })}
+          {t('apps.unlocksLeftConfirmDesc', { count: parsedDraft() })}
         </p>
         <div className="flex gap-3">
           <Button variant="secondary" className="flex-1" onClick={() => setConfirmOpen(false)}>

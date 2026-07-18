@@ -1,4 +1,5 @@
 import type { ExerciseSession } from '@/types'
+import { localDateString, parseLocalDateString } from '@/lib/dates'
 
 export type StatsPeriod = 'week' | 'month' | 'year'
 
@@ -10,7 +11,7 @@ export interface DayStats {
 }
 
 function dateKey(d: Date): string {
-  return d.toISOString().split('T')[0]
+  return localDateString(d)
 }
 
 export function getEarnedForDate(sessions: ExerciseSession[], date: Date): number {
@@ -52,6 +53,11 @@ function aggregateWeekly(daily: DayStats[]): DayStats[] {
   return weeks
 }
 
+function monthShortLabel(monthKey: string, locale?: string): string {
+  const d = parseLocalDateString(`${monthKey}-01`)
+  return d.toLocaleDateString(locale || undefined, { month: 'short' })
+}
+
 function aggregateMonthly(daily: DayStats[]): DayStats[] {
   const monthly = new Map<string, DayStats>()
   for (const day of daily) {
@@ -61,10 +67,9 @@ function aggregateMonthly(daily: DayStats[]): DayStats[] {
       existing.earnedMinutes += day.earnedMinutes
       existing.workoutCount += day.workoutCount
     } else {
-      const d = new Date(day.date)
       monthly.set(monthKey, {
         date: monthKey,
-        label: d.toLocaleDateString([], { month: 'short' }),
+        label: monthShortLabel(monthKey),
         earnedMinutes: day.earnedMinutes,
         workoutCount: day.workoutCount,
       })
@@ -124,3 +129,27 @@ export function getCategoryBreakdown(
     .map(([category, minutes]) => ({ category, minutes }))
     .sort((a, b) => b.minutes - a.minutes)
 }
+
+/** Activity score for heatmap: combines workout count + minutes earned. */
+export function dayActivityScore(workoutCount: number, earnedMinutes: number): number {
+  return Math.max(0, workoutCount) * 10 + Math.max(0, earnedMinutes)
+}
+
+/** Map score → 0–4 intensity levels (GitHub-style). */
+export function activityIntensityLevel(score: number, maxScore: number): 0 | 1 | 2 | 3 | 4 {
+  if (score <= 0 || maxScore <= 0) return 0
+  const ratio = score / maxScore
+  if (ratio <= 0.2) return 1
+  if (ratio <= 0.4) return 2
+  if (ratio <= 0.7) return 3
+  return 4
+}
+
+/** Jade green intensity scale for contribution heatmap. */
+export const HEATMAP_JADE_LEVELS = [
+  'rgba(27,138,94,0.08)',
+  'rgba(27,138,94,0.28)',
+  'rgba(27,138,94,0.48)',
+  'rgba(27,138,94,0.72)',
+  '#1B8A5E',
+] as const

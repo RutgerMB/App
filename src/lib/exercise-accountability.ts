@@ -12,8 +12,8 @@ export const REP_DWELL_MAX_SECONDS = 60
 /** Rough seconds per rep for dwell estimates (~40 rpm). */
 export const SECONDS_PER_REP = 1.4
 
-/** Rest between sets — enough to reset, short enough not to annoy. */
-export const SET_REST_SECONDS = 20
+/** Brief pause between sets — user starts the next set when ready. */
+export const SET_REST_SECONDS = 5
 
 /**
  * Estimated wall-clock time for a rep set before "I did these" unlocks.

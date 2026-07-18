@@ -118,6 +118,11 @@ export function AppsPage() {
       setUnlockMinutes(0)
       return
     }
+    if (mins > 500) {
+      setUnlockError(t('apps.unlockInvalidMinutes'))
+      setUnlockMinutes(Math.min(500, availableBalance))
+      return
+    }
     if (mins > availableBalance) {
       setUnlockError(t('apps.notEnoughBalance'))
       setUnlockMinutes(availableBalance)
@@ -203,7 +208,7 @@ export function AppsPage() {
       packageName: pendingApp.packageName,
       iosTokenId: pendingApp.iosTokenId,
       color: pendingApp.color,
-      dailyLimitMinutes: dailyLimit,
+      dailyLimitMinutes: Math.max(5, Math.min(180, Math.floor(dailyLimit) || 30)),
     })
     if (success) {
       if (pendingApp.iosTokenId && pendingName.trim()) {
@@ -468,11 +473,21 @@ export function AppsPage() {
             <Input
               id="daily-limit"
               label={t('apps.dailyLimitLabel')}
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              autoComplete="off"
               min={5}
               max={180}
               value={dailyLimit}
-              onChange={(e) => setDailyLimit(Number(e.target.value))}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '').slice(0, 3)
+                if (!digits) {
+                  setDailyLimit(5)
+                  return
+                }
+                setDailyLimit(Math.max(5, Math.min(180, Number.parseInt(digits, 10) || 5)))
+              }}
             />
 
             <MotionButton
@@ -546,11 +561,21 @@ export function AppsPage() {
           <Input
             id="edit-daily-limit"
             label={t('apps.dailyLimitLabel')}
-            type="number"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="off"
             min={5}
             max={180}
             value={editLimitValue}
-            onChange={(e) => setEditLimitValue(Number(e.target.value))}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, '').slice(0, 3)
+              if (!digits) {
+                setEditLimitValue(5)
+                return
+              }
+              setEditLimitValue(Math.max(5, Math.min(180, Number.parseInt(digits, 10) || 5)))
+            }}
           />
           <MotionButton fullWidth size="lg" onClick={handleSaveLimit}>
             {t('apps.saveLimit')}

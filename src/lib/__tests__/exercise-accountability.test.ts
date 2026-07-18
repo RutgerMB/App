@@ -32,8 +32,8 @@ describe('formatSessionTimer', () => {
 })
 
 describe('SET_REST_SECONDS', () => {
-  it('is a short fair rest', () => {
-    expect(SET_REST_SECONDS).toBeGreaterThanOrEqual(15)
-    expect(SET_REST_SECONDS).toBeLessThanOrEqual(30)
+  it('is a short ~5s catch-your-breath pause', () => {
+    expect(SET_REST_SECONDS).toBeGreaterThanOrEqual(4)
+    expect(SET_REST_SECONDS).toBeLessThanOrEqual(8)
   })
 })

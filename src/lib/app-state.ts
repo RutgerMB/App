@@ -1,6 +1,7 @@
 import type { AppState } from '@/types'
-import { DEFAULT_DAILY_OPENINGS, DEFAULT_MAX_DAILY_HOURS } from '@/types'
+import { DEFAULT_DAILY_OPENINGS } from '@/types'
 import { clampMaxDailyHours } from '@/lib/daily-earn-cap'
+import { clampStreakResetTokens, localMonthKey } from '@/lib/streak-tokens'
 
 export function normalizeAppState(state: AppState): AppState {
   return {
@@ -9,6 +10,7 @@ export function normalizeAppState(state: AppState): AppState {
     sessions: state.sessions ?? [],
     workoutPlanSessions: state.workoutPlanSessions ?? [],
     usageHistory: state.usageHistory ?? [],
+    lastLostStreak: Math.max(0, Math.floor(state.lastLostStreak ?? 0)),
     profile: {
       ...state.profile,
       difficulty: state.profile.difficulty ?? 'medium',
@@ -19,6 +21,8 @@ export function normalizeAppState(state: AppState): AppState {
       maxDailyHours: clampMaxDailyHours(state.profile.maxDailyHours),
       earnedMinutesToday: state.profile.earnedMinutesToday ?? 0,
       earnedDate: state.profile.earnedDate ?? null,
+      streakResetTokens: clampStreakResetTokens(state.profile.streakResetTokens),
+      streakResetTokensMonth: state.profile.streakResetTokensMonth ?? localMonthKey(),
     },
   }
 }
