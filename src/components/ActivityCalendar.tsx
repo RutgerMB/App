@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { App } from '@capacitor/app'
+import { Capacitor } from '@capacitor/core'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { ExerciseIcon } from '@/components/ExerciseIcons'
@@ -6,7 +8,12 @@ import { useStore } from '@/store'
 import { EXERCISES } from '@/types'
 import { formatDate, formatMinutes, cn } from '@/lib/utils'
 import { useTranslation } from '@/i18n/context'
-import { localDateString, parseLocalDateString } from '@/lib/dates'
+import {
+  localDateString,
+  msUntilNextLocalMidnight,
+  parseLocalDateString,
+  reconcileCalendarMonthKey,
+} from '@/lib/dates'
 import {
   activityIntensityLevel,
   dayActivityScore,
@@ -49,12 +56,60 @@ export function ActivityCalendar() {
   const sessions = useStore((s) => s.sessions)
   const createdAt = useStore((s) => s.profile.createdAt)
 
-  const todayKey = localDateString()
+  const [todayKey, setTodayKey] = useState(() => localDateString())
   const currentMonthKey = todayKey.slice(0, 7)
   const joinMonthKey = monthKeyFromDate(new Date(createdAt || Date.now()))
 
   const [monthKey, setMonthKey] = useState(currentMonthKey)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const previousCurrentMonthRef = useRef(currentMonthKey)
+
+  useEffect(() => {
+    const syncToday = () => {
+      const nextToday = localDateString()
+      setTodayKey((prev) => (prev === nextToday ? prev : nextToday))
+    }
+
+    syncToday()
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') syncToday()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
+    let midnightTimer: ReturnType<typeof setTimeout> | undefined
+    const scheduleMidnight = () => {
+      midnightTimer = setTimeout(() => {
+        syncToday()
+        scheduleMidnight()
+      }, msUntilNextLocalMidnight())
+    }
+    scheduleMidnight()
+
+    let appHandle: { remove: () => Promise<void> } | undefined
+    if (Capacitor.isNativePlatform()) {
+      void App.addListener('appStateChange', ({ isActive }) => {
+        if (isActive) syncToday()
+      }).then((h) => {
+        appHandle = h
+      })
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      if (midnightTimer !== undefined) clearTimeout(midnightTimer)
+      void appHandle?.remove()
+    }
+  }, [])
+
+  useEffect(() => {
+    const previousCurrent = previousCurrentMonthRef.current
+    if (previousCurrent === currentMonthKey) return
+    setMonthKey((view) =>
+      reconcileCalendarMonthKey(view, previousCurrent, currentMonthKey),
+    )
+    previousCurrentMonthRef.current = currentMonthKey
+  }, [currentMonthKey])
 
   const byDate = useMemo(() => {
     const map = new Map<string, typeof sessions>()

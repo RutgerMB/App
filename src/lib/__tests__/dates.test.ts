@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { localDateString, offsetLocalDateString, parseLocalDateString } from '../dates'
+import {
+  localDateString,
+  msUntilNextLocalMidnight,
+  offsetLocalDateString,
+  parseLocalDateString,
+  reconcileCalendarMonthKey,
+} from '../dates'
 import { reconcileStreak, updateStreak } from '../streaks'
 
 describe('localDateString', () => {
@@ -28,6 +34,32 @@ describe('offsetLocalDateString', () => {
   it('steps forward across month boundary', () => {
     const lastDay = parseLocalDateString('2026-07-31')
     expect(offsetLocalDateString(1, lastDay)).toBe('2026-08-01')
+  })
+})
+
+describe('reconcileCalendarMonthKey', () => {
+  it('follows forward when the user was on the previous current month', () => {
+    expect(reconcileCalendarMonthKey('2026-07', '2026-07', '2026-08')).toBe('2026-08')
+  })
+
+  it('leaves a historical month alone when current advances', () => {
+    expect(reconcileCalendarMonthKey('2026-05', '2026-07', '2026-08')).toBe('2026-05')
+  })
+
+  it('is a no-op when current month has not changed', () => {
+    expect(reconcileCalendarMonthKey('2026-05', '2026-07', '2026-07')).toBe('2026-05')
+  })
+})
+
+describe('msUntilNextLocalMidnight', () => {
+  it('returns time remaining until local midnight', () => {
+    const now = new Date(2026, 6, 14, 23, 0, 0, 0)
+    expect(msUntilNextLocalMidnight(now)).toBe(60 * 60 * 1000)
+  })
+
+  it('returns at least 1ms near midnight', () => {
+    const now = new Date(2026, 6, 14, 23, 59, 59, 999)
+    expect(msUntilNextLocalMidnight(now)).toBeGreaterThanOrEqual(1)
   })
 })
 
