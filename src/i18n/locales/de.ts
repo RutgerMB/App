@@ -74,7 +74,8 @@ export const de = {
     privacyStatTitle: 'Workout- und Nutzungsstatistiken',
     privacyStatDesc: 'Workouts, Serien und Guthaben werden zum Sync zwischen Geräten gespeichert.',
     privacyBlockTitle: 'Sperreinstellungen',
-    privacyBlockDesc: 'Auf Android bleiben blockierte Apps auf dem Gerät. Wir nutzen nur Package-IDs.',
+    privacyBlockDesc:
+      'Screen Time-Auswahlen bleiben auf dem Gerät. Bei Anmeldung synchronisieren wir Spitznamen und Sperrlisten-Metadaten — nicht den Inhalt blockierter Apps.',
     privacyLearnMore: 'Mehr erfahren',
     revealTitle: 'Deine Schätzung vs. dein Handy',
     revealSubtitle: 'Vergleiche, was du dachtest, mit dem, was wir messen können.',
@@ -302,7 +303,12 @@ export const de = {
     deleteAccount: 'Delete account',
     deleteAccountDesc: 'Permanently remove your account and all data',
     deleteAccountConfirm: 'Delete your account?',
-    deleteAccountWarning: 'This cannot be undone. All workouts, screen time balance, and settings will be permanently deleted.',
+    deleteAccountWarning:
+      'Das kann nicht rückgängig gemacht werden. Wir löschen dein Konto und Cloud-Daten von unseren Servern: E-Mail, Workouts, Bildschirmzeit-Guthaben, Streaks, App-Spitznamen und Nutzungsverlauf.',
+    deleteAccountDetails:
+      'Gerätegebundene Screen Time / Family Controls-Auswahlen und Shields bleiben auf diesem Telefon, bis du Screen Time-Zugriff widerrufst oder RepLock deinstallierst. Store-Abos verwaltest du separat in den Apple- oder Google-Einstellungen.',
+    deleteAccountHelp:
+      'Hilfe beim Löschen? Schreib an RepLockIssue@outlook.com von der E-Mail deines Kontos. Pfad: Einstellungen → Delete account.',
     deleteAccountPassword: 'Enter your password to confirm',
     deleteAccountSubmit: 'Delete my account',
     deleteAccountSuccess: 'Your account has been deleted',
@@ -621,6 +627,8 @@ export const de = {
     blockingLearnMore: 'Siehe Launch-Guide für die Native-App-Roadmap',
     version: 'Mit Disziplin gemacht',
     legal: 'Legal',
+    dataPrivacy: 'So nutzen wir Daten',
+    dataPrivacyDesc: 'Gerät vs. synchronisiert',
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
     contactSupport: 'Contact support',
@@ -734,6 +742,31 @@ export const de = {
       'Pro über den App Store freigeschaltet. Die Konto-Synchronisierung wird erneut versucht, sobald der Server erreichbar ist.',
     appleTerms: 'Payment is charged to your Apple ID. Subscription renews automatically unless cancelled at least 24 hours before the period ends.',
     stripeTerms: 'Cancel anytime from your account settings. Billed monthly via secure checkout.',
+  },
+  dataPrivacy: {
+    title: 'So nutzen wir Daten',
+    subtitle: 'Lokale Sperre. Sync nach Login. Kein Verkauf.',
+    localTitle: 'Sperre bleibt lokal',
+    localBody:
+      'Screen Time / Family Controls-Auswahlen und Shields laufen auf dem Gerät. Wir laden keine Browser-Inhalte und keinen Inhalt blockierter Apps hoch.',
+    accountTitle: 'Konto-E-Mail',
+    accountBody:
+      'Bei Registrierung speichern wir E-Mail (und Anzeigename) über Firebase Authentication, damit du dich anmelden und Fortschritt syncen kannst.',
+    syncTitle: 'Was bei Login synct',
+    syncBody:
+      'Workouts, Bildschirmzeit-Guthaben, Streaks, App-Spitznamen und Sperrlisten-Metadaten, tägliche Öffnungslimits und Nutzungsverlauf syncen zu deinem Konto.',
+    deviceOnlyTitle: 'Nur auf dem Gerät',
+    deviceOnlyBody:
+      'Opake Family Controls-Tokens, App-Group-Auswahl und aktive Shields bleiben auf diesem Gerät. Cloud-Token-IDs allein können Shields auf einem neuen Handy nicht wieder anwenden.',
+    noSellTitle: 'Kein Datenverkauf',
+    noSellBody:
+      'Wir verkaufen keine personenbezogenen Daten und nutzen Sperrdaten nicht für Werbung. Wir lesen keine Passwörter, Nachrichten, Fotos oder Inhalte anderer Apps.',
+    deleteTitle: 'Konto löschen',
+    deleteBody:
+      'Einstellungen → Delete account entfernt Serverkonto und Cloud-Daten. Hilfe: RepLockIssue@outlook.com. Store-Abos separat kündigen.',
+    fullPolicy: 'Vollständige Datenschutzerklärung',
+    fullPolicyDesc: 'Vollständige rechtliche Details im Web',
+    contact: 'Support kontaktieren',
   },
   legal: {
     privacyTitle: 'Privacy Policy',

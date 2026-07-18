@@ -73,7 +73,8 @@ export const es = {
     privacyStatTitle: 'Estadísticas de entrenamiento',
     privacyStatDesc: 'Tus entrenamientos y rachas se guardan para sincronizar entre dispositivos.',
     privacyBlockTitle: 'Ajustes de bloqueo',
-    privacyBlockDesc: 'En Android, las apps bloqueadas permanecen en el dispositivo.',
+    privacyBlockDesc:
+      'Las selecciones de Screen Time permanecen en el dispositivo. Si inicias sesión, sincronizamos apodos y metadatos de la lista — no el contenido de las apps bloqueadas.',
     privacyLearnMore: 'Saber más',
     revealTitle: 'Tu estimación vs tu teléfono',
     revealSubtitle: 'Compara lo que pensabas con lo que podemos medir.',
@@ -301,7 +302,12 @@ export const es = {
     deleteAccount: 'Delete account',
     deleteAccountDesc: 'Permanently remove your account and all data',
     deleteAccountConfirm: 'Delete your account?',
-    deleteAccountWarning: 'This cannot be undone. All workouts, screen time balance, and settings will be permanently deleted.',
+    deleteAccountWarning:
+      'Esto no se puede deshacer. Eliminamos tu cuenta y los datos en la nube de nuestros servidores: correo, entrenamientos, saldo de tiempo de pantalla, rachas, apodos de apps e historial de uso.',
+    deleteAccountDetails:
+      'Las selecciones de Screen Time / Family Controls y los shields permanecen en este teléfono hasta que revoques el acceso a Screen Time o desinstales RepLock. Las suscripciones se gestionan aparte en los ajustes de Apple o Google.',
+    deleteAccountHelp:
+      '¿Necesitas ayuda para eliminar? Escribe a RepLockIssue@outlook.com desde el correo de tu cuenta. Ruta: Ajustes → Delete account.',
     deleteAccountPassword: 'Enter your password to confirm',
     deleteAccountSubmit: 'Delete my account',
     deleteAccountSuccess: 'Your account has been deleted',
@@ -620,6 +626,8 @@ export const es = {
     blockingLearnMore: 'Ver guía de lanzamiento para la hoja de ruta de la app nativa',
     version: 'Hecho con disciplina',
     legal: 'Legal',
+    dataPrivacy: 'Cómo tratamos los datos',
+    dataPrivacyDesc: 'En el dispositivo vs sincronizado',
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
     contactSupport: 'Contact support',
@@ -733,6 +741,31 @@ export const es = {
       'Pro desbloqueado desde la App Store. La sincronización de la cuenta se reintentará cuando el servidor esté disponible.',
     appleTerms: 'Payment is charged to your Apple ID. Subscription renews automatically unless cancelled at least 24 hours before the period ends.',
     stripeTerms: 'Cancel anytime from your account settings. Billed monthly via secure checkout.',
+  },
+  dataPrivacy: {
+    title: 'Cómo tratamos los datos',
+    subtitle: 'Bloqueo local. Sincronización al iniciar sesión. Sin venta.',
+    localTitle: 'El bloqueo es local',
+    localBody:
+      'Las selecciones de Screen Time / Family Controls y los shields se ejecutan en tu dispositivo. No subimos contenido de navegación ni el interior de las apps bloqueadas.',
+    accountTitle: 'Correo de la cuenta',
+    accountBody:
+      'Si te registras, guardamos tu correo (y nombre) con Firebase Authentication para que puedas iniciar sesión y sincronizar el progreso.',
+    syncTitle: 'Qué se sincroniza al iniciar sesión',
+    syncBody:
+      'Entrenamientos, saldo de tiempo de pantalla, rachas, apodos de apps y metadatos de la lista, límites de aperturas diarias e historial de uso se sincronizan con tu cuenta.',
+    deviceOnlyTitle: 'Solo en el dispositivo',
+    deviceOnlyBody:
+      'Los tokens opacos de Family Controls, la selección del App Group y los shields activos permanecen en este dispositivo. Los IDs en la nube solos no pueden reaplicar shields en un teléfono nuevo.',
+    noSellTitle: 'No vendemos datos',
+    noSellBody:
+      'No vendemos datos personales ni usamos datos de bloqueo para anuncios. No leemos contraseñas, mensajes, fotos ni el contenido de otras apps.',
+    deleteTitle: 'Eliminar tu cuenta',
+    deleteBody:
+      'Ajustes → Delete account elimina la cuenta del servidor y los datos sincronizados. Ayuda: RepLockIssue@outlook.com. Cancela las suscripciones de la tienda por separado.',
+    fullPolicy: 'Política de privacidad completa',
+    fullPolicyDesc: 'Detalles legales completos en la web',
+    contact: 'Contactar soporte',
   },
   legal: {
     privacyTitle: 'Privacy Policy',

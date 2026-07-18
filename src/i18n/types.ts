@@ -181,6 +181,8 @@ export interface Translations {
     deleteAccountDesc: string
     deleteAccountConfirm: string
     deleteAccountWarning: string
+    deleteAccountDetails: string
+    deleteAccountHelp: string
     deleteAccountPassword: string
     deleteAccountSubmit: string
     deleteAccountSuccess: string
@@ -572,6 +574,8 @@ export interface Translations {
     blockingLearnMore: string
     version: string
     legal: string
+    dataPrivacy: string
+    dataPrivacyDesc: string
     privacyPolicy: string
     termsOfService: string
     contactSupport: string
@@ -680,6 +684,25 @@ export interface Translations {
     proUnlockedOffline: string
     appleTerms: string
     stripeTerms: string
+  }
+  dataPrivacy: {
+    title: string
+    subtitle: string
+    localTitle: string
+    localBody: string
+    accountTitle: string
+    accountBody: string
+    syncTitle: string
+    syncBody: string
+    deviceOnlyTitle: string
+    deviceOnlyBody: string
+    noSellTitle: string
+    noSellBody: string
+    deleteTitle: string
+    deleteBody: string
+    fullPolicy: string
+    fullPolicyDesc: string
+    contact: string
   }
   legal: {
     privacyTitle: string

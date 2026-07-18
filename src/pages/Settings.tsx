@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
-  Crown, Bell, Shield, HelpCircle, LogOut, ChevronRight, ExternalLink, Trash2, FileText, KeyRound, UserPen,
+  Crown, Bell, Shield, HelpCircle, LogOut, ChevronRight, ExternalLink, Trash2, FileText, KeyRound, UserPen, Lock,
 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader, SectionLabel } from '@/components/layout/PageHeader'
@@ -305,6 +305,12 @@ export function SettingsPage() {
       title: t('settings.legal'),
       items: [
         {
+          icon: Lock,
+          label: t('settings.dataPrivacy'),
+          value: t('settings.dataPrivacyDesc'),
+          action: () => navigate('/settings/data-privacy'),
+        },
+        {
           icon: FileText,
           label: t('settings.privacyPolicy'),
           action: () => navigate('/privacy', { state: { from: '/settings' } }),
@@ -569,7 +575,11 @@ export function SettingsPage() {
         onClose={() => !deleting && setShowDelete(false)}
         title={t('auth.deleteAccountConfirm')}
       >
-        <p className="text-sm text-white/50 mb-4">{t('auth.deleteAccountWarning')}</p>
+        <div className="space-y-3 mb-4 text-sm text-white/50 leading-relaxed">
+          <p>{t('auth.deleteAccountWarning')}</p>
+          <p>{t('auth.deleteAccountDetails')}</p>
+          <p>{t('auth.deleteAccountHelp')}</p>
+        </div>
         <Input
           id="delete-password"
           type="password"

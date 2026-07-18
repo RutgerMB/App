@@ -76,7 +76,7 @@ export const nl = {
       'Je workouts, streaks en schermtijdsaldo worden opgeslagen om te synchroniseren tussen apparaten.',
     privacyBlockTitle: 'Blokkeerinstellingen',
     privacyBlockDesc:
-      'Op Android blijven geblokkeerde apps op je apparaat. We gebruiken alleen package-ID\'s om limieten af te dwingen.',
+      'Screen Time-selecties blijven op je apparaat. Als je bent ingelogd, synchroniseren we bijnamen en lock-list-metadata — niet de inhoud van geblokkeerde apps.',
     privacyLearnMore: 'Meer weten',
     revealTitle: 'Jouw schatting vs je telefoon',
     revealSubtitle: 'Vergelijk wat je dacht met wat we kunnen meten.',
@@ -304,7 +304,12 @@ export const nl = {
     deleteAccount: 'Delete account',
     deleteAccountDesc: 'Permanently remove your account and all data',
     deleteAccountConfirm: 'Delete your account?',
-    deleteAccountWarning: 'This cannot be undone. All workouts, screen time balance, and settings will be permanently deleted.',
+    deleteAccountWarning:
+      'Dit kan niet ongedaan worden gemaakt. We verwijderen je account en cloudgegevens van onze servers: e-mail, workouts, schermtijd-saldo, streaks, app-bijnamen en gebruiksgeschiedenis.',
+    deleteAccountDetails:
+      'Alleen-op-apparaat Screen Time / Family Controls-selecties en shields blijven op deze telefoon tot je Screen Time-toegang intrekt of RepLock verwijdert. Abonnementen beheer je apart in Apple- of Google-instellingen.',
+    deleteAccountHelp:
+      'Hulp nodig bij verwijderen? Mail RepLockIssue@outlook.com vanaf het e-mailadres van je account. Pad: Instellingen → Delete account.',
     deleteAccountPassword: 'Enter your password to confirm',
     deleteAccountSubmit: 'Delete my account',
     deleteAccountSuccess: 'Your account has been deleted',
@@ -627,6 +632,8 @@ export const nl = {
     blockingLearnMore: 'Zie launch-gids voor native app roadmap',
     version: 'Gemaakt met discipline',
     legal: 'Legal',
+    dataPrivacy: 'Hoe we data gebruiken',
+    dataPrivacyDesc: 'Op apparaat vs gesynchroniseerd',
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
     contactSupport: 'Contact support',
@@ -740,6 +747,31 @@ export const nl = {
       'Pro ontgrendeld via de App Store. Accountsynchronisatie volgt opnieuw wanneer de server bereikbaar is.',
     appleTerms: 'Payment is charged to your Apple ID. Subscription renews automatically unless cancelled at least 24 hours before the period ends.',
     stripeTerms: 'Cancel anytime from your account settings. Billed monthly via secure checkout.',
+  },
+  dataPrivacy: {
+    title: 'Hoe we data gebruiken',
+    subtitle: 'Lokale blokkering. Sync bij inloggen. Geen verkoop.',
+    localTitle: 'Blokkering blijft lokaal',
+    localBody:
+      'Screen Time / Family Controls-selecties en shields draaien op je apparaat. We uploaden geen browse-inhoud of de inhoud van geblokkeerde apps.',
+    accountTitle: 'Account-e-mail',
+    accountBody:
+      'Als je je registreert, slaan we je e-mail (en weergavenaam) op via Firebase Authentication zodat je kunt inloggen en voortgang synchroniseren.',
+    syncTitle: 'Wat synct bij inloggen',
+    syncBody:
+      'Workouts, schermtijd-saldo, streaks, app-bijnamen en lock-list-metadata, dagelijkse openingslimieten en gebruiksgeschiedenis synchroniseren naar je account.',
+    deviceOnlyTitle: 'Alleen op apparaat',
+    deviceOnlyBody:
+      'Ondoorzichtige Family Controls-tokens, App Group-selecties en actieve shields blijven op dit apparaat. Alleen cloud token-ID’s kunnen shields niet opnieuw toepassen op een nieuwe telefoon.',
+    noSellTitle: 'We verkopen geen data',
+    noSellBody:
+      'We verkopen geen persoonsgegevens en gebruiken blokkeerdata niet voor ads. We lezen geen wachtwoorden, berichten, foto’s of de inhoud van andere apps.',
+    deleteTitle: 'Account verwijderen',
+    deleteBody:
+      'Instellingen → Delete account verwijdert je serveraccount en gesyncte clouddata. Mail RepLockIssue@outlook.com voor hulp. Store-abonnementen zeg je apart op.',
+    fullPolicy: 'Volledige Privacy Policy',
+    fullPolicyDesc: 'Volledige juridische details op het web',
+    contact: 'Contact support',
   },
   legal: {
     privacyTitle: 'Privacy Policy',

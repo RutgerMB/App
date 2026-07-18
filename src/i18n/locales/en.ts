@@ -75,7 +75,7 @@ export const en: Translations = {
       'Workouts, streaks, and screen-time balance sync when you sign in.',
     privacyBlockTitle: 'Blocking settings',
     privacyBlockDesc:
-      'Blocked app choices stay on your device. We only use package IDs to enforce limits.',
+      'Screen Time selections stay on your device. When signed in, we sync nicknames and lock-list metadata — not the contents of blocked apps.',
     privacyLearnMore: 'Learn more',
     revealTitle: 'Guess vs reality',
     revealSubtitle: 'Your estimate against your device average.',
@@ -301,7 +301,12 @@ export const en: Translations = {
     deleteAccount: 'Delete account',
     deleteAccountDesc: 'Permanently remove your account and all data',
     deleteAccountConfirm: 'Delete your account?',
-    deleteAccountWarning: 'This cannot be undone. All workouts, screen time balance, and settings will be permanently deleted.',
+    deleteAccountWarning:
+      'This cannot be undone. We remove your account and cloud data from our servers: email, workouts, screen-time balance, streaks, app nicknames, and usage history.',
+    deleteAccountDetails:
+      'Device-only Screen Time / Family Controls selections and shields stay on this phone until you revoke Screen Time access or uninstall RepLock. Store subscriptions are managed separately in Apple or Google settings.',
+    deleteAccountHelp:
+      'Need help deleting? Email RepLockIssue@outlook.com from the address on your account. Path: Settings → Delete account.',
     deleteAccountPassword: 'Enter your password to confirm',
     deleteAccountSubmit: 'Delete my account',
     deleteAccountSuccess: 'Your account has been deleted',
@@ -761,6 +766,8 @@ export const en: Translations = {
     blockingLearnMore: 'See launch guide for native app roadmap',
     version: 'Made with discipline',
     legal: 'Legal',
+    dataPrivacy: 'How we handle data',
+    dataPrivacyDesc: 'What stays on device vs synced',
     privacyPolicy: 'Privacy Policy',
     termsOfService: 'Terms of Service',
     contactSupport: 'Contact support',
@@ -875,6 +882,31 @@ export const en: Translations = {
     appleTerms:
       'Payment is charged to your Apple ID. Subscription renews automatically unless cancelled at least 24 hours before the period ends. Manage in Settings → Apple ID → Subscriptions.',
     stripeTerms: 'Cancel anytime from your account settings. Billed monthly via secure checkout.',
+  },
+  dataPrivacy: {
+    title: 'How we handle data',
+    subtitle: 'Local blocking. Account sync when you sign in. No selling.',
+    localTitle: 'Blocking stays local',
+    localBody:
+      'Screen Time / Family Controls selections and shields run on your device. We do not upload browsing content or the insides of blocked apps.',
+    accountTitle: 'Account email',
+    accountBody:
+      'If you register, we store your email (and display name) with Firebase Authentication so you can sign in and sync progress.',
+    syncTitle: 'What syncs when logged in',
+    syncBody:
+      'Workouts, screen-time balance, streaks, app nicknames and lock-list metadata, daily opening limits, and usage history sync to your account.',
+    deviceOnlyTitle: 'Device-only',
+    deviceOnlyBody:
+      'Opaque Family Controls tokens, App Group selection data, and active shields stay on this device. Cloud token IDs alone cannot re-apply shields on a new phone.',
+    noSellTitle: 'We don’t sell data',
+    noSellBody:
+      'We don’t sell personal data or use blocking data for ads. We can’t read passwords, messages, photos, or the content of other apps.',
+    deleteTitle: 'Delete your account',
+    deleteBody:
+      'Settings → Delete account removes your server account and synced cloud data. Email RepLockIssue@outlook.com for deletion help. Cancel store subscriptions separately.',
+    fullPolicy: 'Full Privacy Policy',
+    fullPolicyDesc: 'Complete legal details on the web',
+    contact: 'Contact support',
   },
   legal: {
     privacyTitle: 'Privacy Policy',

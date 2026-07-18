@@ -13,7 +13,7 @@ export type LegalDocument = {
 const SUPPORT_EMAIL = 'RepLockIssue@outlook.com'
 
 const legalEn: LegalDocument = {
-  lastUpdated: 'July 16, 2026',
+  lastUpdated: 'July 18, 2026',
   privacyIntro:
     'This Privacy Policy describes how RepLock ("we", "us", "our") collects, uses, stores, and protects personal data when you use the RepLock mobile application on iOS and Android and related services (the "Service"). By using the Service, you agree to this policy. If you do not agree, please do not use the Service. The live web version is at https://rutgermb.github.io/App/legal/privacy.html.',
   privacySections: [
@@ -21,7 +21,9 @@ const legalEn: LegalDocument = {
       title: '1. Who we are',
       paragraphs: [
         'RepLock is the data controller for personal data processed through the Service, except where we use third-party processors listed below.',
-        'For privacy questions, support, or to exercise your rights, contact us at ' + SUPPORT_EMAIL + '.',
+        'For privacy questions, support, deletion requests, or to exercise your rights, contact us at ' +
+          SUPPORT_EMAIL +
+          '. Support page: https://rutgermb.github.io/App/legal/support.html.',
       ],
     },
     {
@@ -29,29 +31,37 @@ const legalEn: LegalDocument = {
       paragraphs: [
         'Account data: name, email address, and authentication credentials when you register or sign in (via Firebase Authentication).',
         'Workout and progress data: exercises completed, amounts/reps, streaks, earned screen-time balance, difficulty settings, and in-app preferences.',
-        'Blocking configuration: apps you choose to limit, nicknames/display names you assign, daily opening limits, schedules, unlock usage history, and related settings. On Android, package names may be stored to enforce limits.',
+        'Blocking configuration (when signed in): nicknames/display names you assign, daily opening limits, unlock usage history (usageHistory), related preferences, and opaque identifiers needed to associate your lock list (for example iOS token IDs or Android package names). We do not claim AppBlock-style calendar/time-of-day blocking schedules.',
         'Subscription data: plan type, trial status, and transaction/entitlement identifiers from Apple In-App Purchase, Google Play Billing, and/or RevenueCat. We do not store full payment card numbers.',
         'Technical data: device type, operating system, app version, language, and crash or error diagnostics.',
         'Communications: messages you send to support.',
-        'We do not currently use Firebase Analytics or similar advertising analytics SDKs to build marketing profiles. If that changes, we will update this policy first.',
+        'We do not collect precise GPS / location data for geofencing. We do not currently use Firebase Analytics or similar advertising analytics SDKs to build marketing profiles. If that changes, we will update this policy first.',
       ],
     },
     {
       title: '3. App blocking, Screen Time & device data',
       paragraphs: [
-        'On Android, with permissions you enable (such as Accessibility and/or Usage Access), RepLock can block selected apps and, where permitted, read device usage statistics for apps you track. Enforcement data stays on your device where possible; we store configuration needed to sync your account.',
-        'On iOS, RepLock uses Apple Family Controls / Screen Time APIs (Managed Settings, Device Activity, and related frameworks) that you authorize. Apple presents system UI for selecting apps to shield. Apple restricts what third-party apps can read: we generally cannot obtain the real App Store name or icon of shielded apps for our web UI. You may assign a nickname. Nicknames and selection tokens may be stored on-device (including in an App Group shared with RepLock extensions) and synced with your account configuration as needed.',
-        'We do not read your passwords, messages, photos, or the full contents of other apps. We do not sell personal data or use blocking data for advertising profiles. Blocking depends on OS permissions and platform rules; we do not claim it works in every edge case.',
+        'On Android, with permissions you enable (such as Accessibility and/or Usage Access), RepLock can block selected apps and, where permitted, read device usage statistics for apps you track. Local enforcement stays on your device; package names and nicknames may sync with your account when you are signed in.',
+        'On iOS, RepLock uses Apple Family Controls / Screen Time APIs (Managed Settings, Device Activity, Shield Configuration / Shield Action extensions, and related frameworks) that you authorize. Apple presents system UI for selecting apps to shield. Apple restricts what third-party apps can read: we generally cannot obtain the real App Store name or icon of shielded apps for our web UI. You may assign a nickname.',
+        'Family Controls selections are identified by opaque tokens generated by Apple. Those selection tokens and active shields are stored on-device (including in an App Group shared with RepLock extensions) and are not uploaded as browsing content. Nicknames and related lock-list metadata may sync with your account when you sign in; opaque Family Controls selection blobs needed to re-apply shields stay device-bound.',
+        'We do not read your passwords, messages, photos, browsing history inside blocked apps, or the full contents of other apps. We do not sell personal data or use blocking data for advertising profiles. Blocking depends on OS permissions and platform rules; we do not claim it works in every edge case.',
       ],
     },
     {
-      title: '4. Push notifications',
+      title: '4. What syncs when you are signed in',
+      paragraphs: [
+        'When you are signed in (and not using a local-only development session), RepLock may sync workouts, screen-time balance, streaks, preferences, app nicknames and lock-list metadata, daily opening limits, and usageHistory to Firebase Firestore (or a legacy sync backend where applicable).',
+        'Device-only: Family Controls / Screen Time selection encodings, App Group unlock maps, and Managed Settings shields remain on the device. Subscription Pro status is validated via Apple/Google and RevenueCat rather than written solely by the client as billing truth.',
+      ],
+    },
+    {
+      title: '5. Push notifications',
       paragraphs: [
         'If you allow notifications, the OS may grant RepLock permission to send push or local notifications (for example workout reminders or trial-related notices when those features are enabled). You can change this in system Settings or in the app. Token registration may use APNs or Google services. Reminder content may roll out over time; granting permission does not mean every reminder type is already active.',
       ],
     },
     {
-      title: '5. How we use your data',
+      title: '6. How we use your data',
       paragraphs: [
         'To provide and operate the Service, including earning screen time through workouts and enforcing limits you configure.',
         'To sync progress and settings across devices when you sign in.',
@@ -62,14 +72,14 @@ const legalEn: LegalDocument = {
       ],
     },
     {
-      title: '6. Legal bases (EEA/UK)',
+      title: '7. Legal bases (EEA/UK)',
       paragraphs: [
         'We process data based on: (a) performance of our contract with you; (b) your consent where required (e.g. optional notifications or certain device permissions); (c) legitimate interests such as security and product improvement; and (d) legal obligations.',
         'You may withdraw consent at any time without affecting the lawfulness of processing before withdrawal.',
       ],
     },
     {
-      title: '7. Sharing with third parties',
+      title: '8. Sharing with third parties',
       paragraphs: [
         'We share data only as needed with trusted service providers, including:',
         '• Firebase (Google) — Authentication and Firestore (or similar) cloud sync. We do not currently enable Firebase Analytics for advertising.',
@@ -77,51 +87,61 @@ const legalEn: LegalDocument = {
         '• Google — Google Play Billing on Android and related mobile services you enable.',
         '• RevenueCat — subscription status, receipt validation, and entitlement syncing on mobile.',
         '• Hosting and infrastructure providers (including GitHub Pages for public legal/support pages).',
-        'Providers process data under their own privacy policies and our instructions. We may disclose data if required by law or to protect safety and rights.',
+        'Providers process data under their own privacy policies and our instructions. We may disclose data if required by law or to protect safety and rights. We do not sell personal data.',
       ],
     },
     {
-      title: '8. Retention',
+      title: '9. Retention',
       paragraphs: [
-        'We keep account and workout data while your account is active. After you delete your account, we delete or anonymize personal data within a reasonable period, except where we must retain data for legal, tax, or dispute-resolution purposes.',
-        'Backup copies may persist for a limited time. On-device App Group / Screen Time configuration may remain until you revoke permissions or uninstall the app.',
+        'Account and workout data: kept while your account is active.',
+        'After you delete your account (Settings → Delete account), we delete or anonymize personal data on our servers within a reasonable period, except where we must retain data for legal, tax, or dispute-resolution purposes. Backup copies may persist for a limited time before automatic deletion.',
+        'Support emails: retained as needed to handle your request and for a limited period afterward for security and continuity.',
+        'On-device App Group / Screen Time configuration may remain until you revoke permissions or uninstall the app. Store subscriptions are controlled by Apple or Google and are not cancelled merely by deleting the RepLock account.',
       ],
     },
     {
-      title: '9. Security',
+      title: '10. Security',
       paragraphs: [
         'We use technical and organizational measures to protect personal data, including encryption in transit, access controls, and secure authentication.',
         'No method of transmission or storage is 100% secure. Keep your login credentials confidential.',
       ],
     },
     {
-      title: '10. Log & diagnostic data',
+      title: '11. Log & diagnostic data',
       paragraphs: [
         'If the app crashes or errors occur, we may collect diagnostic information (device model, OS version, app version, error timestamps). This data is used to improve stability and is not used to identify you beyond your account when you are signed in.',
       ],
     },
     {
-      title: '11. Your rights',
+      title: '12. Your rights',
       paragraphs: [
-        'Depending on your location, you may have the right to access, correct, delete, restrict, or port your personal data, and to object to certain processing.',
-        'You can delete your account in Settings → Delete account. You may also contact ' + SUPPORT_EMAIL + '.',
-        'EEA/UK users may lodge a complaint with their local data protection authority.',
+        'Depending on your location (including EEA/UK under GDPR), you may have the right to: (i) access your personal data; (ii) rectify inaccurate data; (iii) erase data (“right to be forgotten”) when applicable; (iv) restrict processing; (v) data portability; (vi) object to certain processing based on legitimate interests; and (vii) withdraw consent where processing is based on consent.',
+        'How to delete: open the app → Settings → Delete account, then confirm with your password. This removes your Firebase Auth user and associated cloud app state (or equivalent server account) and clears local app storage. Device Screen Time / App Group data may remain until you revoke access or uninstall. Cancel App Store / Google Play subscriptions separately.',
+        'You may also email ' +
+          SUPPORT_EMAIL +
+          ' from the address on your account to request deletion or other rights. We may need to verify your identity. EEA/UK users may lodge a complaint with their local data protection authority.',
       ],
     },
     {
-      title: '12. Children',
+      title: '13. Children',
       paragraphs: [
-        'The Service is not directed at children under 13 (or the minimum age in your country). We do not knowingly collect data from children. Contact us if you believe a child has provided personal data.',
+        'The Service is not directed at children under 13 (or the minimum age in your country). We do not knowingly collect data from children. Contact us if you believe a child has provided personal data so we can delete it.',
       ],
     },
     {
-      title: '13. International transfers',
+      title: '14. International transfers',
       paragraphs: [
-        'Your data may be processed in countries outside your own (including by Firebase, Apple, Google, or RevenueCat). Where required, we use appropriate safeguards such as standard contractual clauses approved by the European Commission.',
+        'Your data may be processed in countries outside your own (including by Firebase/Google, Apple, or RevenueCat). Where required, we use appropriate safeguards such as standard contractual clauses approved by the European Commission.',
       ],
     },
     {
-      title: '14. Changes to this policy',
+      title: '15. Public website & cookies',
+      paragraphs: [
+        'Our public legal and support pages (hosted on GitHub Pages) are informational. They may use only strictly necessary cookies or similar technologies provided by the host for security and delivery. We do not run advertising trackers on those pages.',
+      ],
+    },
+    {
+      title: '16. Changes to this policy',
       paragraphs: [
         'We may update this Privacy Policy from time to time. We will post the new version in the app and at https://rutgermb.github.io/App/legal/privacy.html and update the "Last updated" date. Material changes may require renewed consent where applicable.',
       ],
@@ -211,7 +231,7 @@ const legalEn: LegalDocument = {
     {
       title: '12. Termination',
       paragraphs: [
-        'You may stop using the Service and delete your account at any time in Settings. Deleting the app does not automatically cancel a store subscription — cancel in Apple or Google subscription settings.',
+        'You may stop using the Service and delete your account at any time in Settings → Delete account. Deleting the app or account does not automatically cancel a store subscription — cancel in Apple or Google subscription settings.',
         'We may suspend or terminate access if you breach these Terms or if required for legal or security reasons.',
       ],
     },
@@ -230,161 +250,175 @@ const legalEn: LegalDocument = {
     },
     {
       title: '15. Contact',
-      paragraphs: ['Questions about these Terms: ' + SUPPORT_EMAIL + '. Support page: https://rutgermb.github.io/App/legal/support.html'],
+      paragraphs: [
+        'Questions about these Terms: ' +
+          SUPPORT_EMAIL +
+          '. Support page: https://rutgermb.github.io/App/legal/support.html',
+      ],
     },
   ],
 }
 
-/** German, French, Spanish: full structure with localized text (fallback to English paragraphs where needed). */
+const PRIVACY_TITLES = {
+  de: [
+    '1. Wer wir sind',
+    '2. Welche Daten wir erheben',
+    '3. App-Blockierung, Screen Time & Gerätedaten',
+    '4. Was bei Anmeldung synchronisiert wird',
+    '5. Push-Benachrichtigungen',
+    '6. Wie wir Daten nutzen',
+    '7. Rechtsgrundlagen (EWR/VK)',
+    '8. Weitergabe an Dritte',
+    '9. Aufbewahrung',
+    '10. Sicherheit',
+    '11. Protokoll- & Diagnosedaten',
+    '12. Deine Rechte',
+    '13. Kinder',
+    '14. Internationale Übermittlung',
+    '15. Öffentliche Website & Cookies',
+    '16. Änderungen',
+  ],
+  fr: [
+    '1. Qui nous sommes',
+    '2. Données collectées',
+    '3. Blocage d\'apps, Screen Time & données appareil',
+    '4. Ce qui se synchronise une fois connecté',
+    '5. Notifications push',
+    '6. Utilisation des données',
+    '7. Bases légales (EEE/RU)',
+    '8. Partage avec des tiers',
+    '9. Conservation',
+    '10. Sécurité',
+    '11. Journaux & diagnostics',
+    '12. Tes droits',
+    '13. Enfants',
+    '14. Transferts internationaux',
+    '15. Site public & cookies',
+    '16. Modifications',
+  ],
+  es: [
+    '1. Quiénes somos',
+    '2. Datos que recopilamos',
+    '3. Bloqueo de apps, Screen Time y datos del dispositivo',
+    '4. Qué se sincroniza al iniciar sesión',
+    '5. Notificaciones push',
+    '6. Cómo usamos los datos',
+    '7. Bases legales (EEE/RU)',
+    '8. Compartir con terceros',
+    '9. Conservación',
+    '10. Seguridad',
+    '11. Registros y diagnósticos',
+    '12. Tus derechos',
+    '13. Menores',
+    '14. Transferencias internacionales',
+    '15. Sitio público y cookies',
+    '16. Cambios',
+  ],
+} as const
+
+const TERMS_TITLES = {
+  de: [
+    '1. Annahme',
+    '2. Der Dienst',
+    '3. Abonnements & In-App-Käufe',
+    '4. Kostenlose Testphase',
+    '5. App-Blockierung & Plattformlimits',
+    '6. Zulässige Nutzung',
+    '7. Gesundheit & Fitness',
+    '8. Geistiges Eigentum',
+    '9. Dienste Dritter',
+    '10. Haftungsausschluss',
+    '11. Haftungsbeschränkung',
+    '12. Kündigung',
+    '13. Anwendbares Recht',
+    '14. Änderungen',
+    '15. Kontakt',
+  ],
+  fr: [
+    '1. Acceptation',
+    '2. Le Service',
+    '3. Abonnements & achats in-app',
+    '4. Essai gratuit',
+    '5. Blocage d\'apps & limites plateforme',
+    '6. Utilisation acceptable',
+    '7. Santé & fitness',
+    '8. Propriété intellectuelle',
+    '9. Services tiers',
+    '10. Exclusion de garanties',
+    '11. Limitation de responsabilité',
+    '12. Résiliation',
+    '13. Droit applicable',
+    '14. Modifications',
+    '15. Contact',
+  ],
+  es: [
+    '1. Aceptación',
+    '2. El Servicio',
+    '3. Suscripciones y compras in-app',
+    '4. Prueba gratuita',
+    '5. Bloqueo de apps y límites plataforma',
+    '6. Uso aceptable',
+    '7. Salud y fitness',
+    '8. Propiedad intelectual',
+    '9. Servicios de terceros',
+    '10. Exención de garantías',
+    '11. Limitación de responsabilidad',
+    '12. Terminación',
+    '13. Ley aplicable',
+    '14. Cambios',
+    '15. Contacto',
+  ],
+} as const
+
+function localizeTitles(
+  sections: LegalSection[],
+  titles: readonly string[]
+): LegalSection[] {
+  return sections.map((s, i) => ({
+    ...s,
+    title: titles[i] ?? s.title,
+  }))
+}
+
+/** German, French, Spanish: localized section titles; English body as source of truth. */
 const legalDe: LegalDocument = {
   ...legalEn,
-  lastUpdated: 'Juli 2026',
+  lastUpdated: '18. Juli 2026',
   privacyIntro:
     'Diese Datenschutzerklärung beschreibt, wie RepLock personenbezogene Daten erhebt, nutzt und schützt, wenn du die RepLock-App und zugehörige Dienste („Dienst") nutzt.',
   termsIntro:
     'Bitte lies diese Nutzungsbedingungen („Bedingungen") sorgfältig, bevor du RepLock verwendest.',
-  privacySections: legalEn.privacySections.map((s, i) => ({
-    ...s,
-    title: [
-      '1. Wer wir sind',
-      '2. Welche Daten wir erheben',
-      '3. App-Blockierung, Screen Time & Gerätedaten',
-      '4. Push-Benachrichtigungen',
-      '5. Wie wir Daten nutzen',
-      '6. Rechtsgrundlagen (EWR/VK)',
-      '7. Weitergabe an Dritte',
-      '8. Aufbewahrung',
-      '9. Sicherheit',
-      '10. Protokoll- & Diagnosedaten',
-      '11. Deine Rechte',
-      '12. Kinder',
-      '13. Internationale Übermittlung',
-      '14. Änderungen',
-    ][i] ?? s.title,
-  })),
-  termsSections: legalEn.termsSections.map((s, i) => ({
-    ...s,
-    title: [
-      '1. Annahme',
-      '2. Der Dienst',
-      '3. Abonnements & In-App-Käufe',
-      '4. Kostenlose Testphase',
-      '5. App-Blockierung & Plattformlimits',
-      '6. Zulässige Nutzung',
-      '7. Gesundheit & Fitness',
-      '8. Geistiges Eigentum',
-      '9. Dienste Dritter',
-      '10. Haftungsausschluss',
-      '11. Haftungsbeschränkung',
-      '12. Kündigung',
-      '13. Anwendbares Recht',
-      '14. Änderungen',
-      '15. Kontakt',
-    ][i] ?? s.title,
-  })),
+  privacySections: localizeTitles(legalEn.privacySections, PRIVACY_TITLES.de),
+  termsSections: localizeTitles(legalEn.termsSections, TERMS_TITLES.de),
 }
 
 const legalFr: LegalDocument = {
   ...legalEn,
-  lastUpdated: 'juillet 2026',
+  lastUpdated: '18 juillet 2026',
   privacyIntro:
     'Cette politique de confidentialité décrit comment RepLock collecte, utilise et protège les données personnelles lorsque tu utilises l\'application RepLock et les services associés (le « Service »).',
   termsIntro:
     'Lis attentivement ces Conditions d\'utilisation (« Conditions ») avant d\'utiliser RepLock.',
-  privacySections: legalEn.privacySections.map((s, i) => ({
-    ...s,
-    title: [
-      '1. Qui nous sommes',
-      '2. Données collectées',
-      '3. Blocage d\'apps, Screen Time & données appareil',
-      '4. Notifications push',
-      '5. Utilisation des données',
-      '6. Bases légales (EEE/RU)',
-      '7. Partage avec des tiers',
-      '8. Conservation',
-      '9. Sécurité',
-      '10. Journaux & diagnostics',
-      '11. Tes droits',
-      '12. Enfants',
-      '13. Transferts internationaux',
-      '14. Modifications',
-    ][i] ?? s.title,
-  })),
-  termsSections: legalEn.termsSections.map((s, i) => ({
-    ...s,
-    title: [
-      '1. Acceptation',
-      '2. Le Service',
-      '3. Abonnements & achats in-app',
-      '4. Essai gratuit',
-      '5. Blocage d\'apps & limites plateforme',
-      '6. Utilisation acceptable',
-      '7. Santé & fitness',
-      '8. Propriété intellectuelle',
-      '9. Services tiers',
-      '10. Exclusion de garanties',
-      '11. Limitation de responsabilité',
-      '12. Résiliation',
-      '13. Droit applicable',
-      '14. Modifications',
-      '15. Contact',
-    ][i] ?? s.title,
-  })),
+  privacySections: localizeTitles(legalEn.privacySections, PRIVACY_TITLES.fr),
+  termsSections: localizeTitles(legalEn.termsSections, TERMS_TITLES.fr),
 }
 
 const legalEs: LegalDocument = {
   ...legalEn,
-  lastUpdated: 'julio de 2026',
+  lastUpdated: '18 de julio de 2026',
   privacyIntro:
     'Esta Política de privacidad describe cómo RepLock recopila, usa y protege los datos personales cuando utilizas la aplicación RepLock y los servicios relacionados (el «Servicio»).',
   termsIntro:
     'Lee estos Términos de servicio («Términos») con atención antes de usar RepLock.',
-  privacySections: legalEn.privacySections.map((s, i) => ({
-    ...s,
-    title: [
-      '1. Quiénes somos',
-      '2. Datos que recopilamos',
-      '3. Bloqueo de apps, Screen Time y datos del dispositivo',
-      '4. Notificaciones push',
-      '5. Cómo usamos los datos',
-      '6. Bases legales (EEE/RU)',
-      '7. Compartir con terceros',
-      '8. Conservación',
-      '9. Seguridad',
-      '10. Registros y diagnósticos',
-      '11. Tus derechos',
-      '12. Menores',
-      '13. Transferencias internacionales',
-      '14. Cambios',
-    ][i] ?? s.title,
-  })),
-  termsSections: legalEn.termsSections.map((s, i) => ({
-    ...s,
-    title: [
-      '1. Aceptación',
-      '2. El Servicio',
-      '3. Suscripciones y compras in-app',
-      '4. Prueba gratuita',
-      '5. Bloqueo de apps y límites de plataforma',
-      '6. Uso aceptable',
-      '7. Salud y fitness',
-      '8. Propiedad intelectual',
-      '9. Servicios de terceros',
-      '10. Exención de garantías',
-      '11. Limitación de responsabilidad',
-      '12. Terminación',
-      '13. Ley aplicable',
-      '14. Cambios',
-      '15. Contacto',
-    ][i] ?? s.title,
-  })),
+  privacySections: localizeTitles(legalEn.privacySections, PRIVACY_TITLES.es),
+  termsSections: localizeTitles(legalEn.termsSections, TERMS_TITLES.es),
 }
 
 const documents: Record<Locale, LegalDocument> = {
   en: legalEn,
   nl: {
     ...legalEn,
-    lastUpdated: '16 juli 2026',
+    lastUpdated: '18 juli 2026',
   },
   de: legalDe,
   fr: legalFr,

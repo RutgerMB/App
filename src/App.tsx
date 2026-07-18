@@ -17,6 +17,7 @@ import { PricingPage } from '@/pages/Pricing'
 import { SuccessPage } from '@/pages/Success'
 import { CancelPage } from '@/pages/Cancel'
 import { PrivacyPage, TermsPage } from '@/pages/Legal'
+import { DataPrivacyPage } from '@/pages/DataPrivacy'
 import { BlockerPermissionPrompt } from '@/components/BlockerPermissionPrompt'
 import { TrialExpiryNotifier } from '@/components/TrialExpiryNotifier'
 import { NotificationReminderSync } from '@/components/NotificationReminderSync'
@@ -114,6 +115,7 @@ export default function App() {
         <Route path="/apps" element={<AuthRoute><AppsPage /></AuthRoute>} />
         <Route path="/activity" element={<AuthRoute><ActivityPage /></AuthRoute>} />
         <Route path="/settings" element={<AuthRoute><SettingsPage /></AuthRoute>} />
+        <Route path="/settings/data-privacy" element={<AuthRoute><DataPrivacyPage /></AuthRoute>} />
         <Route path="*" element={<Navigate to="/welcome" replace />} />
       </Routes>
     </ToastProvider>
