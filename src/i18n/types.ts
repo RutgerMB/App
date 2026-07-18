@@ -716,6 +716,7 @@ export interface Translations {
     proUnlockedOffline: string
     appleTerms: string
     stripeTerms: string
+    manageOrCancel: string
   }
   dataPrivacy: {
     title: string

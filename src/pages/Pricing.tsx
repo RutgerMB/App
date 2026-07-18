@@ -385,6 +385,29 @@ export function PricingPage() {
               <Check size={24} className="mx-auto text-emerald-400 mb-2" />
               <p className="font-semibold text-emerald-300">{t('pricing.onPro')}</p>
               <p className="text-xs text-white/40 mt-1">{t('pricing.onProDesc')}</p>
+              {storeCheckout && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    void (async () => {
+                      const { openManageSubscription, isNativeRevenueCatAvailable } = await import(
+                        '@/lib/replock-revenuecat-native'
+                      )
+                      if (!isNativeRevenueCatAvailable()) {
+                        toast(t('settings.subscriptionNativeFailed'), 'error')
+                        return
+                      }
+                      const result = await openManageSubscription({ restoreIfNeeded: false })
+                      if (!result.opened) {
+                        toast(t('settings.subscriptionNativeFailed'), 'error')
+                      }
+                    })()
+                  }}
+                  className="mt-3 w-full text-center text-sm text-emerald-400/90 hover:text-emerald-300 py-2 underline underline-offset-2"
+                >
+                  {t('pricing.manageOrCancel')}
+                </button>
+              )}
             </div>
           ) : !storeCheckout ? (
             <div className="text-center p-5 rounded-2xl bg-white/[0.03] border border-white/[0.07]">

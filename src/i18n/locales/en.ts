@@ -831,7 +831,7 @@ export const en: Translations = {
     changePasswordSuccess: 'Password updated',
     changePasswordFailed: 'Could not update password',
     manageSubscription: 'Manage subscription',
-    manageSubscriptionDesc: 'Restore, cancel, or change plan',
+    manageSubscriptionDesc: 'Cancel, restore, or change plan via Apple / Google',
     subscriptionNativeFailed: 'Could not open subscription screen',
   },
   trial: {
@@ -894,6 +894,7 @@ export const en: Translations = {
     noShortcutsBold: ' Pro never shortcuts that — it helps you stay accountable.',
     onPro: "You're on Pro!",
     onProDesc: 'Unlimited apps and full features active',
+    manageOrCancel: 'Manage or cancel subscription',
     upgrade: 'Upgrade to Pro',
     keepAccess: 'Keep full access — Go Pro',
     subscribe: 'Start Pro subscription',
@@ -903,7 +904,7 @@ export const en: Translations = {
     mobileOnlyTitle: 'Download the mobile app',
     mobileOnlyDesc: 'RepLock launches on the App Store and Google Play. Subscriptions are handled through your store account — this web build is for development and testing only.',
     storeTerms:
-      'Payment is charged to your App Store or Google Play account. Subscription renews automatically unless cancelled at least 24 hours before the period ends. Manage in your store subscription settings.',
+      'Price and billing period (monthly or yearly) are shown above and confirmed by the App Store or Google Play before purchase. Payment is charged to your store account. The subscription auto-renews at the same price and period unless you cancel at least 24 hours before the period ends. Cancel anytime: Settings → Manage subscription (or your Apple ID / Google Play subscriptions). You keep access until the paid period ends.',
     testMode: 'Test mode · Card 4242 4242 4242 4242',
     alreadyPro: 'You already have Pro!',
     subscribeApple: 'Subscribe with Apple',
@@ -914,30 +915,30 @@ export const en: Translations = {
     proUnlockedOffline:
       'Pro unlocked from the App Store. Account sync will retry when the server is reachable.',
     appleTerms:
-      'Payment is charged to your Apple ID. Subscription renews automatically unless cancelled at least 24 hours before the period ends. Manage in Settings → Apple ID → Subscriptions.',
+      'Price and billing period are shown above and confirmed by Apple before purchase. Payment is charged to your Apple ID. The subscription auto-renews unless you cancel at least 24 hours before the period ends. Cancel: Settings → Manage subscription, or iOS Settings → [Your Name] → Subscriptions.',
     stripeTerms: 'Cancel anytime from your account settings. Billed monthly via secure checkout.',
   },
   dataPrivacy: {
     title: 'How we handle data',
-    subtitle: 'Local blocking. Account sync when you sign in. No selling.',
+    subtitle: 'Local blocking. Account sync when you sign in. No ad-sale of your data.',
     localTitle: 'Blocking stays local',
     localBody:
       'Screen Time / Family Controls selections and shields run on your device. We do not upload browsing content or the insides of blocked apps.',
     accountTitle: 'Account email',
     accountBody:
-      'If you register, we store your email (and display name) with Firebase Authentication so you can sign in and sync progress.',
+      'If you register, we store your email (and display name) with Firebase Authentication so you can sign in and sync progress. Account emails today are transactional only (verification, password reset) — not marketing campaigns.',
     syncTitle: 'What syncs when logged in',
     syncBody:
       'Workouts, screen-time balance, streaks, app nicknames and lock-list metadata, daily opening limits, and usage history sync to your account.',
     deviceOnlyTitle: 'Device-only',
     deviceOnlyBody:
       'Opaque Family Controls tokens, App Group selection data, and active shields stay on this device. Cloud token IDs alone cannot re-apply shields on a new phone.',
-    noSellTitle: 'We don’t sell data',
+    noSellTitle: 'No sale or ad-share of your data',
     noSellBody:
-      'We don’t sell personal data or use blocking data for ads. We can’t read passwords, messages, photos, or the content of other apps.',
+      'We don’t sell personal information for money, and we don’t share it for cross-context behavioral advertising (California CCPA/CPRA). We don’t use Google Analytics, Meta Pixel, or similar ad trackers. Firebase, Apple, Google Play, and RevenueCat are service providers that help run auth, sync, and billing — not ad buyers. We can’t read passwords, messages, photos, or the content of other apps.',
     deleteTitle: 'Delete your account',
     deleteBody:
-      'Settings → Delete account removes your server account and synced cloud data. Email RepLockIssue@outlook.com for deletion help. Cancel store subscriptions separately.',
+      'Settings → Delete account removes your server account and synced cloud data. Email RepLockIssue@outlook.com for deletion help. Cancel store subscriptions separately via Settings → Manage subscription.',
     fullPolicy: 'Full Privacy Policy',
     fullPolicyDesc: 'Complete legal details on the web',
     contact: 'Contact support',
@@ -950,7 +951,7 @@ export const en: Translations = {
       'RepLock ("we") respects your privacy. This policy explains what data we collect and how we use it when you use the RepLock mobile app and related services.',
     dataWeCollect: 'Data we collect',
     dataWeCollectBody:
-      'Account information (name, email), workout and screen-time activity, app preferences, and subscription status. We do not sell your personal data.',
+      'Account information (name, email), workout and screen-time activity, app preferences, and subscription status. We do not sell or share personal information for advertising under CCPA; service providers help run the app.',
     howWeUse: 'How we use your data',
     howWeUseBody:
       'To provide the service, sync your progress across devices, process subscriptions, and improve the app. Workout data stays tied to your account until you delete it.',
@@ -959,14 +960,14 @@ export const en: Translations = {
       'Data is stored on secure servers. Passwords are hashed. You can delete your account at any time from Settings.',
     yourRights: 'Your rights',
     yourRightsBody:
-      'You may request access to or deletion of your data. Account deletion is available in Settings → Delete account. EU users have additional rights under GDPR.',
+      'You may request access to or deletion of your data. Account deletion is available in Settings → Delete account. EU users have additional rights under GDPR; California residents have rights under CCPA/CPRA.',
     contact: 'Contact',
     contactBody: 'Questions about privacy: RepLockIssue@outlook.com',
     termsIntro:
       'By using RepLock you agree to these terms. RepLock helps you earn screen time through exercise and manage app usage within the app.',
     subscriptions: 'Subscriptions',
     subscriptionsBody:
-      'RepLock Pro is a monthly auto-renewing subscription. On iOS, billing is through Apple In-App Purchase. On Android and web (where available), billing may use Stripe. Refunds follow the platform provider\'s policies.',
+      'RepLock Pro is an auto-renewing subscription (monthly or yearly). Price and period are shown before purchase. Billing is through Apple In-App Purchase and/or Google Play via RevenueCat. Renews unless cancelled at least 24 hours before the period ends. Cancel: Settings → Manage subscription (or your store account). Refunds follow Apple or Google policies.',
     acceptableUse: 'Acceptable use',
     acceptableUseBody:
       'Use RepLock for personal wellbeing. Do not abuse the service, attempt to bypass limits unfairly, or use the app for unlawful purposes.',
@@ -975,7 +976,7 @@ export const en: Translations = {
       'RepLock is not medical advice. Consult a doctor before starting a new exercise program. Exercise at your own risk.',
     termination: 'Account termination',
     terminationBody:
-      'You may delete your account at any time in Settings. We may suspend accounts that violate these terms.',
+      'You may delete your account at any time in Settings. We may suspend accounts that violate these terms. Deleting the account does not cancel a store subscription — use Manage subscription.',
   },
   success: {
     confirming: 'Confirming your subscription...',

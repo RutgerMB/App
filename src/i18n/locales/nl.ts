@@ -697,7 +697,7 @@ export const nl = {
     changePasswordSuccess: 'Wachtwoord bijgewerkt',
     changePasswordFailed: 'Wachtwoord kon niet worden bijgewerkt',
     manageSubscription: 'Abonnement beheren',
-    manageSubscriptionDesc: 'Herstellen, opzeggen of plan wijzigen',
+    manageSubscriptionDesc: 'Opzeggen, herstellen of plan wijzigen via Apple / Google',
     subscriptionNativeFailed: 'Kon abonnementscherm niet openen',
   },
   trial: {
@@ -760,6 +760,7 @@ export const nl = {
     noShortcutsBold: ' Pro maakt dat nooit makkelijker — het houdt je verantwoordelijk.',
     onPro: 'Je hebt Pro!',
     onProDesc: 'Onbeperkte apps en alle functies actief',
+    manageOrCancel: 'Abonnement beheren of opzeggen',
     upgrade: 'Upgrade naar Pro',
     keepAccess: 'Behoud volledige toegang — Ga Pro',
     subscribe: 'Start Pro-abonnement',
@@ -769,7 +770,7 @@ export const nl = {
     mobileOnlyTitle: 'Download de mobiele app',
     mobileOnlyDesc: 'RepLock lanceert in de App Store en Google Play. Abonnementen verlopen via je store-account — deze webversie is alleen voor ontwikkeling en testen.',
     storeTerms:
-      'Betaling wordt in rekening gebracht via je App Store- of Google Play-account. Het abonnement verlengt automatisch tenzij je minstens 24 uur van tevoren opzegt.',
+      'Prijs en factureringsperiode (maandelijks of jaarlijks) staan hierboven en worden bevestigd door de App Store of Google Play vóór aankoop. Betaling via je store-account. Het abonnement verlengt automatisch tegen dezelfde prijs en periode tenzij je minstens 24 uur van tevoren opzegt. Opzeggen: Instellingen → Abonnement beheren (of Apple ID / Google Play).',
     testMode: 'Testmodus · Kaart 4242 4242 4242 4242',
     alreadyPro: 'Je hebt al Pro!',
     subscribeApple: 'Subscribe with Apple',
@@ -784,25 +785,25 @@ export const nl = {
   },
   dataPrivacy: {
     title: 'Hoe we data gebruiken',
-    subtitle: 'Lokale blokkering. Sync bij inloggen. Geen verkoop.',
+    subtitle: 'Lokale blokkering. Sync bij inloggen. Geen ad-verkoop van je data.',
     localTitle: 'Blokkering blijft lokaal',
     localBody:
       'Screen Time / Family Controls-selecties en shields draaien op je apparaat. We uploaden geen browse-inhoud of de inhoud van geblokkeerde apps.',
     accountTitle: 'Account-e-mail',
     accountBody:
-      'Als je je registreert, slaan we je e-mail (en weergavenaam) op via Firebase Authentication zodat je kunt inloggen en voortgang synchroniseren.',
+      'Als je je registreert, slaan we je e-mail (en weergavenaam) op via Firebase Authentication zodat je kunt inloggen en voortgang synchroniseren. E-mails zijn vandaag alleen transactioneel (verificatie, wachtwoordreset) — geen marketingcampagnes.',
     syncTitle: 'Wat synct bij inloggen',
     syncBody:
       'Workouts, schermtijd-saldo, streaks, app-bijnamen en lock-list-metadata, dagelijkse openingslimieten en gebruiksgeschiedenis synchroniseren naar je account.',
     deviceOnlyTitle: 'Alleen op apparaat',
     deviceOnlyBody:
       'Ondoorzichtige Family Controls-tokens, App Group-selecties en actieve shields blijven op dit apparaat. Alleen cloud token-ID’s kunnen shields niet opnieuw toepassen op een nieuwe telefoon.',
-    noSellTitle: 'We verkopen geen data',
+    noSellTitle: 'Geen verkoop of ad-share van je data',
     noSellBody:
-      'We verkopen geen persoonsgegevens en gebruiken blokkeerdata niet voor ads. We lezen geen wachtwoorden, berichten, foto’s of de inhoud van andere apps.',
+      'We verkopen geen persoonsgegevens voor geld en delen ze niet voor cross-context reclame (CCPA/CPRA). Geen Google Analytics, Meta Pixel of vergelijkbare ad-trackers. Firebase, Apple, Google Play en RevenueCat zijn dienstverleners voor auth, sync en billing — geen ad-kopers.',
     deleteTitle: 'Account verwijderen',
     deleteBody:
-      'Instellingen → Delete account verwijdert je serveraccount en gesyncte clouddata. Mail RepLockIssue@outlook.com voor hulp. Store-abonnementen zeg je apart op.',
+      'Instellingen → Delete account verwijdert je serveraccount en gesyncte clouddata. Mail RepLockIssue@outlook.com voor hulp. Store-abonnementen: Instellingen → Abonnement beheren.',
     fullPolicy: 'Volledige Privacy Policy',
     fullPolicyDesc: 'Volledige juridische details op het web',
     contact: 'Contact support',

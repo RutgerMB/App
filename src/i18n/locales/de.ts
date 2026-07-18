@@ -692,7 +692,7 @@ export const de = {
     changePasswordSuccess: 'Passwort aktualisiert',
     changePasswordFailed: 'Passwort konnte nicht aktualisiert werden',
     manageSubscription: 'Abonnement verwalten',
-    manageSubscriptionDesc: 'Wiederherstellen, kündigen oder Plan ändern',
+    manageSubscriptionDesc: 'Kündigen, wiederherstellen oder Plan ändern über Apple / Google',
     subscriptionNativeFailed: 'Abonnement-Bildschirm konnte nicht geöffnet werden',
   },
   trial: {
@@ -755,6 +755,7 @@ export const de = {
     noShortcutsBold: ' Pro verkürzt das nie — es hilft dir, verantwortlich zu bleiben.',
     onPro: 'Du hast Pro!',
     onProDesc: 'Unbegrenzte Apps und alle Funktionen aktiv',
+    manageOrCancel: 'Abo verwalten oder kündigen',
     upgrade: 'Auf Pro upgraden',
     keepAccess: 'Vollzugriff behalten — Pro werden',
     subscribe: 'Pro-Abonnement starten',
@@ -764,7 +765,7 @@ export const de = {
     mobileOnlyTitle: 'Mobile App herunterladen',
     mobileOnlyDesc: 'RepLock startet im App Store und bei Google Play. Abos laufen über dein Store-Konto — diese Web-Version ist nur für Entwicklung und Tests.',
     storeTerms:
-      'Die Zahlung erfolgt über dein App-Store- oder Google-Play-Konto. Das Abo verlängert sich automatisch, sofern es nicht mindestens 24 Stunden vor Ablauf gekündigt wird.',
+      'Preis und Abrechnungszeitraum (monatlich oder jährlich) stehen oben und werden vor dem Kauf vom App Store oder Google Play bestätigt. Zahlung über dein Store-Konto. Das Abo verlängert sich automatisch zum gleichen Preis und Zeitraum, sofern du nicht mindestens 24 Stunden vorher kündigst. Kündigen: Einstellungen → Abo verwalten (oder Apple-ID / Google Play).',
     testMode: 'Testmodus · Karte 4242 4242 4242 4242',
     alreadyPro: 'Du hast bereits Pro!',
     subscribeApple: 'Subscribe with Apple',
@@ -779,25 +780,25 @@ export const de = {
   },
   dataPrivacy: {
     title: 'So nutzen wir Daten',
-    subtitle: 'Lokale Sperre. Sync nach Login. Kein Verkauf.',
+    subtitle: 'Lokale Sperre. Sync nach Login. Kein Ad-Verkauf deiner Daten.',
     localTitle: 'Sperre bleibt lokal',
     localBody:
       'Screen Time / Family Controls-Auswahlen und Shields laufen auf dem Gerät. Wir laden keine Browser-Inhalte und keinen Inhalt blockierter Apps hoch.',
     accountTitle: 'Konto-E-Mail',
     accountBody:
-      'Bei Registrierung speichern wir E-Mail (und Anzeigename) über Firebase Authentication, damit du dich anmelden und Fortschritt syncen kannst.',
+      'Bei Registrierung speichern wir E-Mail (und Anzeigename) über Firebase Authentication, damit du dich anmelden und Fortschritt syncen kannst. E-Mails sind heute nur transaktional (Verifizierung, Passwort-Reset) — keine Marketing-Kampagnen.',
     syncTitle: 'Was bei Login synct',
     syncBody:
       'Workouts, Bildschirmzeit-Guthaben, Streaks, App-Spitznamen und Sperrlisten-Metadaten, tägliche Öffnungslimits und Nutzungsverlauf syncen zu deinem Konto.',
     deviceOnlyTitle: 'Nur auf dem Gerät',
     deviceOnlyBody:
       'Opake Family Controls-Tokens, App-Group-Auswahl und aktive Shields bleiben auf diesem Gerät. Cloud-Token-IDs allein können Shields auf einem neuen Handy nicht wieder anwenden.',
-    noSellTitle: 'Kein Datenverkauf',
+    noSellTitle: 'Kein Verkauf und kein Ad-Share deiner Daten',
     noSellBody:
-      'Wir verkaufen keine personenbezogenen Daten und nutzen Sperrdaten nicht für Werbung. Wir lesen keine Passwörter, Nachrichten, Fotos oder Inhalte anderer Apps.',
+      'Wir verkaufen keine personenbezogenen Daten gegen Geld und „teilen“ sie nicht für Cross-Context-Werbung (CCPA/CPRA). Kein Google Analytics, Meta Pixel oder ähnliche Ad-Tracker. Firebase, Apple, Google Play und RevenueCat sind Dienstleister für Auth, Sync und Billing — keine Werbekäufer.',
     deleteTitle: 'Konto löschen',
     deleteBody:
-      'Einstellungen → Delete account entfernt Serverkonto und Cloud-Daten. Hilfe: RepLockIssue@outlook.com. Store-Abos separat kündigen.',
+      'Einstellungen → Delete account entfernt Serverkonto und Cloud-Daten. Hilfe: RepLockIssue@outlook.com. Store-Abos: Einstellungen → Abo verwalten.',
     fullPolicy: 'Vollständige Datenschutzerklärung',
     fullPolicyDesc: 'Vollständige rechtliche Details im Web',
     contact: 'Support kontaktieren',

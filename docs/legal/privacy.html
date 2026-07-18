@@ -85,11 +85,15 @@
       <li><strong>Blocking configuration (when signed in):</strong> nicknames/display names you assign, daily opening limits, unlock usage history, related preferences, and opaque identifiers needed to associate your lock list (for example iOS token IDs or Android package names). We do not claim calendar/time-of-day blocking schedules of the kind offered by some other blockers.</li>
       <li><strong>Subscription data:</strong> plan type, trial status, and transaction / entitlement identifiers from Apple In-App Purchase, Google Play Billing, and/or RevenueCat. We do not store full payment card numbers.</li>
       <li><strong>Technical data:</strong> device type, operating system, app version, language, and crash or error diagnostics needed to keep the Service reliable.</li>
-      <li><strong>Communications:</strong> messages you send to support.</li>
+      <li><strong>Communications:</strong> messages you send to support, and transactional account emails described in section 16.</li>
     </ul>
     <p>
       We do <strong>not</strong> collect precise GPS / location data for geofencing.
-      We do <strong>not</strong> currently use Firebase Analytics or similar advertising analytics SDKs to build marketing profiles. If that changes, we will update this policy before enabling them.
+      We do <strong>not</strong> use Google Analytics, Meta Pixel, advertising SDKs, or similar
+      third-party advertising / cross-site tracking pixels in the app or on our public legal pages.
+      We do <strong>not</strong> currently enable Firebase Analytics (or similar product-analytics SDKs)
+      to build marketing or advertising profiles. If that changes, we will update this policy before enabling them.
+      In-app &quot;analytics&quot; features mean your own workout and usage insights computed from your account data — not third-party ad trackers.
     </p>
 
     <h2>3. App blocking, Screen Time &amp; device data</h2>
@@ -113,7 +117,7 @@
     </p>
     <p>
       We do not read your passwords, messages, photos, browsing history inside blocked apps, or the full contents of other apps.
-      We do not sell personal data or use blocking data for advertising profiles.
+      We do not use blocking data for advertising profiles.
     </p>
     <p>
       Blocking effectiveness depends on OS permissions, device settings, and Apple/Google platform rules.
@@ -145,8 +149,8 @@
       <li>To provide and operate the Service, including earning screen time through workouts and enforcing limits you configure.</li>
       <li>To sync progress and settings across devices when you sign in.</li>
       <li>To process subscriptions, free trials, restores, and entitlement checks (including via RevenueCat).</li>
-      <li>To send service-related messages if you enable notifications.</li>
-      <li>To improve reliability, fix bugs, and understand aggregated product usage.</li>
+      <li>To send service-related messages if you enable notifications, and transactional account emails (section 16).</li>
+      <li>To improve reliability, fix bugs, and understand aggregated product usage from our own systems (not third-party ad networks).</li>
       <li>To comply with legal obligations and protect our rights and users&apos; safety.</li>
     </ul>
 
@@ -158,18 +162,33 @@
       the lawfulness of processing before withdrawal.
     </p>
 
-    <h2>8. Sharing with third parties</h2>
-    <p>We share data only as needed with trusted service providers, including:</p>
+    <h2>8. Sharing with third parties (service providers)</h2>
+    <p>
+      We share personal data with service providers only as needed to run the Service. These providers act as
+      processors / service providers on our behalf (or as independent controllers for their own store billing),
+      not as advertising partners buying your data for ads.
+    </p>
     <ul>
-      <li><strong>Firebase (Google)</strong> — Authentication and Firestore (or similar) cloud sync for accounts and app state. We do not currently enable Firebase Analytics for advertising.</li>
+      <li><strong>Firebase (Google)</strong> — Authentication and Firestore (or similar) cloud sync for accounts and app state. Firebase Analytics for advertising is not enabled.</li>
       <li><strong>Apple</strong> — In-App Purchases, App Store subscription management, Screen Time / Family Controls frameworks, and APNs where applicable.</li>
       <li><strong>Google</strong> — Google Play Billing on Android and related Google mobile services you enable.</li>
       <li><strong>RevenueCat</strong> — subscription status, receipt validation, and entitlement syncing on mobile.</li>
       <li><strong>Hosting and infrastructure providers</strong> that help us run the Service (including GitHub Pages for public legal/support pages).</li>
     </ul>
     <p>
-      Providers process data under their own privacy policies and our instructions. We may disclose data
-      if required by law or to protect safety and rights. We do <strong>not</strong> sell personal data.
+      Providers process data under their own privacy policies and our instructions (where they are processors).
+      We may disclose data if required by law or to protect safety and rights.
+    </p>
+    <p>
+      <strong>California (CCPA/CPRA) — &quot;sale&quot; and &quot;share&quot;:</strong>
+      We do <strong>not</strong> sell your personal information for money.
+      We also do <strong>not</strong> &quot;share&quot; personal information for cross-context behavioral advertising
+      as those terms are defined under California law.
+      Disclosures to the service providers listed above are for operating the Service (account sync, auth, billing, hosting),
+      not for selling or sharing data with ad networks.
+      We do not operate a &quot;Do Not Sell or Share My Personal Information&quot; opt-out link because we do not sell or share
+      for advertising in that sense. If we ever introduce advertising trackers or data practices that would constitute a
+      sale or share under CCPA/CPRA, we will update this policy and provide required notices/opt-outs first.
     </p>
 
     <h2>9. Retention</h2>
@@ -196,16 +215,17 @@
 
     <h2>12. Your rights</h2>
     <p>
-      Depending on your location (including EEA/UK under GDPR), you may have the right to:
+      Depending on your location (including EEA/UK under GDPR and California under CCPA/CPRA), you may have the right to:
       (i) access your personal data; (ii) rectify inaccurate data; (iii) erase data (&quot;right to be forgotten&quot;) when applicable;
       (iv) restrict processing; (v) data portability; (vi) object to certain processing based on legitimate interests;
-      and (vii) withdraw consent where processing is based on consent.
+      (vii) withdraw consent where processing is based on consent; and (viii) for California residents, know, delete, and
+      correct personal information, and not be discriminated against for exercising these rights.
     </p>
     <p>
       <strong>How to delete:</strong> open the app → Settings → Delete account, then confirm with your password.
       This removes your Firebase Auth user and associated cloud app state (or equivalent server account) and clears local app storage.
       Device Screen Time / App Group data may remain until you revoke access or uninstall.
-      Cancel App Store / Google Play subscriptions separately.
+      Cancel App Store / Google Play subscriptions separately (Settings → Manage subscription, or your store account).
     </p>
     <p>
       You may also email
@@ -232,7 +252,23 @@
       cookies or similar technologies provided by the host for security and delivery. We do not run advertising trackers on those pages.
     </p>
 
-    <h2>16. Changes to this policy</h2>
+    <h2>16. Email communications (CAN-SPAM)</h2>
+    <p>
+      <strong>Today:</strong> we send only transactional / account emails needed to operate the Service — for example
+      email verification and password-reset messages sent through Firebase Authentication. We do
+      <strong>not</strong> currently send marketing or promotional email campaigns (newsletters, offers, or ads).
+    </p>
+    <p>
+      <strong>If we start marketing email:</strong> we will update this policy and follow applicable requirements
+      (including U.S. CAN-SPAM practices): honest subject lines, clear identification of the sender, a working
+      unsubscribe mechanism in each marketing message, and a valid physical mailing address in those messages
+      (and listed here). Until marketing begins, support contact remains
+      <a href="mailto:RepLockIssue@outlook.com">RepLockIssue@outlook.com</a>.
+      <em>Operators: replace this sentence with your real business street address before sending any marketing email —
+      for example: &quot;Physical mailing address: [Street, City, State/Province, Postal code, Country].&quot;</em>
+    </p>
+
+    <h2>17. Changes to this policy</h2>
     <p>
       We may update this Privacy Policy from time to time. We will post the new version at this URL and
       update the &quot;Last updated&quot; date. Material changes may require renewed consent where applicable.

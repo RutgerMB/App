@@ -691,7 +691,7 @@ export const es = {
     changePasswordSuccess: 'Contraseña actualizada',
     changePasswordFailed: 'No se pudo actualizar la contraseña',
     manageSubscription: 'Gestionar suscripción',
-    manageSubscriptionDesc: 'Restaurar, cancelar o cambiar plan',
+    manageSubscriptionDesc: 'Cancelar, restaurar o cambiar plan vía Apple / Google',
     subscriptionNativeFailed: 'No se pudo abrir la pantalla de suscripción',
   },
   trial: {
@@ -754,6 +754,7 @@ export const es = {
     noShortcutsBold: ' Pro nunca acorta eso — te ayuda a mantenerte responsable.',
     onPro: '¡Tienes Pro!',
     onProDesc: 'Apps ilimitadas y todas las funciones activas',
+    manageOrCancel: 'Gestionar o cancelar suscripción',
     upgrade: 'Mejorar a Pro',
     keepAccess: 'Mantener acceso completo — Ir a Pro',
     subscribe: 'Iniciar suscripción Pro',
@@ -763,7 +764,7 @@ export const es = {
     mobileOnlyTitle: 'Descarga la app móvil',
     mobileOnlyDesc: 'RepLock se lanza en App Store y Google Play. Las suscripciones se gestionan con tu cuenta de la tienda — esta versión web es solo para desarrollo y pruebas.',
     storeTerms:
-      'El pago se carga a tu cuenta de App Store o Google Play. La suscripción se renueva automáticamente salvo cancelación al menos 24 h antes del fin del periodo.',
+      'El precio y el periodo de facturación (mensual o anual) se muestran arriba y los confirma App Store o Google Play antes de la compra. El pago se carga a tu cuenta de la tienda. La suscripción se renueva automáticamente al mismo precio y periodo salvo cancelación al menos 24 h antes. Cancelar: Ajustes → Gestionar suscripción (o Apple ID / Google Play).',
     testMode: 'Modo prueba · Tarjeta 4242 4242 4242 4242',
     alreadyPro: '¡Ya tienes Pro!',
     subscribeApple: 'Subscribe with Apple',
@@ -778,25 +779,25 @@ export const es = {
   },
   dataPrivacy: {
     title: 'Cómo tratamos los datos',
-    subtitle: 'Bloqueo local. Sincronización al iniciar sesión. Sin venta.',
+    subtitle: 'Bloqueo local. Sincronización al iniciar sesión. Sin venta publicitaria de tus datos.',
     localTitle: 'El bloqueo es local',
     localBody:
       'Las selecciones de Screen Time / Family Controls y los shields se ejecutan en tu dispositivo. No subimos contenido de navegación ni el interior de las apps bloqueadas.',
     accountTitle: 'Correo de la cuenta',
     accountBody:
-      'Si te registras, guardamos tu correo (y nombre) con Firebase Authentication para que puedas iniciar sesión y sincronizar el progreso.',
+      'Si te registras, guardamos tu correo (y nombre) con Firebase Authentication para que puedas iniciar sesión y sincronizar el progreso. Hoy solo enviamos correos transaccionales (verificación, restablecer contraseña) — no campañas de marketing.',
     syncTitle: 'Qué se sincroniza al iniciar sesión',
     syncBody:
       'Entrenamientos, saldo de tiempo de pantalla, rachas, apodos de apps y metadatos de la lista, límites de aperturas diarias e historial de uso se sincronizan con tu cuenta.',
     deviceOnlyTitle: 'Solo en el dispositivo',
     deviceOnlyBody:
       'Los tokens opacos de Family Controls, la selección del App Group y los shields activos permanecen en este dispositivo. Los IDs en la nube solos no pueden reaplicar shields en un teléfono nuevo.',
-    noSellTitle: 'No vendemos datos',
+    noSellTitle: 'Sin venta ni ad-share de tus datos',
     noSellBody:
-      'No vendemos datos personales ni usamos datos de bloqueo para anuncios. No leemos contraseñas, mensajes, fotos ni el contenido de otras apps.',
+      'No vendemos información personal a cambio de dinero ni la «compartimos» para publicidad conductual cross-context (CCPA/CPRA). No usamos Google Analytics, Meta Pixel ni trackers publicitarios similares. Firebase, Apple, Google Play y RevenueCat son proveedores de servicios para auth, sync y facturación — no compradores de anuncios.',
     deleteTitle: 'Eliminar tu cuenta',
     deleteBody:
-      'Ajustes → Delete account elimina la cuenta del servidor y los datos sincronizados. Ayuda: RepLockIssue@outlook.com. Cancela las suscripciones de la tienda por separado.',
+      'Ajustes → Delete account elimina la cuenta del servidor y los datos sincronizados. Ayuda: RepLockIssue@outlook.com. Suscripciones de la tienda: Ajustes → Gestionar suscripción.',
     fullPolicy: 'Política de privacidad completa',
     fullPolicyDesc: 'Detalles legales completos en la web',
     contact: 'Contactar soporte',

@@ -691,7 +691,7 @@ export const fr = {
     changePasswordSuccess: 'Mot de passe mis à jour',
     changePasswordFailed: 'Impossible de mettre à jour le mot de passe',
     manageSubscription: 'Gérer l\'abonnement',
-    manageSubscriptionDesc: 'Restaurer, annuler ou changer de formule',
+    manageSubscriptionDesc: 'Résilier, restaurer ou changer de formule via Apple / Google',
     subscriptionNativeFailed: 'Impossible d\'ouvrir l\'écran d\'abonnement',
   },
   trial: {
@@ -754,6 +754,7 @@ export const fr = {
     noShortcutsBold: ' Pro ne raccourcit jamais cela — il t\'aide à rester responsable.',
     onPro: 'Tu es sur Pro !',
     onProDesc: 'Apps illimitées et toutes les fonctionnalités actives',
+    manageOrCancel: 'Gérer ou résilier l’abonnement',
     upgrade: 'Passer à Pro',
     keepAccess: 'Garder l\'accès complet — Passer Pro',
     subscribe: 'Démarrer l\'abonnement Pro',
@@ -763,7 +764,7 @@ export const fr = {
     mobileOnlyTitle: 'Télécharge l\'app mobile',
     mobileOnlyDesc: 'RepLock sort sur l\'App Store et Google Play. Les abonnements passent par ton compte store — cette version web sert au développement et aux tests uniquement.',
     storeTerms:
-      'Le paiement est débité sur ton compte App Store ou Google Play. L\'abonnement se renouvelle automatiquement sauf annulation au moins 24 h avant la fin de la période.',
+      'Le prix et la période de facturation (mensuelle ou annuelle) sont affichés ci-dessus et confirmés par l’App Store ou Google Play avant l’achat. Paiement sur ton compte store. L’abonnement se renouvelle automatiquement au même prix et période sauf annulation au moins 24 h avant la fin. Résilier : Réglages → Gérer l’abonnement (ou Apple ID / Google Play).',
     testMode: 'Mode test · Carte 4242 4242 4242 4242',
     alreadyPro: 'Tu as déjà Pro !',
     subscribeApple: 'Subscribe with Apple',
@@ -778,25 +779,25 @@ export const fr = {
   },
   dataPrivacy: {
     title: 'Comment on traite les données',
-    subtitle: 'Blocage local. Sync à la connexion. Pas de vente.',
+    subtitle: 'Blocage local. Sync à la connexion. Pas de vente publicitaire de tes données.',
     localTitle: 'Le blocage reste local',
     localBody:
       'Les sélections Screen Time / Family Controls et les shields tournent sur l’appareil. On n’uploade ni le contenu de navigation ni le contenu des apps bloquées.',
     accountTitle: 'E-mail du compte',
     accountBody:
-      'Si tu t’inscris, on stocke ton e-mail (et ton nom) via Firebase Authentication pour te connecter et synchroniser ta progression.',
+      'Si tu t’inscris, on stocke ton e-mail (et ton nom) via Firebase Authentication pour te connecter et synchroniser ta progression. Les e-mails sont aujourd’hui uniquement transactionnels (vérification, reset mot de passe) — pas de campagnes marketing.',
     syncTitle: 'Ce qui sync une fois connecté',
     syncBody:
       'Séances, solde de temps d’écran, séries, surnoms d’apps et métadonnées de liste, limites d’ouvertures quotidiennes et historique d’usage synchronisent vers ton compte.',
     deviceOnlyTitle: 'Uniquement sur l’appareil',
     deviceOnlyBody:
       'Les jetons Family Controls opaques, les sélections App Group et les shields actifs restent sur cet appareil. Les IDs cloud seuls ne peuvent pas réappliquer les shields sur un nouveau téléphone.',
-    noSellTitle: 'Pas de vente de données',
+    noSellTitle: 'Pas de vente ni de partage pub de tes données',
     noSellBody:
-      'On ne vend pas de données personnelles et on n’utilise pas les données de blocage pour la pub. On ne lit ni mots de passe, messages, photos, ni le contenu des autres apps.',
+      'On ne vend pas de données personnelles contre de l’argent et on ne les « partage » pas pour la publicité comportementale cross-context (CCPA/CPRA). Pas de Google Analytics, Meta Pixel ou trackers pubs similaires. Firebase, Apple, Google Play et RevenueCat sont des prestataires pour l’auth, la sync et la facturation — pas des acheteurs de pubs.',
     deleteTitle: 'Supprimer ton compte',
     deleteBody:
-      'Réglages → Delete account supprime le compte serveur et les données cloud syncées. Aide : RepLockIssue@outlook.com. Résilie les abonnements store à part.',
+      'Réglages → Delete account supprime le compte serveur et les données cloud syncées. Aide : RepLockIssue@outlook.com. Abonnements store : Réglages → Gérer l’abonnement.',
     fullPolicy: 'Politique de confidentialité complète',
     fullPolicyDesc: 'Détails juridiques complets sur le web',
     contact: 'Contacter le support',
