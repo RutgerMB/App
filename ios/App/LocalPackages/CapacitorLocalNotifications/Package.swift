@@ -4,6 +4,7 @@ import PackageDescription
 // Vendored from @capacitor/local-notifications with Xcode 15.4 + Capacitor 8 SPM patches:
 // - reject via RepLockPluginBridge (CAPPluginCall.reject is hidden)
 // - avoid PluginConfig.getArray / JSTypes.coerceDictionaryToJSObject
+// - makeAttachmentUrl without CAPBridgeProtocol.localURL (missing on Cap 8 SPM)
 let package = Package(
     name: "CapacitorLocalNotifications",
     platforms: [.iOS(.v16)],

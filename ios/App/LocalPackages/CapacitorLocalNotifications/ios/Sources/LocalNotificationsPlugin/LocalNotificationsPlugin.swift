@@ -567,14 +567,72 @@ public class LocalNotificationsPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     /**
-     * Get the internal URL for the attachment URL
+     * Resolve an attachment path to a local file URL.
+     *
+     * Avoids `CAPBridgeProtocol.localURL(fromWebURL:)` — missing/hidden on
+     * Xcode 15.4 + Capacitor 8 SPM. Mirrors CapacitorBridge.localURL for
+     * `file://` / `res://`, and resolves capacitor/http web paths via Bundle.
+     * RepLock reminders do not use attachments; unsupported paths return nil.
      */
     func makeAttachmentUrl(_ path: String) -> URL? {
-        guard let webURL = URL(string: path) else {
-            return nil
+        let trimmed = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        if trimmed.hasPrefix("/") {
+            let fileURL = URL(fileURLWithPath: trimmed)
+            return FileManager.default.fileExists(atPath: fileURL.path) ? fileURL : nil
         }
 
-        return bridge?.localURL(fromWebURL: webURL)
+        guard let webURL = URL(string: trimmed), let scheme = webURL.scheme?.lowercased() else {
+            return resolveBundleAttachment(trimmed)
+        }
+
+        switch scheme {
+        case "file":
+            return FileManager.default.fileExists(atPath: webURL.path) ? webURL : nil
+        case "res":
+            // res://subdir/file.ext — host + path form a relative bundle path
+            var relative = (webURL.host ?? "") + webURL.path
+            if relative.hasPrefix("/") {
+                relative = String(relative.dropFirst())
+            }
+            return resolveBundleAttachment(relative)
+        case "http", "https", "capacitor", "ionic":
+            let relative = String(webURL.path.drop(while: { $0 == "/" }))
+            return resolveBundleAttachment(relative)
+        default:
+            return resolveBundleAttachment(trimmed)
+        }
+    }
+
+    /// Locate a relative path under the app bundle (Capacitor `public/` assets).
+    private func resolveBundleAttachment(_ relativePath: String) -> URL? {
+        let cleaned = relativePath.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard !cleaned.isEmpty else { return nil }
+
+        let nsPath = cleaned as NSString
+        let name = nsPath.deletingPathExtension
+        let ext = nsPath.pathExtension
+        let subdir = nsPath.deletingLastPathComponent
+        let subdirectory: String? = subdir.isEmpty ? nil : subdir
+
+        var candidates: [URL] = []
+        if let url = Bundle.main.url(
+            forResource: name,
+            withExtension: ext.isEmpty ? nil : ext,
+            subdirectory: subdirectory
+        ) {
+            candidates.append(url)
+        }
+        if let resourceURL = Bundle.main.resourceURL {
+            candidates.append(resourceURL.appendingPathComponent("public").appendingPathComponent(cleaned))
+            candidates.append(resourceURL.appendingPathComponent(cleaned))
+        }
+
+        for url in candidates where FileManager.default.fileExists(atPath: url.path) {
+            return url
+        }
+        return nil
     }
 
     /**
