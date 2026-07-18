@@ -1,3 +1,4 @@
+import AppPlugin
 import LocalNotificationsPlugin
 import NativePurchasesPlugin
 // SPM module name is the target name (RepLockControlsPlugin), not the package product.
@@ -13,6 +14,7 @@ enum CapAppLocalPlugins {
         _ = NativePurchasesPlugin.self
         _ = RepLockRevenueCatPlugin.self
         _ = LocalNotificationsPlugin.self
+        _ = AppPlugin.self
     }
 
     static func linkAndReturnTrue() -> Bool {

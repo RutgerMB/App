@@ -16,7 +16,7 @@ let package = Package(
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.1"),
         .package(name: "RevenuecatPurchasesCapacitor", path: "../LocalPackages/RevenuecatPurchasesCapacitor"),
         .package(name: "CapgoNativePurchases", path: "../LocalPackages/CapgoNativePurchases"),
-        .package(name: "CapacitorApp", path: "../../../node_modules/@capacitor/app"),
+        .package(name: "CapacitorApp", path: "../LocalPackages/CapacitorApp"),
         .package(name: "CapacitorAppLauncher", path: "../../../node_modules/@capacitor/app-launcher"),
         .package(name: "CapacitorLocalNotifications", path: "../LocalPackages/CapacitorLocalNotifications")
     ],
