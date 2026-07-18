@@ -281,15 +281,13 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         Task { @MainActor in
-            let rawIds: [String]
-            if let arr = call.getArray("tokenIds", String.self) {
-                rawIds = arr
-            } else if let options = call.options["tokenIds"] as? [Any] {
-                rawIds = options.compactMap { $0 as? String }
-            } else {
+            // Cap 8 SPM on Xcode 15.x: getArray(_: String.self) is unavailable;
+            // parse via options like repLockRules(from:).
+            guard let options = call.options["tokenIds"] as? [Any] else {
                 repLockReject(call, "tokenIds array required")
                 return
             }
+            let rawIds = options.compactMap { $0 as? String }
 
             let ids = Set(rawIds.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty })
             guard !ids.isEmpty else {
