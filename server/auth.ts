@@ -21,6 +21,14 @@ import {
   sanitizeAppStateForSync,
 } from './entitlement.js'
 import type { AppState } from '../src/types/index.js'
+import {
+  LIMITS,
+  asEmail,
+  asPassword,
+  asTrimmedString,
+  hasDangerousKeys,
+  isPlainObject,
+} from './validate.js'
 
 const DEFAULT_JWT_SECRET = 'replock-dev-secret-change-in-production'
 const JWT_SECRET = process.env.JWT_SECRET || DEFAULT_JWT_SECRET
@@ -93,24 +101,23 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 
 export async function handleRegister(req: Request, res: Response) {
   try {
-    const { email, password, name } = req.body as { email?: string; password?: string; name?: string }
+    const emailResult = asEmail(req.body?.email)
+    if (!emailResult.ok) return res.status(400).json({ error: emailResult.error })
+    const passwordResult = asPassword(req.body?.password)
+    if (!passwordResult.ok) return res.status(400).json({ error: passwordResult.error })
+    const nameResult = asTrimmedString(req.body?.name, 'Name', LIMITS.name)
+    if (!nameResult.ok) return res.status(400).json({ error: nameResult.error })
 
-    if (!email?.trim() || !password || !name?.trim()) {
-      return res.status(400).json({ error: 'Email, password, and name are required' })
-    }
-    if (password.length < 8) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters' })
-    }
-    if (findUserByEmail(email.trim())) {
+    if (findUserByEmail(emailResult.value)) {
       return res.status(409).json({ error: 'An account with this email already exists' })
     }
 
-    const passwordHash = await bcrypt.hash(password, 10)
+    const passwordHash = await bcrypt.hash(passwordResult.value, 10)
     const user = createUser({
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-      email: email.trim().toLowerCase(),
+      email: emailResult.value,
       passwordHash,
-      name: name.trim(),
+      name: nameResult.value,
       createdAt: Date.now(),
     })
 
@@ -129,16 +136,20 @@ export async function handleRegister(req: Request, res: Response) {
 
 export async function handleLogin(req: Request, res: Response) {
   try {
-    const { email, password } = req.body as { email?: string; password?: string }
-
-    if (!email?.trim() || !password) {
+    const emailResult = asEmail(req.body?.email)
+    if (!emailResult.ok) return res.status(400).json({ error: emailResult.error })
+    // Login: type + max length only (do not leak min-length rules via 400).
+    if (typeof req.body?.password !== 'string' || req.body.password.length === 0) {
       return res.status(400).json({ error: 'Email and password are required' })
     }
+    if (req.body.password.length > LIMITS.passwordMax) {
+      return res.status(400).json({ error: 'Password is too long' })
+    }
 
-    const user = findUserByEmail(email.trim().toLowerCase())
+    const user = findUserByEmail(emailResult.value)
     if (!user?.passwordHash) return res.status(401).json({ error: 'Invalid email or password' })
 
-    const valid = await bcrypt.compare(password, user.passwordHash)
+    const valid = await bcrypt.compare(req.body.password, user.passwordHash)
     if (!valid) return res.status(401).json({ error: 'Invalid email or password' })
 
     const token = signToken({ userId: user.id, email: user.email })
@@ -164,8 +175,11 @@ export function handleGetSync(req: Request, res: Response) {
 
 export function handlePutSync(req: Request, res: Response) {
   const { auth } = req as Request & { auth: AuthPayload }
-  const { appState } = req.body as { appState?: AppState }
-  if (!appState?.profile) {
+  const appState = req.body?.appState
+  if (!isPlainObject(appState) || !isPlainObject(appState.profile)) {
+    return res.status(400).json({ error: 'Invalid app state' })
+  }
+  if (hasDangerousKeys(appState)) {
     return res.status(400).json({ error: 'Invalid app state' })
   }
 
@@ -173,7 +187,7 @@ export function handlePutSync(req: Request, res: Response) {
   if (!user) return res.status(404).json({ error: 'User not found' })
 
   const entitlement = getEntitlement(auth.userId) ?? entitlementFromAppState(user.appState)
-  const sanitized = sanitizeAppStateForSync(user.appState, appState, entitlement)
+  const sanitized = sanitizeAppStateForSync(user.appState, appState as AppState, entitlement)
   const updated = updateUserAppState(auth.userId, {
     ...sanitized,
     profile: { ...sanitized.profile, email: auth.email },
@@ -184,16 +198,15 @@ export function handlePutSync(req: Request, res: Response) {
 
 export async function handleDeleteAccount(req: Request, res: Response) {
   const { auth } = req as Request & { auth: AuthPayload }
-  const { password } = req.body as { password?: string }
+  const passwordResult = asPassword(req.body?.password)
+  if (!passwordResult.ok) {
+    return res.status(400).json({ error: 'Password is required to delete your account' })
+  }
 
   const user = findUserById(auth.userId)
   if (!user) return res.status(404).json({ error: 'User not found' })
 
-  if (!password) {
-    return res.status(400).json({ error: 'Password is required to delete your account' })
-  }
-
-  const valid = await bcrypt.compare(password, user.passwordHash)
+  const valid = await bcrypt.compare(passwordResult.value, user.passwordHash)
   if (!valid) {
     return res.status(401).json({ error: 'Incorrect password' })
   }

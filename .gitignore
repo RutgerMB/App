@@ -11,6 +11,9 @@ __pycache__/
 .env
 .env.local
 firebase-service-account.json
+*firebase-adminsdk*.json
+serviceAccount*.json
+*.pem
 
 # IDE
 .vscode/

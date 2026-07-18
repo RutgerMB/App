@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express'
 import rateLimit from 'express-rate-limit'
+import { hasDangerousKeys } from './validate.js'
 
 /** Comma-separated IPs/CIDR-free exact matches from BANNED_IPS env. */
 export function parseBannedIps(raw: string | undefined = process.env.BANNED_IPS): Set<string> {
@@ -80,6 +81,17 @@ export function jsonBodyErrorHandler(
     return res.status(413).json({ error: 'Request body too large' })
   }
   next(err)
+}
+
+/**
+ * Reject JSON bodies that include `__proto__` / `constructor` / `prototype` keys
+ * (prototype-pollution attempt). Runs after `express.json`.
+ */
+export function rejectDangerousJsonKeys(req: Request, res: Response, next: NextFunction) {
+  if (req.body !== undefined && hasDangerousKeys(req.body)) {
+    return res.status(400).json({ error: 'Invalid JSON body' })
+  }
+  next()
 }
 
 /** General API limiter — covers health, sync, subscription, and any future /api/recent. */

@@ -7,6 +7,7 @@ RepLock’s Express API accepts **JSON only** on `/api/*` body routes, rate-limi
 | Control | Behavior |
 |--------|----------|
 | JSON only | Mutating `/api` requests with a non-JSON `Content-Type` (e.g. XML) get **415**. Bodies capped at **256kb**. Invalid JSON → **400**. |
+| Input validation | Email/password/name and ID fields: type checks, trim, length caps. JSON bodies reject `__proto__` / `constructor` / `prototype` keys. Sync strips client-set Pro fields. |
 | Rate limits | All `/api` routes: **300 / 15 min** per IP (`/api/health` skipped). Auth login/register: **40 / 15 min**. Webhooks: **120 / 15 min**. |
 | IP ban | `BANNED_IPS` env list → **403** before routes run. |
 | Stripe webhook | Raw body + Stripe signature verification. |

@@ -48,7 +48,9 @@ import {
   jsonBodyErrorHandler,
   requireJsonContentType,
   webhookRateLimiter,
+  rejectDangerousJsonKeys,
 } from './security.js'
+import { LIMITS, asOptionalId, asTrimmedString } from './validate.js'
 
 const stripeKey = process.env.STRIPE_SECRET_KEY
 const isLiveStripe = !!stripeKey?.startsWith('sk_live')
@@ -191,6 +193,7 @@ app.post(
 app.use(requireJsonContentType)
 app.use(express.json({ type: 'application/json', limit: '256kb' }))
 app.use(jsonBodyErrorHandler)
+app.use(rejectDangerousJsonKeys)
 
 app.post('/api/webhooks/revenuecat', webhookRateLimiter, async (req, res) => {
   const webhookSecret = process.env.REVENUECAT_WEBHOOK_SECRET
@@ -225,34 +228,30 @@ app.delete('/api/auth/account', authMiddleware, handleDeleteAccount)
 app.post('/api/subscription/apple/verify', authMiddleware, async (req, res) => {
   try {
     const auth = getAuth(req)
-    const { transactionId, productId } = req.body as {
-      transactionId?: string
-      productId?: string
-    }
+    const tx = asTrimmedString(req.body?.transactionId, 'transactionId', LIMITS.transactionId)
+    if (!tx.ok) return res.status(400).json({ error: 'Missing transaction data' })
+    const prod = asTrimmedString(req.body?.productId, 'productId', LIMITS.productId)
+    if (!prod.ok) return res.status(400).json({ error: 'Missing transaction data' })
 
-    if (!transactionId || !productId) {
-      return res.status(400).json({ error: 'Missing transaction data' })
-    }
-
-    if (!isValidAppleProductId(productId)) {
+    if (!isValidAppleProductId(prod.value)) {
       return res.status(400).json({ error: 'Invalid product ID' })
     }
 
-    if (isAppleTransactionUsed(transactionId)) {
+    if (isAppleTransactionUsed(tx.value)) {
       return res.status(409).json({ error: 'Transaction already redeemed' })
     }
 
-    if (!verifyAppleTransaction(transactionId, productId, !!stripeKey)) {
+    if (!verifyAppleTransaction(tx.value, prod.value, !!stripeKey)) {
       return res.status(403).json({ error: 'Purchase could not be verified' })
     }
 
-    markAppleTransactionUsed(transactionId)
+    markAppleTransactionUsed(tx.value)
 
-    const customerId = `apple_${transactionId.slice(0, 12)}`
+    const customerId = `apple_${tx.value.slice(0, 12)}`
     const entitlement: ProEntitlement = {
       isPro: true,
       stripeCustomerId: customerId,
-      subscriptionId: transactionId,
+      subscriptionId: tx.value,
       subscriptionStatus: 'active',
       source: 'apple',
     }
@@ -263,8 +262,8 @@ app.post('/api/subscription/apple/verify', authMiddleware, async (req, res) => {
 
     res.json({
       customerId,
-      subscriptionId: transactionId,
-      productId,
+      subscriptionId: tx.value,
+      productId: prod.value,
       verified: true,
     })
   } catch (err) {
@@ -280,7 +279,9 @@ app.post('/api/subscription/payment-sheet', authMiddleware, async (req, res) => 
       return res.status(503).json({ error: 'Stripe is not configured. Add STRIPE_SECRET_KEY to .env' })
     }
 
-    const { customerId } = req.body as { customerId?: string }
+    const customerIdResult = asOptionalId(req.body?.customerId, 'customerId', LIMITS.customerId)
+    if (!customerIdResult.ok) return res.status(400).json({ error: customerIdResult.error })
+    const customerId = customerIdResult.value
     const priceId = await ensureProPrice()
 
     if (customerId && !customerBelongsToUser(auth.userId, customerId)) {
@@ -362,7 +363,12 @@ app.post('/api/checkout', authMiddleware, async (req, res) => {
 app.get('/api/verify-session', authMiddleware, async (req, res) => {
   try {
     const auth = getAuth(req)
-    const sessionId = req.query.session_id as string
+    const sessionIdResult = asOptionalId(req.query.session_id, 'session_id', LIMITS.sessionId)
+    if (!sessionIdResult.ok) return res.status(400).json({ error: sessionIdResult.error })
+    const sessionId = sessionIdResult.value
+    if (!sessionId) {
+      return res.status(400).json({ error: 'session_id is required' })
+    }
 
     if (sessionId === 'demo_session' && isDemoMode()) {
       const entitlement: ProEntitlement = {
@@ -422,11 +428,11 @@ app.get('/api/verify-session', authMiddleware, async (req, res) => {
 app.get('/api/subscription', authMiddleware, async (req, res) => {
   try {
     const auth = getAuth(req)
-    const customerId = req.query.customer_id as string
-
-    if (!customerId) {
+    const customerIdResult = asTrimmedString(req.query.customer_id, 'customer_id', LIMITS.customerId)
+    if (!customerIdResult.ok) {
       return res.status(400).json({ error: 'customer_id is required' })
     }
+    const customerId = customerIdResult.value
 
     if (!customerBelongsToUser(auth.userId, customerId)) {
       return res.status(403).json({ error: 'Customer does not belong to this account' })
