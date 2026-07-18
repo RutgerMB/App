@@ -7,7 +7,7 @@ import {
   mergeEntitlementIntoAppState,
   type ProEntitlement,
 } from './entitlement.js'
-import { DEFAULT_DAILY_OPENINGS } from '../src/types/index.js'
+import { DEFAULT_DAILY_OPENINGS, DEFAULT_MAX_DAILY_HOURS } from '../src/types/index.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DATA_DIR = path.join(__dirname, 'data')
@@ -162,6 +162,9 @@ function createEmptyAppState(name: string, email: string): AppState {
       subscriptionStatus: null,
       notificationsEnabled: true,
       dailyOpenings: DEFAULT_DAILY_OPENINGS,
+      maxDailyHours: DEFAULT_MAX_DAILY_HOURS,
+      earnedMinutesToday: 0,
+      earnedDate: null,
       createdAt: Date.now(),
     },
     screenTimeBalance: 0,
@@ -173,5 +176,6 @@ function createEmptyAppState(name: string, email: string): AppState {
     apps: [],
     sessions: [],
     workoutPlanSessions: [],
+    usageHistory: [],
   }
 }

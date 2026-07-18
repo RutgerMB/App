@@ -1,4 +1,4 @@
-import type { AppState, LockedApp, UsageDayRecord, UserProfile } from '@/types'
+import type { AppState, LockedApp, UsageAppDay, UsageDayRecord, UserProfile } from '@/types'
 import { localDateString, offsetLocalDateString } from '@/lib/dates'
 
 export type UsagePeriod = 'day' | 'week' | 'month'
@@ -9,18 +9,33 @@ export function sumUnlockedMinutes(apps: LockedApp[]): number {
   return apps.reduce((sum, a) => sum + Math.max(0, Math.round(a.usedMinutes)), 0)
 }
 
+export function buildUsageByApp(apps: LockedApp[]): UsageAppDay[] {
+  return apps
+    .map((a) => ({
+      id: a.id,
+      name: a.name,
+      color: a.color,
+      unlockedMinutes: Math.max(0, Math.round(a.usedMinutes)),
+    }))
+    .filter((a) => a.unlockedMinutes > 0)
+    .sort((a, b) => b.unlockedMinutes - a.unlockedMinutes)
+}
+
 export function upsertUsageDay(
   history: UsageDayRecord[] | undefined,
   date: string,
   unlockedMinutes: number,
-  unlockOpenings: number
+  unlockOpenings: number,
+  byApp?: UsageAppDay[]
 ): UsageDayRecord[] {
   const next = [...(history ?? [])]
   const idx = next.findIndex((r) => r.date === date)
+  const prev = idx >= 0 ? next[idx] : undefined
   const row: UsageDayRecord = {
     date,
     unlockedMinutes: Math.max(0, Math.round(unlockedMinutes)),
     unlockOpenings: Math.max(0, Math.round(unlockOpenings)),
+    byApp: byApp ?? prev?.byApp,
   }
   if (idx >= 0) next[idx] = row
   else next.push(row)
@@ -51,7 +66,8 @@ export function applyUsageDayBoundary(state: {
       history,
       openingsDate,
       sumUnlockedMinutes(apps),
-      profile.openingsUsedToday ?? 0
+      profile.openingsUsedToday ?? 0,
+      buildUsageByApp(apps)
     )
     apps = apps.map((a) => ({
       ...a,
@@ -65,6 +81,8 @@ export function applyUsageDayBoundary(state: {
       ...profile,
       openingsUsedToday: 0,
       openingsDate: today,
+      earnedMinutesToday: 0,
+      earnedDate: today,
     }
     rolled = true
   }
@@ -72,7 +90,13 @@ export function applyUsageDayBoundary(state: {
   // Keep today's snapshot fresh for period views.
   const openingsToday =
     profile.openingsDate === today ? (profile.openingsUsedToday ?? 0) : 0
-  history = upsertUsageDay(history, today, sumUnlockedMinutes(apps), openingsToday)
+  history = upsertUsageDay(
+    history,
+    today,
+    sumUnlockedMinutes(apps),
+    openingsToday,
+    buildUsageByApp(apps)
+  )
 
   return { profile, apps, usageHistory: history, rolled }
 }
@@ -93,6 +117,39 @@ export function sumUsagePeriod(
     unlockOpenings: matched.reduce((s, r) => s + r.unlockOpenings, 0),
     days: matched.length,
   }
+}
+
+/** Aggregate per-app unlocked minutes across a usage period. */
+export function aggregateByAppForPeriod(
+  history: UsageDayRecord[] | undefined,
+  period: UsagePeriod,
+  today: string = localDateString()
+): UsageAppDay[] {
+  const rows = history ?? []
+  let from = today
+  if (period === 'week') from = offsetLocalDateString(-6)
+  if (period === 'month') from = offsetLocalDateString(-29)
+
+  const matched = rows.filter((r) => r.date >= from && r.date <= today)
+  const byId = new Map<string, UsageAppDay>()
+
+  for (const row of matched) {
+    for (const app of row.byApp ?? []) {
+      const prev = byId.get(app.id)
+      if (prev) {
+        prev.unlockedMinutes += app.unlockedMinutes
+        // Prefer latest non-empty name/color
+        if (app.name) prev.name = app.name
+        if (app.color) prev.color = app.color
+      } else {
+        byId.set(app.id, { ...app })
+      }
+    }
+  }
+
+  return [...byId.values()]
+    .filter((a) => a.unlockedMinutes > 0)
+    .sort((a, b) => b.unlockedMinutes - a.unlockedMinutes)
 }
 
 export function syncUsageHistoryIntoState(state: AppState): Partial<AppState> {

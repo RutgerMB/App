@@ -242,6 +242,10 @@ export interface Translations {
     createGoalDesc: string
     createGoalHint: string
     openingsLabel: string
+    maxDailyHoursTitle: string
+    maxDailyHoursDesc: string
+    maxDailyHoursLabel: string
+    maxDailyHoursHint: string
     goalCreatedTitle: string
     goalCreatedDesc: string
     goalActiveLabel: string

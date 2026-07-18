@@ -427,7 +427,7 @@ export function AppsPage() {
           {/* One promo only: trial remaining while on trial; upgrade when free/expired; nothing when Pro */}
           <TrialBanner compact />
           <AppsHubRow />
-          <BlockerSetupCard compact />
+          <BlockerSetupCard compact hideWhenReady />
         </div>
       </motion.div>
 

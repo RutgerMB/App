@@ -14,11 +14,16 @@ import { DIFFICULTY_META } from '@/components/DifficultyPicker'
 import { ProPromo } from '@/components/ProPromo'
 import { useStore } from '@/store'
 import { ExerciseIcon } from '@/components/ExerciseIcons'
-import { EXERCISES } from '@/types'
+import { DEFAULT_MAX_DAILY_HOURS, EXERCISES } from '@/types'
 import { formatMinutes, cn } from '@/lib/utils'
 import { useTranslation } from '@/i18n/context'
 import type { Difficulty } from '@/types'
 import { openUpgradeOrFallback } from '@/lib/replock-revenuecat-native'
+import { localDateString } from '@/lib/dates'
+import {
+  dailyEarnCapMinutes,
+  earnedMinutesTodayFor,
+} from '@/lib/daily-earn-cap'
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -35,7 +40,14 @@ export function HomePage() {
   const recentSession = sessions[0]
   const lockedApps = apps.filter((a) => a.isLocked)
   const unlockedApps = apps.filter((a) => !a.isLocked)
-  const progressMax = Math.max(60, screenTimeBalance, 1)
+  const today = localDateString()
+  const maxDailyHours = profile.maxDailyHours ?? DEFAULT_MAX_DAILY_HOURS
+  const progressMax = dailyEarnCapMinutes(maxDailyHours)
+  const earnedToday = earnedMinutesTodayFor(
+    profile.earnedMinutesToday,
+    profile.earnedDate,
+    today
+  )
   const difficulty = profile.difficulty ?? 'medium'
   const difficultyMeta = DIFFICULTY_META[difficulty as Difficulty]
   const [difficultyOpen, setDifficultyOpen] = useState(false)
@@ -120,7 +132,7 @@ export function HomePage() {
               {t('home.availableScreenTime')}
             </p>
             <div className="flex flex-col items-center gap-4">
-              <CircularProgress value={screenTimeBalance} max={progressMax} size={88} strokeWidth={5}>
+              <CircularProgress value={earnedToday} max={progressMax} size={88} strokeWidth={5}>
                 <div
                   className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/25 to-teal-600/20 border border-white/[0.08]"
                   aria-hidden

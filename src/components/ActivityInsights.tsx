@@ -26,7 +26,8 @@ import {
   type UsageInsightsSnapshot,
 } from '@/lib/usage-insights'
 import { requestScreenTimePermission } from '@/lib/screen-time'
-import { sumUsagePeriod, type UsagePeriod } from '@/lib/usage-history'
+import { sumUsagePeriod, aggregateByAppForPeriod, type UsagePeriod } from '@/lib/usage-history'
+import type { UsageAppDay } from '@/types'
 
 const PERIODS: StatsPeriod[] = ['week', 'month', 'year']
 const USAGE_PERIODS: UsagePeriod[] = ['day', 'week', 'month']
@@ -58,22 +59,37 @@ function UsageSection({
   usagePeriod,
   onPeriodChange,
   periodTotals,
+  byAppRows,
 }: {
   usage: UsageInsightsSnapshot | null
   usagePeriod: UsagePeriod
   onPeriodChange: (p: UsagePeriod) => void
   periodTotals: { unlockedMinutes: number; unlockOpenings: number }
+  byAppRows: UsageAppDay[]
 }) {
   const { t } = useTranslation()
   if (!usage) return null
 
   const showOsDayMetrics = usage.platform === 'android' && usagePeriod === 'day'
-  const hasAppRows = usage.apps.some(
-    (a) =>
-      (showOsDayMetrics && (a.screenMinutes ?? 0) > 0) ||
-      a.unlockedMinutes > 0 ||
-      (showOsDayMetrics && (a.blockAttempts ?? 0) > 0)
-  )
+  const appRows: UsageAppDay[] =
+    usagePeriod === 'day'
+      ? usage.apps
+          .filter(
+            (a) =>
+              (showOsDayMetrics && (a.screenMinutes ?? 0) > 0) ||
+              a.unlockedMinutes > 0 ||
+              (showOsDayMetrics && (a.blockAttempts ?? 0) > 0)
+          )
+          .map((a) => ({
+            id: a.id,
+            name: a.name,
+            color: a.color,
+            unlockedMinutes:
+              showOsDayMetrics && a.screenMinutes != null ? a.screenMinutes : a.unlockedMinutes,
+          }))
+      : byAppRows
+
+  const hasAppRows = appRows.length > 0
 
   const periodLabel = {
     day: t('activity.periodDay'),
@@ -165,63 +181,50 @@ function UsageSection({
         )}
       </div>
 
-      {hasAppRows && usagePeriod === 'day' && (
+      {hasAppRows && (
         <div className="rounded-2xl p-4 bg-white/[0.03] border border-white/[0.07]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40 mb-3 text-center">
             {t('activity.byApp')}
           </p>
+          {usagePeriod !== 'day' && (
+            <p className="text-[10px] text-white/30 text-center mb-3 leading-relaxed">
+              {t('activity.byAppUnlockNote')}
+            </p>
+          )}
           <div className="space-y-3">
-            {usage.apps
-              .filter(
-                (a) =>
-                  (showOsDayMetrics && (a.screenMinutes ?? 0) > 0) ||
-                  a.unlockedMinutes > 0 ||
-                  (showOsDayMetrics && (a.blockAttempts ?? 0) > 0)
-              )
-              .slice(0, 8)
-              .map((app) => {
-                const primary =
-                  showOsDayMetrics && app.screenMinutes != null
-                    ? app.screenMinutes
-                    : app.unlockedMinutes
-                const max = Math.max(
-                  ...usage.apps.map((a) =>
-                    showOsDayMetrics && a.screenMinutes != null
-                      ? a.screenMinutes
-                      : a.unlockedMinutes
-                  ),
-                  1
-                )
-                const pct = Math.min(100, (primary / max) * 100)
-                return (
-                  <div key={app.id}>
-                    <div className="flex justify-between text-xs mb-1 gap-2">
-                      <span className="text-white/70 truncate">{app.name}</span>
-                      <span className="text-white/40 tabular-nums shrink-0">
-                        {formatMinutes(
-                          showOsDayMetrics && app.screenMinutes != null
-                            ? app.screenMinutes
-                            : app.unlockedMinutes
-                        )}
-                        {showOsDayMetrics &&
-                        app.blockAttempts != null &&
-                        app.blockAttempts > 0
-                          ? ` · ${t('activity.blockAttemptsCount', { count: app.blockAttempts })}`
-                          : ''}
-                      </span>
-                    </div>
-                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${pct}%`,
-                          background: `linear-gradient(90deg, ${app.color}cc, ${app.color}66)`,
-                        }}
-                      />
-                    </div>
+            {appRows.slice(0, 8).map((app) => {
+              const daySource =
+                usagePeriod === 'day'
+                  ? usage.apps.find((a) => a.id === app.id)
+                  : undefined
+              const primary = app.unlockedMinutes
+              const max = Math.max(...appRows.map((a) => a.unlockedMinutes), 1)
+              const pct = Math.min(100, (primary / max) * 100)
+              return (
+                <div key={app.id}>
+                  <div className="flex justify-between text-xs mb-1 gap-2">
+                    <span className="text-white/70 truncate">{app.name}</span>
+                    <span className="text-white/40 tabular-nums shrink-0">
+                      {formatMinutes(primary)}
+                      {showOsDayMetrics &&
+                      daySource?.blockAttempts != null &&
+                      daySource.blockAttempts > 0
+                        ? ` · ${t('activity.blockAttemptsCount', { count: daySource.blockAttempts })}`
+                        : ''}
+                    </span>
                   </div>
-                )
-              })}
+                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${pct}%`,
+                        background: `linear-gradient(90deg, ${app.color}cc, ${app.color}66)`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
@@ -292,6 +295,10 @@ export function ActivityInsights() {
     t(`categories.${EXERCISES[type as keyof typeof EXERCISES]?.category ?? 'cardio'}`)
   )
   const usagePeriodTotals = sumUsagePeriod(usageHistory, usagePeriod)
+  const byAppRows = aggregateByAppForPeriod(usageHistory, usagePeriod)
+  const chartMaxEarned = Math.max(...periodStats.map((d) => d.earnedMinutes), 0)
+  // Scale with data; floor so empty/low days don’t look broken. No hard 80m cap.
+  const chartYMax = Math.max(20, Math.ceil((chartMaxEarned * 1.15) / 5) * 5)
 
   const periodLabel = {
     week: t('activity.periodWeek'),
@@ -314,6 +321,7 @@ export function ActivityInsights() {
           usagePeriod={usagePeriod}
           onPeriodChange={setUsagePeriod}
           periodTotals={usagePeriodTotals}
+          byAppRows={byAppRows}
         />
 
         {/* Today vs Yesterday */}
@@ -395,14 +403,15 @@ export function ActivityInsights() {
                   tickLine={false}
                   width={40}
                   tickFormatter={(v) => `${v}m`}
-                  domain={[0, 'auto']}
+                  domain={[0, chartYMax]}
+                  allowDataOverflow={false}
                 />
-                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(94,106,210,0.08)' }} />
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(27,138,94,0.08)' }} />
                 <Bar dataKey="earnedMinutes" radius={[4, 4, 0, 0]}>
                   {periodStats.map((entry, i) => (
                     <Cell
                       key={entry.date}
-                      fill={i === periodStats.length - 1 ? '#1B8A5E' : 'rgba(94,106,210,0.5)'}
+                      fill={i === periodStats.length - 1 ? '#1B8A5E' : 'rgba(27,138,94,0.35)'}
                     />
                   ))}
                 </Bar>

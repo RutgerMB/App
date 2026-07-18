@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Bell, Check, Dumbbell, Flame, Sparkles, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -90,6 +90,86 @@ export function OpeningsSlider({ value, onChange }: { value: number; onChange: (
         <span>10</span>
       </div>
       <p className="text-sm text-white/45 mt-6 text-center leading-relaxed max-w-sm">{t('onboarding.createGoalHint')}</p>
+    </div>
+  )
+}
+
+/** Integer hours only (1–12); numbers-only input for max daily earn cap. */
+export function MaxDailyHoursInput({
+  value,
+  onChange,
+}: {
+  value: number
+  onChange: (v: number) => void
+}) {
+  const { t } = useTranslation()
+  const [draft, setDraft] = useState(String(value))
+
+  useEffect(() => {
+    setDraft(String(value))
+  }, [value])
+
+  const commit = (raw: string) => {
+    const digits = raw.replace(/\D/g, '')
+    if (!digits) {
+      setDraft(String(value))
+      return
+    }
+    const n = Math.min(12, Math.max(1, parseInt(digits, 10)))
+    onChange(n)
+    setDraft(String(n))
+  }
+
+  return (
+    <div className="flex flex-col items-center w-full max-w-sm mx-auto">
+      <div className="rounded-2xl bg-white/[0.03] border border-white/[0.07] px-8 py-6 mb-6 w-full text-center">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40 mb-3">
+          {t('onboarding.maxDailyHoursLabel')}
+        </p>
+        <div className="flex items-end justify-center gap-1">
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="off"
+            value={draft}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, '').slice(0, 2)
+              setDraft(digits)
+            }}
+            onBlur={() => commit(draft)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                commit(draft)
+              }
+            }}
+            aria-label={t('onboarding.maxDailyHoursLabel')}
+            className="w-20 bg-transparent text-center text-5xl font-bold gradient-text tabular-nums tracking-tight outline-none border-b border-emerald-500/30 focus:border-emerald-400/60 pb-1"
+          />
+          <span className="text-2xl font-semibold text-white/50 mb-2">h</span>
+        </div>
+      </div>
+      <p className="text-sm text-white/45 text-center leading-relaxed max-w-sm">
+        {t('onboarding.maxDailyHoursHint')}
+      </p>
+      <div className="flex flex-wrap justify-center gap-2 mt-6">
+        {[2, 4, 6, 8].map((h) => (
+          <button
+            key={h}
+            type="button"
+            onClick={() => onChange(h)}
+            className={cn(
+              'px-4 py-2 rounded-xl text-sm font-semibold border transition-colors',
+              value === h
+                ? 'bg-emerald-500/25 border-emerald-400/50 text-emerald-200'
+                : 'bg-white/[0.03] border-white/[0.07] text-white/55 hover:border-white/[0.12]'
+            )}
+          >
+            {h}h
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

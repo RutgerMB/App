@@ -23,6 +23,7 @@ import {
 } from '@/components/onboarding/OnboardingSteps'
 import {
   OpeningsSlider,
+  MaxDailyHoursInput,
   GoalCreatedCard,
   NotificationsPreview,
   TrialTimeline,
@@ -79,11 +80,12 @@ const STEP = {
   BLOCK_PREVIEW: 14,
   SELECT_APPS: 15,
   CREATE_GOAL: 16,
-  GOAL_CONFIRMED: 17,
-  NOTIFICATIONS: 18,
-  TRIAL: 19,
-  DIFFICULTY: 20,
-  NAME: 21,
+  MAX_DAILY_HOURS: 17,
+  GOAL_CONFIRMED: 18,
+  NOTIFICATIONS: 19,
+  TRIAL: 20,
+  DIFFICULTY: 21,
+  NAME: 22,
 } as const
 
 function SetupIllustration() {
@@ -263,10 +265,12 @@ export function OnboardingPage() {
   const [screenTimeChecking, setScreenTimeChecking] = useState(false)
   const [appCatalog, setAppCatalog] = useState<DeviceAppDefinition[]>([])
   const [openingsPerDay, setOpeningsPerDay] = useState(3)
+  const [maxDailyHours, setMaxDailyHoursState] = useState(4)
   const completeOnboarding = useStore((s) => s.completeOnboarding)
   const setLocale = useStore((s) => s.setLocale)
   const setOnboardingApps = useStore((s) => s.setOnboardingApps)
   const setBlockingGoal = useStore((s) => s.setBlockingGoal)
+  const setMaxDailyHours = useStore((s) => s.setMaxDailyHours)
   const setNotificationsEnabled = useStore((s) => s.setNotificationsEnabled)
   const syncNow = useAuthStore((s) => s.syncNow)
   const logout = useAuthStore((s) => s.logout)
@@ -281,7 +285,7 @@ export function OnboardingPage() {
 
   const needsNameStep = resolvedName.length === 0
   const SKIPPED_ONBOARDING_STEPS = 1 // WEEK_ONE skipped after YEARS
-  const totalSteps = (needsNameStep ? 21 : 20) - SKIPPED_ONBOARDING_STEPS
+  const totalSteps = (needsNameStep ? 22 : 21) - SKIPPED_ONBOARDING_STEPS
   const progressStep = step > STEP.WEEK_ONE ? step - SKIPPED_ONBOARDING_STEPS : step
   const screenTimePlatform = getScreenTimePlatform()
   const baselineHours = actualScreenHours ?? screenHours
@@ -436,6 +440,10 @@ export function OnboardingPage() {
       return
     }
     if (step === STEP.GOAL_CONFIRMED) {
+      setStep(STEP.MAX_DAILY_HOURS)
+      return
+    }
+    if (step === STEP.MAX_DAILY_HOURS) {
       setStep(STEP.CREATE_GOAL)
       return
     }
@@ -507,6 +515,11 @@ export function OnboardingPage() {
       }
       setBlockingGoal(openingsPerDay, MINUTES_PER_OPENING)
       setOnboardingApps(resolved, openingsPerDay * MINUTES_PER_OPENING)
+      setStep(STEP.MAX_DAILY_HOURS)
+      return
+    }
+    if (step === STEP.MAX_DAILY_HOURS) {
+      setMaxDailyHours(maxDailyHours)
       setStep(STEP.GOAL_CONFIRMED)
       return
     }
@@ -562,7 +575,9 @@ export function OnboardingPage() {
           : undefined
 
   const continueDisabled =
-    (step === STEP.NAME && !name.trim()) || (step === STEP.SELECT_APPS && selectedApps.size === 0)
+    (step === STEP.NAME && !name.trim()) ||
+    (step === STEP.SELECT_APPS && selectedApps.size === 0) ||
+    (step === STEP.MAX_DAILY_HOURS && !(maxDailyHours >= 1 && maxDailyHours <= 12))
   const hideFooter = step === STEP.BENEFITS || step === STEP.NOTIFICATIONS
   const hidePrimaryOnTrial = step === STEP.TRIAL
 
@@ -828,6 +843,17 @@ export function OnboardingPage() {
             <IntroBrandMark />
             <IntroHeading className="mb-2">{t('onboarding.createGoalTitle')}</IntroHeading>
             <OpeningsSlider value={openingsPerDay} onChange={setOpeningsPerDay} />
+          </>
+        )
+
+      case STEP.MAX_DAILY_HOURS:
+        return (
+          <>
+            <IntroProgressBar step={progressStep} total={totalSteps} />
+            <IntroBrandMark />
+            <IntroHeading className="mb-2">{t('onboarding.maxDailyHoursTitle')}</IntroHeading>
+            <IntroSubtext className="mb-8">{t('onboarding.maxDailyHoursDesc')}</IntroSubtext>
+            <MaxDailyHoursInput value={maxDailyHours} onChange={setMaxDailyHoursState} />
           </>
         )
 

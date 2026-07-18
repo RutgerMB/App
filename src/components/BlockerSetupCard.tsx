@@ -15,7 +15,14 @@ import { useStore } from '@/store'
 import { useTranslation } from '@/i18n/context'
 import { useToast } from '@/components/ui/Toast'
 
-export function BlockerSetupCard({ compact }: { compact?: boolean }) {
+export function BlockerSetupCard({
+  compact,
+  hideWhenReady,
+}: {
+  compact?: boolean
+  /** Apps tab: only show the warning/setup state, not the “active” banner. */
+  hideWhenReady?: boolean
+}) {
   const { t } = useTranslation()
   const { toast } = useToast()
   const apps = useStore((s) => s.apps)
@@ -53,6 +60,8 @@ export function BlockerSetupCard({ compact }: { compact?: boolean }) {
   if (!isNativeBlockingAvailable()) return null
 
   const ready = status?.ready ?? false
+  if (hideWhenReady && ready) return null
+
   const appsConfigured = apps.filter((a) => a.packageName || a.iosTokenId).length
 
   const handleEnable = async () => {

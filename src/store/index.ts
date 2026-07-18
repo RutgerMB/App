@@ -1,14 +1,20 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { AppState, ExerciseSession, ExerciseType, LockedApp, WorkoutPlanSession } from '@/types'
-import { DEFAULT_DAILY_OPENINGS, WORKOUT_PLANS } from '@/types'
+import { DEFAULT_DAILY_OPENINGS, DEFAULT_MAX_DAILY_HOURS, WORKOUT_PLANS } from '@/types'
 import { localDateString } from '@/lib/dates'
 import { reconcileStreak, updateStreak } from '@/lib/streaks'
 import { canAddMoreApps, getAppLimit } from '@/lib/trial'
 import { detectLocale } from '@/i18n'
 import { computeEarnedMinutes, FREE_DIFFICULTY } from '@/lib/earning'
 import { scheduleBlockingSync } from '@/lib/blocking-sync'
-import { applyUsageDayBoundary, upsertUsageDay, sumUnlockedMinutes } from '@/lib/usage-history'
+import {
+  applyUsageDayBoundary,
+  upsertUsageDay,
+  sumUnlockedMinutes,
+  buildUsageByApp,
+} from '@/lib/usage-history'
+import { applyDailyEarnCap, clampMaxDailyHours } from '@/lib/daily-earn-cap'
 import type { DeviceAppDefinition } from '@/data/device-apps'
 import type { Locale, Difficulty } from '@/types'
 
@@ -34,6 +40,9 @@ const initialState: AppState = {
     subscriptionStatus: null,
     notificationsEnabled: true,
     dailyOpenings: DEFAULT_DAILY_OPENINGS,
+    maxDailyHours: DEFAULT_MAX_DAILY_HOURS,
+    earnedMinutesToday: 0,
+    earnedDate: null,
     createdAt: Date.now(),
   },
   screenTimeBalance: 0,
@@ -69,6 +78,8 @@ interface StoreActions {
   setBlockingGoal: (openings: number, minutesPerOpening?: number) => void
   /** Set how many blocked-app openings remain today (adjusts dailyOpenings around openingsUsedToday). */
   setOpeningsLeftToday: (remaining: number) => void
+  /** Cap on minutes earnable per calendar day (integer hours 1–12). */
+  setMaxDailyHours: (hours: number) => void
   completeExercise: (type: ExerciseType, amount: number, durationSeconds: number) => number
   unlockApp: (appId: string, minutes: number) => boolean
   useAppTime: (appId: string, minutes: number) => void
@@ -257,6 +268,15 @@ export const useStore = create<AppState & StoreActions>()(
         }))
       },
 
+      setMaxDailyHours: (hours) => {
+        set((s) => ({
+          profile: {
+            ...s.profile,
+            maxDailyHours: clampMaxDailyHours(hours),
+          },
+        }))
+      },
+
       getEarnedMinutes: (type, amount) => {
         const { profile } = get()
         const difficulty = profile.isPro ? (profile.difficulty ?? FREE_DIFFICULTY) : FREE_DIFFICULTY
@@ -264,10 +284,18 @@ export const useStore = create<AppState & StoreActions>()(
       },
 
       completeExercise: (type, amount, durationSeconds) => {
-        const earned = get().getEarnedMinutes(type, amount)
+        const rawEarned = get().getEarnedMinutes(type, amount)
         const today = localDateString()
-        const { lastExerciseDate, currentStreak, longestStreak } = get()
+        const { lastExerciseDate, currentStreak, longestStreak, profile } = get()
         const { streak, longest } = updateStreak(lastExerciseDate, currentStreak, longestStreak, today)
+        const capped = applyDailyEarnCap({
+          rawEarned,
+          earnedMinutesToday: profile.earnedMinutesToday,
+          earnedDate: profile.earnedDate,
+          today,
+          maxDailyHours: profile.maxDailyHours,
+        })
+        const earned = capped.applied
 
         const session: ExerciseSession = {
           id: generateId(),
@@ -286,6 +314,11 @@ export const useStore = create<AppState & StoreActions>()(
           longestStreak: Math.max(longestStreak, longest),
           lastExerciseDate: today,
           sessions: [session, ...s.sessions].slice(0, 100),
+          profile: {
+            ...s.profile,
+            earnedMinutesToday: capped.earnedMinutesToday,
+            earnedDate: capped.earnedDate,
+          },
         }))
 
         return earned
@@ -296,11 +329,11 @@ export const useStore = create<AppState & StoreActions>()(
         if (!plan) return { total: 0, bonus: 0 }
 
         const today = localDateString()
-        const { lastExerciseDate, currentStreak, longestStreak } = get()
+        const { lastExerciseDate, currentStreak, longestStreak, profile } = get()
         const { streak, longest } = updateStreak(lastExerciseDate, currentStreak, longestStreak, today)
 
         let base = 0
-        const newSessions: ExerciseSession[] = results.map((r) => {
+        const uncappedSessions: ExerciseSession[] = results.map((r) => {
           const earned = get().getEarnedMinutes(r.type, r.amount)
           base += earned
           return {
@@ -314,8 +347,22 @@ export const useStore = create<AppState & StoreActions>()(
           }
         })
 
-        const bonus = Math.round(base * (plan.bonusPercent / 100) * 10) / 10
-        const total = base + bonus
+        const bonusRaw = Math.round(base * (plan.bonusPercent / 100) * 10) / 10
+        const uncappedTotal = base + bonusRaw
+        const capped = applyDailyEarnCap({
+          rawEarned: uncappedTotal,
+          earnedMinutesToday: profile.earnedMinutesToday,
+          earnedDate: profile.earnedDate,
+          today,
+          maxDailyHours: profile.maxDailyHours,
+        })
+        const total = capped.applied
+        const scale = uncappedTotal > 0 ? total / uncappedTotal : 0
+        const bonus = Math.round(bonusRaw * scale * 10) / 10
+        const newSessions = uncappedSessions.map((s) => ({
+          ...s,
+          earnedMinutes: Math.round(s.earnedMinutes * scale * 10) / 10,
+        }))
         const totalDuration = results.reduce((s, r) => s + r.durationSeconds, 0)
 
         const planSession: WorkoutPlanSession = {
@@ -336,6 +383,11 @@ export const useStore = create<AppState & StoreActions>()(
           lastExerciseDate: today,
           sessions: [...newSessions, ...s.sessions].slice(0, 150),
           workoutPlanSessions: [planSession, ...s.workoutPlanSessions].slice(0, 50),
+          profile: {
+            ...s.profile,
+            earnedMinutesToday: capped.earnedMinutesToday,
+            earnedDate: capped.earnedDate,
+          },
         }))
 
         return { total, bonus }
@@ -377,7 +429,8 @@ export const useStore = create<AppState & StoreActions>()(
             usageHistory,
             today,
             sumUnlockedMinutes(apps),
-            nextOpenings
+            nextOpenings,
+            buildUsageByApp(apps)
           ),
           apps: s.apps.map((a) =>
             a.id === appId
@@ -413,7 +466,13 @@ export const useStore = create<AppState & StoreActions>()(
             s.profile.openingsDate === today ? (s.profile.openingsUsedToday ?? 0) : 0
           return {
             apps,
-            usageHistory: upsertUsageDay(s.usageHistory, today, sumUnlockedMinutes(apps), openings),
+            usageHistory: upsertUsageDay(
+              s.usageHistory,
+              today,
+              sumUnlockedMinutes(apps),
+              openings,
+              buildUsageByApp(apps)
+            ),
           }
         })
       },
@@ -496,6 +555,8 @@ export const useStore = create<AppState & StoreActions>()(
               ...s.profile,
               openingsUsedToday: 0,
               openingsDate: today,
+              earnedMinutesToday: 0,
+              earnedDate: today,
             },
             apps: s.apps.map((a) => ({
               ...a,
@@ -503,13 +564,13 @@ export const useStore = create<AppState & StoreActions>()(
               isLocked: true,
               unlockedUntil: null,
             })),
-            usageHistory: upsertUsageDay(s.usageHistory, today, 0, 0),
+            usageHistory: upsertUsageDay(s.usageHistory, today, 0, 0, []),
           }
         }),
     }),
     {
       name: 'replock-storage',
-      version: 11,
+      version: 12,
       migrate: (persisted, version) => {
         const state = persisted as AppState
         if (version < 2) {
@@ -578,7 +639,27 @@ export const useStore = create<AppState & StoreActions>()(
             state.usageHistory,
             today,
             sumUnlockedMinutes(state.apps ?? []),
-            openings
+            openings,
+            buildUsageByApp(state.apps ?? [])
+          )
+        }
+        if (version < 12) {
+          state.profile = {
+            ...state.profile,
+            maxDailyHours: clampMaxDailyHours(state.profile.maxDailyHours),
+            earnedMinutesToday: state.profile.earnedMinutesToday ?? 0,
+            earnedDate: state.profile.earnedDate ?? null,
+          }
+          // Backfill per-app breakdown for today from live apps.
+          const today = localDateString()
+          const openings =
+            state.profile.openingsDate === today ? (state.profile.openingsUsedToday ?? 0) : 0
+          state.usageHistory = upsertUsageDay(
+            state.usageHistory,
+            today,
+            sumUnlockedMinutes(state.apps ?? []),
+            openings,
+            buildUsageByApp(state.apps ?? [])
           )
         }
         return state as AppState & StoreActions
@@ -677,7 +758,8 @@ if (typeof window !== 'undefined') {
           state.usageHistory,
           today,
           sumUnlockedMinutes(nextApps),
-          openings
+          openings,
+          buildUsageByApp(nextApps)
         ),
       })
       scheduleBlockingSync()

@@ -1,5 +1,6 @@
 import type { AppState } from '@/types'
-import { DEFAULT_DAILY_OPENINGS } from '@/types'
+import { DEFAULT_DAILY_OPENINGS, DEFAULT_MAX_DAILY_HOURS } from '@/types'
+import { clampMaxDailyHours } from '@/lib/daily-earn-cap'
 
 export function normalizeAppState(state: AppState): AppState {
   return {
@@ -15,6 +16,9 @@ export function normalizeAppState(state: AppState): AppState {
       minutesPerOpening: state.profile.minutesPerOpening ?? 5,
       openingsUsedToday: state.profile.openingsUsedToday ?? 0,
       openingsDate: state.profile.openingsDate ?? null,
+      maxDailyHours: clampMaxDailyHours(state.profile.maxDailyHours),
+      earnedMinutesToday: state.profile.earnedMinutesToday ?? 0,
+      earnedDate: state.profile.earnedDate ?? null,
     },
   }
 }

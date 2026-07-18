@@ -105,7 +105,24 @@ export interface UserProfile {
   minutesPerOpening?: number
   openingsUsedToday?: number
   openingsDate?: string | null
+  /**
+   * Max hours of screen time that can be *earned* in a calendar day (1–12).
+   * Caps daily earn toward balance; home ring uses this as 100% fill.
+   */
+  maxDailyHours?: number
+  /** Minutes credited from exercise today (toward maxDailyHours cap). */
+  earnedMinutesToday?: number
+  /** Local YYYY-MM-DD for earnedMinutesToday. */
+  earnedDate?: string | null
   createdAt: number
+}
+
+/** Per-app unlock usage snapshot for a calendar day. */
+export interface UsageAppDay {
+  id: string
+  name: string
+  color: string
+  unlockedMinutes: number
 }
 
 /** One calendar day of RepLock unlock usage (not OS Screen Time). */
@@ -113,6 +130,8 @@ export interface UsageDayRecord {
   date: string
   unlockedMinutes: number
   unlockOpenings: number
+  /** Per-app breakdown when available (for Activity By app week/month). */
+  byApp?: UsageAppDay[]
 }
 
 export interface AppState {
@@ -227,6 +246,8 @@ export const DEFAULT_APPS: Omit<LockedApp, 'id'>[] = []
 export const QUICK_START_EXERCISES: ExerciseType[] = ['pushups', 'squats', 'burpees', 'plank', 'jumping_jacks']
 
 export const DEFAULT_DAILY_OPENINGS = 3
+/** Default max hours earnable per calendar day (onboarding + existing profiles). */
+export const DEFAULT_MAX_DAILY_HOURS = 4
 
 export const FREE_APP_LIMIT = 1
 export const TRIAL_APP_LIMIT = 3

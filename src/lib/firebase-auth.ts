@@ -17,7 +17,7 @@ import { getFirebaseAuth, getFirebaseDb } from '@/lib/firebase'
 import { withTimeout } from '@/lib/with-timeout'
 import { stripProFieldsFromSnapshot } from '@/lib/entitlement-sanitize'
 import type { AppState } from '@/types'
-import { DEFAULT_DAILY_OPENINGS } from '@/types'
+import { DEFAULT_DAILY_OPENINGS, DEFAULT_MAX_DAILY_HOURS } from '@/types'
 
 export interface FirebaseAuthUser {
   id: string
@@ -43,6 +43,9 @@ export function createEmptyAppState(name: string, email: string): AppState {
       subscriptionStatus: null,
       notificationsEnabled: true,
       dailyOpenings: DEFAULT_DAILY_OPENINGS,
+      maxDailyHours: DEFAULT_MAX_DAILY_HOURS,
+      earnedMinutesToday: 0,
+      earnedDate: null,
       createdAt: Date.now(),
     },
     screenTimeBalance: 0,
