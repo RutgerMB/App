@@ -8,16 +8,20 @@ interface IntroShellProps {
   className?: string
 }
 
-/** RepLock-themed shell for welcome, auth, and onboarding flows. */
+/**
+ * Full-viewport shell for welcome / auth / onboarding.
+ * Uses an explicit scrollport (not body scroll) — required for reliable touch
+ * scrolling inside Capacitor Android WebViews.
+ */
 export function IntroShell({ children, footer, variant = 'hero', className }: IntroShellProps) {
   return (
     <div
       className={cn(
-        'min-h-dvh min-h-[100dvh] flex flex-col safe-top safe-bottom overflow-hidden bg-surface-0 noise',
+        'h-[100dvh] max-h-[100dvh] w-full flex flex-col safe-top safe-bottom overflow-hidden bg-surface-0 noise',
         className
       )}
     >
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
         <div
           className={cn(
             'absolute -top-8 left-1/2 -translate-x-1/2 w-[30rem] h-96 rounded-full blur-3xl',
@@ -31,11 +35,20 @@ export function IntroShell({ children, footer, variant = 'hero', className }: In
           <div className="absolute top-1/3 left-[-15%] w-56 h-56 bg-cyan-500/5 rounded-full blur-3xl" />
         )}
       </div>
-      <div className="relative flex-1 flex flex-col px-5 pt-5 pb-6 text-white overflow-y-auto">
+
+      <div
+        data-intro-scroll
+        className="relative flex-1 min-h-0 overflow-y-scroll overscroll-y-contain px-5 pt-5 pb-6 text-white"
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-y',
+        }}
+      >
         {children}
       </div>
+
       {footer && (
-        <div className="relative shrink-0 px-5 pb-6 pt-2 safe-bottom border-t border-white/[0.04] bg-surface-0/80 backdrop-blur-md">
+        <div className="relative z-10 shrink-0 px-5 pb-6 pt-3 safe-bottom border-t border-white/[0.06] bg-surface-0">
           {footer}
         </div>
       )}

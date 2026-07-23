@@ -9,6 +9,10 @@ export function ScrollToTop() {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
     document.documentElement.scrollTop = 0
     document.body.scrollTop = 0
+    // App/Intro shells own the scrollport on Capacitor (document is locked).
+    document.querySelectorAll<HTMLElement>('[data-app-scroll], [data-intro-scroll]').forEach((el) => {
+      el.scrollTop = 0
+    })
   }, [pathname])
 
   return null

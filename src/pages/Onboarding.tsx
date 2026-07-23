@@ -828,6 +828,7 @@ export function OnboardingPage() {
             <IntroProgressBar step={progressStep} total={totalSteps} />
             <IntroBrandMark />
             <IntroHeading className="mb-2">{t('onboarding.selectAppsTitle')}</IntroHeading>
+            <IntroSubtext className="mb-4">{t('onboarding.selectAppsDesc')}</IntroSubtext>
             <BlocklistPicker
               selected={selectedApps}
               onChange={setSelectedApps}
@@ -935,18 +936,19 @@ export function OnboardingPage() {
               : footer
         }
       >
-        <div className="flex-1 flex flex-col max-w-md mx-auto w-full">
+        <div className="w-full max-w-md mx-auto flex flex-col">
           {step > STEP.INTRO && (
             <IntroBackButton onClick={goBack} label={t('common.back')} />
           )}
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-              className="flex-1 flex flex-col"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-full flex flex-col"
+              // Avoid translateY transforms — they break overflow scrolling on Android WebView.
             >
               {stepContent()}
             </motion.div>

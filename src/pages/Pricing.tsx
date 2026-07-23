@@ -181,7 +181,10 @@ export function PricingPage() {
     billingPeriod === 'yearly' ? t('pricing.perYear') : t('pricing.perMonth')
 
   return (
-    <div className="min-h-dvh bg-surface-0 noise flex flex-col safe-top safe-bottom overflow-y-auto overflow-x-hidden">
+    <div
+      className="h-[100dvh] max-h-[100dvh] bg-surface-0 noise flex flex-col safe-top safe-bottom overflow-y-scroll overscroll-contain"
+      style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+    >
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[28rem] h-56 bg-emerald-500/[0.12] rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-0 w-64 h-64 bg-teal-500/8 rounded-full blur-3xl" />

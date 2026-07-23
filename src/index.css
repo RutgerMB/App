@@ -80,29 +80,28 @@
   html {
     @apply antialiased bg-surface-0;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    overflow-x: hidden;
-    overscroll-behavior-x: none;
     width: 100%;
     max-width: 100%;
+    height: 100%;
+    overflow: hidden;
   }
 
   body {
     @apply bg-surface-0 text-white font-sans;
-    overscroll-behavior: none;
-    overscroll-behavior-x: none;
-    overflow-x: hidden;
     width: 100%;
     max-width: 100%;
-    min-height: 100dvh;
-    /* Full-bleed under translucent iOS status bar */
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
     background-color: #0A0A0B;
   }
 
   #root {
-    @apply min-h-dvh bg-surface-0;
-    overflow-x: hidden;
+    @apply bg-surface-0;
     width: 100%;
     max-width: 100%;
+    height: 100%;
+    overflow: hidden;
     position: relative;
   }
 }

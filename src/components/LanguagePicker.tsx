@@ -96,33 +96,66 @@ export function LanguagePicker({
   large,
   theme = 'dark',
 }: LanguageDropdownProps & { className?: string; large?: boolean; theme?: 'dark' | 'light' }) {
-  const sorted = [...LOCALES].sort((a, b) => a.label.localeCompare(b.label))
+  // Keep a stable display order so gaps stay visually even (don't locale-sort at runtime).
+  const ordered = LOCALES
   const isLight = theme === 'light'
   return (
-    <div className={cn('grid grid-cols-1', large ? 'gap-3' : 'gap-2', className)}>
-      {sorted.map((loc) => (
-        <button
-          key={loc.code}
-          onClick={() => onChange(loc.code)}
-          className={cn(
-            'flex items-center gap-4 rounded-2xl border transition-all text-left',
-            large ? 'p-5' : 'p-4 gap-3',
-            value === loc.code
-              ? isLight
-                ? 'bg-[#3B6FF5]/10 border-[#3B6FF5]/35'
-                : 'bg-emerald-500/15 border-emerald-500/40'
-              : isLight
-                ? 'bg-white border-slate-200 hover:border-slate-300 text-slate-900'
-                : 'bg-surface-2 border-border hover:border-border-hover'
-          )}
-        >
-          <span className={large ? 'text-3xl' : 'text-2xl'}>{loc.flag}</span>
-          <span className={cn('font-medium', large ? 'text-lg' : 'text-sm')}>{loc.label}</span>
-          {value === loc.code && (
-            <span className={cn('ml-auto rounded-full bg-emerald-400', large ? 'w-2.5 h-2.5' : 'w-2 h-2')} />
-          )}
-        </button>
-      ))}
+    <div
+      className={cn(
+        'flex flex-col w-full',
+        // Explicit spacing — same between every pair of rows
+        large ? 'gap-3' : 'gap-2',
+        className
+      )}
+    >
+      {ordered.map((loc) => {
+        const selected = value === loc.code
+        return (
+          <button
+            key={loc.code}
+            type="button"
+            onClick={() => onChange(loc.code)}
+            className={cn(
+              // Fixed row height so flag emoji metrics can't change vertical gaps
+              'box-border flex items-center w-full rounded-2xl border transition-all text-left shrink-0',
+              large ? 'h-[4.25rem] px-5 gap-4' : 'h-14 px-4 gap-3',
+              selected
+                ? isLight
+                  ? 'bg-[#3B6FF5]/10 border-[#3B6FF5]/35'
+                  : 'bg-emerald-500/15 border-emerald-500/40'
+                : isLight
+                  ? 'bg-white border-slate-200 hover:border-slate-300 text-slate-900'
+                  : 'bg-surface-2 border-border hover:border-border-hover'
+            )}
+          >
+            <span
+              className={cn(
+                'inline-flex items-center justify-center shrink-0 overflow-hidden leading-none',
+                large ? 'w-10 h-10 text-[1.75rem]' : 'w-8 h-8 text-xl'
+              )}
+              aria-hidden
+            >
+              {loc.flag}
+            </span>
+            <span
+              className={cn(
+                'font-medium truncate flex-1 min-w-0 leading-none',
+                large ? 'text-lg' : 'text-sm'
+              )}
+            >
+              {loc.label}
+            </span>
+            <span
+              className={cn(
+                'rounded-full shrink-0',
+                large ? 'w-2.5 h-2.5' : 'w-2 h-2',
+                selected ? 'bg-emerald-400' : 'bg-transparent'
+              )}
+              aria-hidden
+            />
+          </button>
+        )
+      })}
     </div>
   )
 }

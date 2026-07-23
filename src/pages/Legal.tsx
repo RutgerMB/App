@@ -24,7 +24,10 @@ function LegalShell({ title, children, lastUpdated }: { title: string; children:
   }
 
   return (
-    <div className="min-h-dvh bg-surface-0 noise px-6 py-8 safe-top safe-bottom overflow-y-auto max-w-lg mx-auto">
+    <div
+      className="h-[100dvh] max-h-[100dvh] bg-surface-0 noise px-6 py-8 safe-top safe-bottom overflow-y-scroll overscroll-contain max-w-lg mx-auto"
+      style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+    >
       <div className="mb-6">
         <BackButton onClick={handleBack} aria-label={t('common.back')} />
       </div>

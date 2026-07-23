@@ -19,7 +19,7 @@ export function CancelPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-surface-0 noise flex flex-col items-center justify-center px-6 safe-top safe-bottom">
+    <div className="h-[100dvh] bg-surface-0 noise flex flex-col items-center justify-center px-6 safe-top safe-bottom">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}

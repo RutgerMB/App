@@ -192,7 +192,7 @@ export function ExerciseSessionPage() {
   const unitLabel = isTimer ? t('exercise.seconds') : t('exercise.reps')
 
   return (
-    <div className="min-h-dvh w-full max-w-full overflow-x-hidden bg-surface-0 noise flex flex-col safe-top safe-bottom">
+    <div className="h-[100dvh] max-h-[100dvh] w-full max-w-full overflow-hidden bg-surface-0 noise flex flex-col safe-top safe-bottom">
       <div className="pointer-events-none fixed inset-0 overflow-hidden bg-surface-0">
         <div className={`absolute top-1/3 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full blur-3xl opacity-20 bg-gradient-to-br ${exercise.gradient}`} />
       </div>
@@ -207,7 +207,10 @@ export function ExerciseSessionPage() {
         <div className="w-12" />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col px-6 py-4 overflow-y-auto">
+      <div
+        className="relative z-10 flex-1 min-h-0 flex flex-col px-6 py-4 overflow-y-scroll overscroll-contain"
+        style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+      >
         <AnimatePresence mode="wait">
           {phase === 'intro' && (
             <motion.div key="intro" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col">

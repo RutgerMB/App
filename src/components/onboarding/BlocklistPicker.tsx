@@ -99,7 +99,7 @@ export function BlocklistPicker({
 
   if (onIos) {
     return (
-      <div className="flex flex-col -mx-1">
+      <div className="flex flex-col -mx-1 pb-2">
         <p className="text-xs text-white/50 mb-4 leading-relaxed">{t('apps.iosPickAppsHint')}</p>
         <p className="text-xs text-white/35 mb-4 leading-relaxed">{t('onboarding.selectAppsHint')}</p>
 
@@ -127,7 +127,7 @@ export function BlocklistPicker({
           </div>
         )}
 
-        <div className="flex items-center justify-center gap-2 mt-1 py-2 px-4 rounded-full bg-surface-2 border border-border text-xs text-white/45">
+        <div className="flex items-center justify-center gap-2 py-2 px-4 rounded-full bg-surface-2 border border-border text-xs text-white/45">
           <Smartphone size={14} />
           <span>{t('onboarding.blocklistSelected', { count: apps.length })}</span>
         </div>
@@ -136,28 +136,32 @@ export function BlocklistPicker({
   }
 
   const catalog = apps.length > 0 ? apps : DEVICE_APPS
+  const listSource = filtered.length > 0 || query.trim() ? filtered : catalog
 
   return (
-    <div className="flex flex-col -mx-1">
+    <div className="flex flex-col -mx-1 pb-2">
       {!canPickInstalledApps() && (
         <p className="text-xs text-white/40 mb-3 leading-relaxed">{t('onboarding.blocklistWebHint')}</p>
       )}
 
-      <div className="relative mb-3">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t('onboarding.blocklistSearch')}
-          className="w-full h-11 pl-10 pr-4 rounded-xl bg-surface-2 border border-border text-sm text-white placeholder:text-white/30"
-        />
+      <div className="mb-3">
+        <div className="relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t('onboarding.blocklistSearch')}
+            className="w-full h-11 pl-10 pr-4 rounded-xl bg-surface-2 border border-border text-sm text-white placeholder:text-white/30"
+          />
+        </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface-2 overflow-hidden max-h-[min(52vh,420px)] overflow-y-auto">
-        {groupAppsByCategory(filtered.length > 0 ? filtered : catalog).map((group) => (
+      {/* Full list — parent IntroShell scrollport handles scrolling (Android-safe). */}
+      <div className="rounded-2xl border border-border bg-surface-2">
+        {groupAppsByCategory(listSource).map((group) => (
           <div key={group.category}>
-            <div className="sticky top-0 z-10 px-4 py-2 bg-surface-3/95 border-b border-border backdrop-blur-sm">
+            <div className="px-4 py-2 bg-surface-3/90 border-b border-border">
               <p className="text-xs font-semibold text-white/50 uppercase tracking-wide">
                 {t(`onboarding.categories.${group.category}`)}
               </p>
@@ -170,8 +174,8 @@ export function BlocklistPicker({
                   type="button"
                   onClick={() => toggle(app.id)}
                   className={cn(
-                    'w-full flex items-center gap-3 px-4 py-3 border-b border-border/60 last:border-0 text-left transition-colors',
-                    isSelected ? 'bg-emerald-500/10' : 'hover:bg-surface-3/50'
+                    'w-full flex items-center gap-3 px-4 py-3.5 border-b border-border/60 last:border-0 text-left transition-colors touch-manipulation',
+                    isSelected ? 'bg-emerald-500/10' : 'active:bg-surface-3/50'
                   )}
                 >
                   <span
@@ -188,12 +192,12 @@ export function BlocklistPicker({
             })}
           </div>
         ))}
-        {filtered.length === 0 && (
+        {listSource.length === 0 && (
           <p className="text-sm text-white/40 text-center py-10">{t('onboarding.blocklistEmpty')}</p>
         )}
       </div>
 
-      <div className="flex items-center justify-center gap-2 mt-3 py-2 px-4 rounded-full bg-surface-2 border border-border text-xs text-white/45">
+      <div className="flex items-center justify-center gap-2 mt-3 py-2.5 px-4 rounded-full bg-surface-2 border border-border text-xs text-white/45">
         <Smartphone size={14} />
         <span>{t('onboarding.blocklistSelected', { count: selected.size })}</span>
       </div>

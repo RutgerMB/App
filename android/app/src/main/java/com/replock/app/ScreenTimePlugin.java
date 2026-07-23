@@ -17,8 +17,6 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -161,12 +159,9 @@ public class ScreenTimePlugin extends Plugin {
                 rows.add(row);
             }
 
-            Collections.sort(rows, new Comparator<JSObject>() {
-                @Override
-                public int compare(JSObject a, JSObject b) {
-                    return Double.compare(b.getDouble("minutes"), a.getDouble("minutes"));
-                }
-            });
+            rows.sort((a, b) ->
+                Double.compare(b.optDouble("minutes", 0), a.optDouble("minutes", 0))
+            );
 
             int limit = filter != null ? rows.size() : Math.min(rows.size(), 12);
             JSArray apps = new JSArray();

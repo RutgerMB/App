@@ -91,7 +91,7 @@ export function DeviceAppPicker({
   })
 
   return (
-    <Modal open={open} onClose={onClose} title={t('apps.chooseFromDevice')} position="center" className="max-h-[80dvh]">
+    <Modal open={open} onClose={onClose} title={t('apps.chooseFromDevice')} position="center">
       <p className="text-sm text-white/45 mb-4 -mt-2">
         {installedOnly
           ? t('apps.deviceAppsNative')
@@ -118,7 +118,7 @@ export function DeviceAppPicker({
           ) : filtered.length === 0 ? (
             <p className="text-center text-white/40 py-8 text-sm">{t('apps.iosNoAppsPicked')}</p>
           ) : onIosPicked ? null : (
-            <div className="space-y-2 max-h-64 overflow-y-auto pb-2">
+            <div className="space-y-2 pb-2">
               {filtered.map((app) => (
                 <button
                   key={app.id}
@@ -155,7 +155,10 @@ export function DeviceAppPicker({
           ) : filtered.length === 0 ? (
             <p className="text-center text-white/40 py-12 text-sm">{t('apps.noInstalledApps')}</p>
           ) : (
-            <div className="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto pb-2">
+            <div
+              className="grid grid-cols-3 gap-3 pb-2"
+              style={{ touchAction: 'pan-y' }}
+            >
               {filtered.map((app) => (
                 <button
                   key={app.id}
@@ -164,7 +167,7 @@ export function DeviceAppPicker({
                     onSelect(app)
                     onClose()
                   }}
-                  className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-surface-2 border border-border hover:border-emerald-500/40 hover:bg-surface-3 transition-all"
+                  className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-surface-2 border border-border hover:border-emerald-500/40 hover:bg-surface-3 transition-all touch-manipulation"
                 >
                   <AppBrandIcon brand={app.brand} name={app.name} color={app.color} size="md" />
                   <span className="text-[11px] font-medium text-white/70 text-center line-clamp-2 leading-tight">
@@ -182,7 +185,7 @@ export function DeviceAppPicker({
       ) : filtered.length === 0 ? (
         <p className="text-center text-white/40 py-12 text-sm">{t('apps.noAppsFound')}</p>
       ) : (
-        <div className="grid grid-cols-3 gap-3 max-h-64 overflow-y-auto pb-2">
+        <div className="grid grid-cols-3 gap-3 pb-2">
           {filtered.map((app) => (
             <button
               key={app.id}
@@ -191,7 +194,7 @@ export function DeviceAppPicker({
                 onSelect(app)
                 onClose()
               }}
-              className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-surface-2 border border-border hover:border-emerald-500/40 hover:bg-surface-3 transition-all"
+              className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-surface-2 border border-border hover:border-emerald-500/40 hover:bg-surface-3 transition-all touch-manipulation"
             >
               <AppBrandIcon brand={app.brand} name={app.name} color={app.color} size="md" />
               <span className="text-[11px] font-medium text-white/70 text-center line-clamp-2 leading-tight">
