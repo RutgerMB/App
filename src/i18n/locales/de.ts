@@ -658,6 +658,9 @@ export const de = {
       'Android: enable accessibility in Apps or Settings to block locked apps.',
     iosBlockingTitle: 'iPhone Screen Time',
     iosBlockingDesc: 'Blocking uses Apple\'s shield UI. Pick apps and authorize RepLock.',
+    androidBlockingTitle: 'Android-App-Sperre',
+    androidBlockingDesc:
+      'RepLock braucht zwei Berechtigungen: Nutzungszugriff (Statistiken) und Bedienungshilfen (Sperrbildschirm). Auf Samsung: Akku auf Unrestricted stellen.',
     blockingLearnMore: 'Siehe Launch-Guide für die Native-App-Roadmap',
     version: 'Mit Disziplin gemacht',
     legal: 'Legal',

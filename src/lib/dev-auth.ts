@@ -6,14 +6,17 @@ export const DEV_TOKEN = 'dev-token'
 
 /**
  * Dev login is never available in production or App Store builds (`build:mobile`).
- * Enabled only on the Vite dev server or native `iphone-dev` builds from cap:ios:sync.
+ * Enabled only on the Vite dev server or native `iphone-dev` / `android-dev` builds.
  */
 export function isDevLoginEnabled(): boolean {
   if (import.meta.env.PROD) return false
   if (import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEV_LOGIN === 'true') {
     return true
   }
-  return Capacitor.isNativePlatform() && import.meta.env.MODE === 'iphone-dev'
+  return (
+    Capacitor.isNativePlatform() &&
+    (import.meta.env.MODE === 'iphone-dev' || import.meta.env.MODE === 'android-dev')
+  )
 }
 
 export function isDevToken(token: string | null | undefined): boolean {

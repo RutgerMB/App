@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0B0B0F"
+    android:background="@color/blocker_bg"
     android:gravity="center"
     android:orientation="vertical"
     android:padding="32dp">
@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
         android:gravity="center"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/blocker_text"
         android:textSize="24sp"
         android:textStyle="bold" />
 
@@ -35,7 +35,7 @@
         android:layout_marginTop="12dp"
         android:gravity="center"
         android:lineSpacingExtra="4dp"
-        android:textColor="#99FFFFFF"
+        android:textColor="@color/blocker_text_muted"
         android:textSize="16sp" />
 
     <Button
@@ -43,7 +43,7 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginTop="36dp"
-        android:backgroundTint="#6366F1"
+        android:backgroundTint="@color/blocker_button"
         android:text="@string/blocker_open_replock"
         android:textAllCaps="false"
         android:textColor="#FFFFFF"
@@ -54,7 +54,7 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginTop="12dp"
-        android:backgroundTint="#1AFFFFFF"
+        android:backgroundTint="@color/blocker_button_secondary"
         android:text="@string/blocker_go_home"
         android:textAllCaps="false"
         android:textColor="#CCFFFFFF"

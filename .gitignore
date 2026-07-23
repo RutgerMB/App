@@ -30,4 +30,5 @@ npm-debug.log*
 # User data (auth)
 server/data/
 .env.iphone-dev
+.env.android-dev
 

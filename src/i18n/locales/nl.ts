@@ -663,6 +663,9 @@ export const nl = {
     iosBlockingTitle: 'iPhone Screen Time',
     iosBlockingDesc:
       'Blokkering gebruikt Apple\'s schild-UI. Kies apps in de Screen Time-kiezer en autoriseer RepLock. Echte dagelijkse gebruiksdata volgt later.',
+    androidBlockingTitle: 'Android-appvergrendeling',
+    androidBlockingDesc:
+      'RepLock heeft twee rechten nodig: Toegang tot gebruiksgegevens (statistieken) en Toegankelijkheid (vergrendelscherm). Op Samsung: zet batterij op Onbeperkt.',
     blockingLearnMore: 'Zie launch-gids voor native app roadmap',
     version: 'Gemaakt met discipline',
     legal: 'Legal',

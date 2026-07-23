@@ -17,6 +17,7 @@ RepLock is a **native Capacitor app** (iOS + Android), not a PWA launch. Screen 
 | What’s done vs what only you can do | `docs/LAUNCH-NOW.md` |
 | Numbered Mac / App Store / RevenueCat steps | `docs/LAUNCH-USER-CHECKLIST.md` |
 | Mac + iPhone day-to-day + Shield / DeviceActivityReport | `IOS_SETUP.md` |
+| Samsung / Android Studio day-to-day | `ANDROID_SETUP.md` |
 | App Review notes | `APP_STORE_REVIEW.md` |
 | RevenueCat dashboard | `docs/REVENUECAT_SETUP.md` |
 | API rate limits / bans | `docs/API-SECURITY.md` |

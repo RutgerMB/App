@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match web/iOS emerald brand -->
+    <color name="colorPrimary">#10B981</color>
+    <color name="colorPrimaryDark">#0A0A0B</color>
+    <color name="colorAccent">#14B8A6</color>
+    <color name="blocker_bg">#0A0A0B</color>
+    <color name="blocker_button">#10B981</color>
+    <color name="blocker_button_secondary">#1AFFFFFF</color>
+    <color name="blocker_text">#FFFFFF</color>
+    <color name="blocker_text_muted">#99FFFFFF</color>
+</resources>

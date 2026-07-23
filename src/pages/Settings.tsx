@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
@@ -16,7 +17,7 @@ import { MaxDailyHoursInput } from '@/components/onboarding/SetupSteps'
 import { ProPromo } from '@/components/ProPromo'
 import { BlockerSetupCard } from '@/components/BlockerSetupCard'
 import { Switch } from '@/components/ui/Switch'
-import { isNativeBlockingAvailable, isIosBlockingAvailable } from '@/lib/app-blocker'
+import { isNativeBlockingAvailable, isIosBlockingAvailable, isAndroidBlockingAvailable } from '@/lib/app-blocker'
 import {
   isNativeRevenueCatAvailable,
   openManageSubscription,
@@ -226,7 +227,7 @@ export function SettingsPage() {
 
   const handleSubscriptionPress = () => {
     if (profile.isPro) {
-      if (isNativeRevenueCatAvailable()) {
+      if (isNativeRevenueCatAvailable() || Capacitor.getPlatform() === 'android') {
         void handleManageSubscription()
         return
       }
@@ -268,7 +269,7 @@ export function SettingsPage() {
           action: handleSubscriptionPress,
           badge: profile.isPro ? ('pro' as const) : undefined,
         },
-        ...(isNativeRevenueCatAvailable()
+        ...(isNativeRevenueCatAvailable() || Capacitor.getPlatform() === 'android'
           ? [
               {
                 icon: Crown,
@@ -521,6 +522,15 @@ export function SettingsPage() {
               {t('settings.iosBlockingTitle')}
             </h3>
             <p className="text-xs text-white/50 leading-relaxed">{t('settings.iosBlockingDesc')}</p>
+          </div>
+        )}
+
+        {isAndroidBlockingAvailable() && (
+          <div className="rounded-2xl p-4 border border-emerald-500/20 bg-emerald-500/5">
+            <h3 className="text-sm font-semibold text-emerald-200 mb-2">
+              {t('settings.androidBlockingTitle')}
+            </h3>
+            <p className="text-xs text-white/50 leading-relaxed">{t('settings.androidBlockingDesc')}</p>
           </div>
         )}
 

@@ -31,7 +31,11 @@ public class AppBlockerAccessibilityService extends AccessibilityService {
 
         String appLabel = BlockerHelper.getAppLabel(this, packageName);
         Intent intent = new Intent(this, BlockerOverlayActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+        );
         intent.putExtra(BlockerOverlayActivity.EXTRA_PACKAGE_NAME, packageName);
         intent.putExtra(BlockerOverlayActivity.EXTRA_APP_LABEL, appLabel);
         startActivity(intent);

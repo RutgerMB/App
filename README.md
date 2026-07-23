@@ -44,7 +44,8 @@ open ios/App/App.xcodeproj
 # Product → Archive
 ```
 
-Dev device builds (LAN API): `npm run cap:ios:sync` — see **[IOS_SETUP.md](./IOS_SETUP.md)**.
+Dev device builds (LAN API): `npm run cap:ios:sync` — see **[IOS_SETUP.md](./IOS_SETUP.md)**.  
+Android phone builds: `npm run cap:android:sync` — see **[ANDROID_SETUP.md](./ANDROID_SETUP.md)**.
 
 ## Launch docs
 
@@ -66,6 +67,7 @@ Dev device builds (LAN API): `npm run cap:ios:sync` — see **[IOS_SETUP.md](./I
 | `npm run check:env` | Report `.env` keys set/missing (never prints secrets) |
 | `npm run cap:ios:sync` | Dev iPhone sync (LAN IP) |
 | `npm run cap:ios:prod` | Production bake + iOS sync (requires `VITE_API_URL`) |
+| `npm run cap:android:sync` | Dev Android sync (LAN IP) |
 | `npm run cap:android` | Open Android Studio |
 | `npm run start:prod` | Run API with `NODE_ENV=production` |
 

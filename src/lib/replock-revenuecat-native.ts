@@ -96,15 +96,59 @@ export type ManageSubscriptionResult = {
   restored: boolean
 }
 
+/** Open Google Play subscription management for this package. */
+export async function openPlaySubscriptionManagement(): Promise<boolean> {
+  if (Capacitor.getPlatform() !== 'android') return false
+  const pkg = 'com.replock.app'
+  const urls = [
+    `https://play.google.com/store/account/subscriptions?package=${pkg}`,
+    `https://play.google.com/store/account/subscriptions`,
+  ]
+  try {
+    const { AppLauncher } = await import('@capacitor/app-launcher')
+    for (const url of urls) {
+      try {
+        await AppLauncher.openUrl({ url })
+        return true
+      } catch {
+        /* try next */
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return false
+}
+
 /**
- * iOS subscription management: Customer Center (restore / cancel / change plan).
- * Falls back to Apple manage-subscriptions sheet / App Store URL — never Pricing alone.
+ * Subscription management: iOS Customer Center / Apple manage sheet;
+ * Android opens Play Store subscriptions.
  */
 export async function openManageSubscription(options?: {
   /** When Customer Center fails, also attempt restore. Default true. */
   restoreIfNeeded?: boolean
 }): Promise<ManageSubscriptionResult> {
   const restoreIfNeeded = options?.restoreIfNeeded !== false
+
+  if (Capacitor.getPlatform() === 'android') {
+    let restored = false
+    let isPro = false
+    if (restoreIfNeeded) {
+      try {
+        const { restoreMobilePurchases } = await import('@/lib/mobile-purchases')
+        restored = await restoreMobilePurchases()
+        if (restored) {
+          const { syncEntitlementAfterPurchase } = await import('@/lib/entitlement')
+          const sync = await syncEntitlementAfterPurchase().catch(() => null)
+          isPro = Boolean(sync?.isPro || restored)
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    const opened = await openPlaySubscriptionManagement()
+    return { opened, isPro, restored }
+  }
 
   if (!isNativeRevenueCatPlatform()) {
     const opened = await openAppleSubscriptionManagement()

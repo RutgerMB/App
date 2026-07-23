@@ -26,6 +26,7 @@ function allowLocalApiFallbacks(): boolean {
   return (
     import.meta.env.DEV ||
     import.meta.env.MODE === 'iphone-dev' ||
+    import.meta.env.MODE === 'android-dev' ||
     import.meta.env.MODE === 'development'
   )
 }

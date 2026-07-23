@@ -603,6 +603,8 @@ export interface Translations {
     blockingNative: string
     iosBlockingTitle: string
     iosBlockingDesc: string
+    androidBlockingTitle: string
+    androidBlockingDesc: string
     blockingLearnMore: string
     version: string
     legal: string

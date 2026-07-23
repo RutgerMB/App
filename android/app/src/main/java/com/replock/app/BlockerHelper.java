@@ -69,6 +69,19 @@ public final class BlockerHelper {
         if (packageName.startsWith("com.android.systemui")) return true;
         if (packageName.startsWith("com.google.android.inputmethod")) return true;
         if (packageName.equals("com.android.settings")) return true;
+        // Samsung One UI / Knox / launchers — avoid false blocks when switching apps
+        if (packageName.startsWith("com.samsung.android.app.cocktailbarservice")) return true;
+        if (packageName.startsWith("com.samsung.android.honeyboard")) return true;
+        if (packageName.equals("com.sec.android.app.launcher")) return true;
+        if (packageName.equals("com.samsung.android.launcher")) return true;
+        if (packageName.equals("com.samsung.android.app.telephonyui")) return true;
+        if (packageName.equals("com.android.launcher")) return true;
+        if (packageName.equals("com.android.launcher3")) return true;
+        if (packageName.equals("com.google.android.apps.nexuslauncher")) return true;
+        if (packageName.equals("com.google.android.permissioncontroller")) return true;
+        if (packageName.equals("com.google.android.packageinstaller")) return true;
+        if (packageName.equals("com.android.permissioncontroller")) return true;
+        if (packageName.equals("com.android.vending")) return true;
         return false;
     }
 

@@ -797,6 +797,9 @@ export const en: Translations = {
     iosBlockingTitle: 'iPhone Screen Time',
     iosBlockingDesc:
       'Blocking uses Apple\'s shield UI. Pick apps in the Screen Time picker and authorize RepLock. Real daily usage totals arrive in a future update.',
+    androidBlockingTitle: 'Android app locking',
+    androidBlockingDesc:
+      'RepLock needs two permissions: Usage Access (for screen-time stats) and Accessibility (to show the lock screen when you open a blocked app). On Samsung, also set battery usage to Unrestricted so locking keeps working.',
     blockingLearnMore: 'See launch guide for native app roadmap',
     version: 'Made with discipline',
     legal: 'Legal',

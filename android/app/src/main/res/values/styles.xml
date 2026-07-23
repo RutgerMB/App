@@ -22,6 +22,8 @@
 
     <style name="BlockerOverlayTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowFullscreen">true</item>
-        <item name="android:windowBackground">#0B0B0F</item>
+        <item name="android:windowBackground">@color/blocker_bg</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
 </resources>
