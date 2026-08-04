@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 /**
  * Post-process iOS project after `npx cap sync ios`.
- * - Removes Stripe/StatusBar/SplashScreen/PushNotifications SPM entries (unused / Cap 8 SPM broken on Xcode 15.4)
- * - Redirects LocalNotifications + CapacitorApp + CapacitorAppLauncher to vendored LocalPackages (Xcode 15.4 patches)
+ * - Removes Stripe/StatusBar/SplashScreen/PushNotifications SPM entries (unused / Cap 8 SPM unstable)
+ * - Redirects LocalNotifications + CapacitorApp + CapacitorAppLauncher to vendored LocalPackages
+ *   (RepLockPluginBridge patches — required historically for Xcode 15.4; still used on Xcode 26+)
  * - Re-injects RepLockControls + CapgoNativePurchases + RepLockRevenueCat (cap sync wipes local SPM plugins)
  * - Ensures CapApp-SPM.swift imports + force-links plugin classes
  * - Ensures packageClassList has local plugins and NEVER PushNotificationsPlugin
  * - Normalizes Windows backslashes in Package.swift paths
+ *
+ * Capacitor 8 requires Xcode 26.0+. Run this after every `cap sync ios`.
  *
  * Usage: node scripts/ios-remove-stripe.mjs
  */
@@ -59,7 +62,7 @@ const REQUIRED_PACKAGE_CLASS_LIST = [
   'AppLauncherPlugin',
 ]
 
-/** Must never remain after sync — Cap 8 SPM fails on Xcode 15.4 */
+/** Must never remain after sync — Cap 8 SPM + stripped plugins */
 const FORBIDDEN_PACKAGE_CLASS_LIST = [
   'PushNotificationsPlugin',
   'StatusBarPlugin',
@@ -378,7 +381,7 @@ if (existsSync(spmPackagePath)) {
   } else {
     console.log('Verified: CapApp-SPM/Package.swift has no Push package or product')
   }
-  // Never compile unpatched official Cap plugins from node_modules (Xcode 15.4 Cap 8 SPM)
+  // Never compile unpatched official Cap plugins from node_modules (use LocalPackages)
   const hasNodeModulesCapPlugin = /\.package\s*\([^)]*node_modules\/@capacitor\//i.test(verify)
   if (hasNodeModulesCapPlugin) {
     console.error(
@@ -435,5 +438,5 @@ if (changed) {
 }
 
 console.log(
-  '\nNote: LocalNotifications + App + AppLauncher are vendored under ios/App/LocalPackages (Xcode 15.4 Cap 8 SPM patches). Push/StatusBar/Splash are stripped.'
+  '\nNote: LocalNotifications + App + AppLauncher are vendored under ios/App/LocalPackages (Cap 8 SPM / RepLockPluginBridge). Push/StatusBar/Splash are stripped. Requires Xcode 26.0+.'
 )

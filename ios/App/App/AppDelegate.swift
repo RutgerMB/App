@@ -40,7 +40,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
-        // Universal Links — Capacitor 8 on Xcode < 26 only exposes application(_:open:options:)
+        // Universal Links — route through Capacitor open-URL proxy (works on Cap 8 + Xcode 26).
+        // Prefer ApplicationDelegateProxy.application(_:continue:restorationHandler:) when Cap exposes it.
         guard userActivity.activityType == NSUserActivityTypeBrowsingWeb,
               let url = userActivity.webpageURL else {
             return false

@@ -15,6 +15,7 @@ import {
   getPeriodStats,
   getPeriodTotals,
   getCategoryBreakdown,
+  niceMinutesAxis,
   type StatsPeriod,
 } from '@/lib/analytics'
 import { EXERCISES } from '@/types'
@@ -229,7 +230,7 @@ function UsageSection({
 
 export function ActivityInsights() {
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const { sessions, profile, apps, usageHistory } = useStore()
   const [period, setPeriod] = useState<StatsPeriod>('week')
   const [usagePeriod, setUsagePeriod] = useState<UsagePeriod>('day')
@@ -284,7 +285,7 @@ export function ActivityInsights() {
   }
 
   const comparison = getTodayVsYesterday(sessions)
-  const periodStats = getPeriodStats(sessions, period)
+  const periodStats = getPeriodStats(sessions, period, locale)
   const totals = getPeriodTotals(periodStats)
   const categories = getCategoryBreakdown(sessions, (type) =>
     t(`categories.${EXERCISES[type as keyof typeof EXERCISES]?.category ?? 'cardio'}`)
@@ -292,8 +293,7 @@ export function ActivityInsights() {
   const usagePeriodTotals = sumUsagePeriod(usageHistory, usagePeriod)
   const byAppRows = aggregateByAppForPeriod(usageHistory, usagePeriod)
   const chartMaxEarned = Math.max(...periodStats.map((d) => d.earnedMinutes), 0)
-  // Scale with data; floor so empty/low days don’t look broken. No hard 80m cap.
-  const chartYMax = Math.max(20, Math.ceil((chartMaxEarned * 1.15) / 5) * 5)
+  const { max: chartYMax, ticks: chartYTicks } = niceMinutesAxis(chartMaxEarned)
 
   const periodLabel = {
     week: t('activity.periodWeek'),
@@ -402,6 +402,8 @@ export function ActivityInsights() {
                   width={40}
                   tickFormatter={(v) => `${v}m`}
                   domain={[0, chartYMax]}
+                  ticks={chartYTicks}
+                  allowDecimals={false}
                   allowDataOverflow={false}
                 />
                 <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(27,138,94,0.08)' }} />

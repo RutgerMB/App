@@ -14,7 +14,7 @@ Both layers share the same RevenueCat `Purchases.shared` singleton and entitleme
 
 ## 1. Prerequisites
 
-- macOS with **Xcode 15+** (iOS 16 deployment target)
+- macOS with **Xcode 26.0+** (Capacitor 8 requirement; iOS 16 deployment target)
 - Apple Developer account with **In-App Purchase** capability enabled
 - RevenueCat project with iOS app `app.replock.bleeker`
 - App Store public SDK key (`appl_…`) for device / sandbox — **not** Test Store (`test_…`)

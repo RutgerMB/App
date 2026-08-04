@@ -1,4 +1,5 @@
 import type { ExerciseSession } from '@/types'
+import type { Locale } from '@/i18n/types'
 import { localDateString, parseLocalDateString } from '@/lib/dates'
 
 export type StatsPeriod = 'week' | 'month' | 'year'
@@ -8,6 +9,54 @@ export interface DayStats {
   label: string
   earnedMinutes: number
   workoutCount: number
+}
+
+/** BCP 47 tags so chart/calendar labels follow the in-app language, not the device locale. */
+export const LOCALE_TAGS: Record<Locale, string> = {
+  en: 'en-US',
+  nl: 'nl-NL',
+  de: 'de-DE',
+  fr: 'fr-FR',
+  es: 'es-ES',
+}
+
+export function localeTag(locale?: Locale | string): string | undefined {
+  if (!locale) return undefined
+  if (locale in LOCALE_TAGS) return LOCALE_TAGS[locale as Locale]
+  return locale
+}
+
+/**
+ * Pick a chart Y domain and evenly spaced ticks (e.g. 25/50/75/100),
+ * avoiding awkward tops like 90 that sit between nice steps.
+ */
+export function niceMinutesAxis(
+  dataMax: number,
+  preferredTickCount = 4,
+): { max: number; ticks: number[] } {
+  const target = Math.max(20, dataMax * 1.15)
+  const niceMaxes = [
+    20, 25, 40, 50, 60, 75, 80, 100, 120, 150, 200, 250, 300, 400, 500, 600, 750, 1000, 1500, 2000,
+  ]
+  const max =
+    niceMaxes.find((m) => m >= target) ?? Math.ceil(target / 100) * 100
+
+  const stepCandidates = [5, 10, 20, 25, 50, 100, 200, 250, 500]
+  let bestStep = max
+  let bestScore = Number.POSITIVE_INFINITY
+  for (const step of stepCandidates) {
+    if (max % step !== 0) continue
+    const intervals = max / step
+    if (intervals < 2 || intervals > 6) continue
+    const score = Math.abs(intervals - preferredTickCount)
+    if (score < bestScore) {
+      bestScore = score
+      bestStep = step
+    }
+  }
+
+  const ticks = Array.from({ length: max / bestStep }, (_, i) => bestStep * (i + 1))
+  return { max, ticks }
 }
 
 function dateKey(d: Date): string {
@@ -53,12 +102,12 @@ function aggregateWeekly(daily: DayStats[]): DayStats[] {
   return weeks
 }
 
-function monthShortLabel(monthKey: string, locale?: string): string {
+function monthShortLabel(monthKey: string, locale?: Locale | string): string {
   const d = parseLocalDateString(`${monthKey}-01`)
-  return d.toLocaleDateString(locale || undefined, { month: 'short' })
+  return d.toLocaleDateString(localeTag(locale), { month: 'short' })
 }
 
-function aggregateMonthly(daily: DayStats[]): DayStats[] {
+function aggregateMonthly(daily: DayStats[], locale?: Locale | string): DayStats[] {
   const monthly = new Map<string, DayStats>()
   for (const day of daily) {
     const monthKey = day.date.slice(0, 7)
@@ -69,7 +118,7 @@ function aggregateMonthly(daily: DayStats[]): DayStats[] {
     } else {
       monthly.set(monthKey, {
         date: monthKey,
-        label: monthShortLabel(monthKey),
+        label: monthShortLabel(monthKey, locale),
         earnedMinutes: day.earnedMinutes,
         workoutCount: day.workoutCount,
       })
@@ -78,7 +127,12 @@ function aggregateMonthly(daily: DayStats[]): DayStats[] {
   return Array.from(monthly.values()).slice(-12)
 }
 
-export function getPeriodStats(sessions: ExerciseSession[], period: StatsPeriod): DayStats[] {
+export function getPeriodStats(
+  sessions: ExerciseSession[],
+  period: StatsPeriod,
+  locale?: Locale | string,
+): DayStats[] {
+  const tag = localeTag(locale)
   const now = new Date()
   const days = period === 'week' ? 7 : period === 'month' ? 30 : 365
   const daily: DayStats[] = []
@@ -88,7 +142,7 @@ export function getPeriodStats(sessions: ExerciseSession[], period: StatsPeriod)
     d.setDate(d.getDate() - i)
     daily.push({
       date: dateKey(d),
-      label: d.toLocaleDateString([], {
+      label: d.toLocaleDateString(tag, {
         weekday: period === 'week' ? 'short' : undefined,
         day: 'numeric',
         month: period === 'month' ? 'short' : undefined,
@@ -100,7 +154,7 @@ export function getPeriodStats(sessions: ExerciseSession[], period: StatsPeriod)
 
   if (period === 'week') return daily
   if (period === 'month') return aggregateWeekly(daily)
-  return aggregateMonthly(daily)
+  return aggregateMonthly(daily, locale)
 }
 
 export function getPeriodTotals(stats: DayStats[]) {

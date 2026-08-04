@@ -18,6 +18,7 @@ import {
   activityIntensityLevel,
   dayActivityScore,
   HEATMAP_JADE_LEVELS,
+  localeTag,
 } from '@/lib/analytics'
 
 function monthKeyFromDate(d: Date): string {
@@ -52,7 +53,7 @@ function buildMonthCells(monthKey: string) {
 }
 
 export function ActivityCalendar() {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const sessions = useStore((s) => s.sessions)
   const createdAt = useStore((s) => s.profile.createdAt)
 
@@ -142,16 +143,16 @@ export function ActivityCalendar() {
 
   const monthLabel = useMemo(() => {
     const d = parseLocalDateString(`${monthKey}-01`)
-    return d.toLocaleDateString([], { month: 'long', year: 'numeric' })
-  }, [monthKey])
+    return d.toLocaleDateString(localeTag(locale), { month: 'long', year: 'numeric' })
+  }, [monthKey, locale])
 
   const weekdayLabels = useMemo(() => {
     // Sun–Sat short labels from a known week
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(2024, 0, 7 + i) // Sunday start
-      return d.toLocaleDateString([], { weekday: 'narrow' })
+      return d.toLocaleDateString(localeTag(locale), { weekday: 'narrow' })
     })
-  }, [])
+  }, [locale])
 
   const canPrev = monthKey > joinMonthKey
   const canNext = monthKey < currentMonthKey

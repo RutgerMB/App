@@ -10,9 +10,9 @@ Follow **every step** below on your **Mac** (not Windows).
 
 - Mac with the project cloned (same repo as this guide)
 - iPhone on the **same Wi‑Fi** as the Mac
-- **Xcode 15.4+** (RepLock local SPM plugins use `RepLockPluginBridge` Obj-C helper for plugin call errors on Xcode 15.4 with Capacitor 8 SPM)
+- **Xcode 26.0+** (required by Capacitor 8). Local SPM plugins still use `RepLockPluginBridge` for Cap 8 SPM plugin-call errors; that bridge is compatible with Xcode 26.
 - Signing set up (`app.replock.bleeker`, Family Controls, App Group `group.com.replock.fitness`)
-- **iOS 16–18** on the test iPhone (Family Controls / app blocking requires iOS 16+; deployment target is 16.0)
+- **iOS 16–18+** on the test iPhone (Family Controls / app blocking requires iOS 16+; deployment target is 16.0)
 - Node.js installed (`node -v`)
 
 
@@ -29,7 +29,7 @@ Follow **every step** below on your **Mac** (not Windows).
 | Apple In-App Purchase          | Native (`CapgoNativePurchases` local SPM plugin)                                      |
 
 
-`CapgoNativePurchases` enables StoreKit 2.6.5 APIs only when the active Xcode SDK supports them — older Xcode builds skip those symbols automatically.
+`CapgoNativePurchases` enables StoreKit 2.6.5 APIs when the active Xcode SDK supports them (Xcode 26 does).
 
 ---
 
@@ -362,8 +362,8 @@ npm run cap:ios:sync
 1. Run `npm run cap:ios:sync` (pull latest first).
 2. In Xcode: **File → Packages → Reset Package Caches**, **Clean Build Folder**, **Run ▶**.
 3. Confirm **RepLockControls**, **RepLockRevenueCat**, and **CapgoNativePurchases** appear under SPM packages in the project navigator.
-4. `CAPPluginCallError` **/** `call.reject` **compile errors on Xcode 15.4** — RepLock plugins use `RepLockPluginBridge` (Obj-C) with `init:message:code:error:data:` (not `initWithMessage:…`). If that still fails, reset package caches and clean build. Last resort: resolve `{ "__repLockError": true, "message", "code" }` from native and treat `__repLockError` as reject in JS wrappers (see comment in `RepLockPluginBridge.m`).
-5. **StoreKit 2.6.5 symbol errors** — `CapgoNativePurchases` skips those APIs automatically on Xcode 15.x; use **Xcode 16+** only if you need StoreKit 2.6.5 features.
+4. `CAPPluginCallError` **/** `call.reject` **compile errors** — RepLock plugins use `RepLockPluginBridge` (Obj-C) with `init:message:code:error:data:` (not `initWithMessage:…`). These patches remain for Cap 8 SPM stability on Xcode 26. If that still fails, reset package caches and clean build.
+5. **StoreKit 2.6.5** — With **Xcode 26**, `CapgoNativePurchases` enables StoreKit 2.6.5 symbols when the SDK exposes them. If you see missing-symbol errors, reset SPM caches and clean build after `npm run cap:ios:sync`.
 
 ---
 
