@@ -183,9 +183,12 @@ function createEmptyAppState(name: string, email: string): AppState {
     currentStreak: 0,
     longestStreak: 0,
     lastExerciseDate: null,
+    lastLostStreak: 0,
     apps: [],
     sessions: [],
     workoutPlanSessions: [],
     usageHistory: [],
   }
 }
+
+export { createEmptyAppState }
