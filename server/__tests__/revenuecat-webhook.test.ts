@@ -60,6 +60,27 @@ describe('revenuecat-webhook', () => {
     )
   })
 
+  it('does not revoke App Review Pro on EXPIRATION', () => {
+    mockGetEntitlement.mockReturnValue({
+      isPro: true,
+      stripeCustomerId: null,
+      subscriptionId: null,
+      subscriptionStatus: 'active',
+      source: 'review',
+    })
+    const result = handleRevenueCatWebhookEvent({
+      api_version: '1.0',
+      event: {
+        id: 'evt_review',
+        type: 'EXPIRATION',
+        app_user_id: 'user-1',
+        entitlement_ids: [],
+      },
+    })
+    expect(result.handled).toBe(true)
+    expect(mockSetEntitlement).not.toHaveBeenCalled()
+  })
+
   it('provisions unknown Firebase / RevenueCat users', () => {
     mockEnsureExternalUser.mockReturnValue({ id: 'unknown' })
     mockGetEntitlement.mockReturnValue(null)

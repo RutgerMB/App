@@ -529,6 +529,7 @@ app.listen(Number(PORT), '0.0.0.0', async () => {
   await ensureAppReviewAccount()
   console.log(`🚀 RepLock server running on http://localhost:${PORT}`)
   console.log(`   App (dev): ${clientUrl}`)
+  console.log(`   Data dir: ${process.env.DATA_DIR?.trim() || 'server/data (ephemeral unless DATA_DIR set)'}`)
   console.log(`   Stripe: ${stripe ? 'configured' : 'demo mode'}`)
   console.log(`   Demo mode: ${isDemoMode()}`)
   console.log(`   Firebase Admin: ${isFirebaseAdminConfigured() ? 'configured' : 'not set (JWT auth only on API)'}`)

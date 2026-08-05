@@ -10,7 +10,8 @@ import {
 import { DEFAULT_DAILY_OPENINGS, DEFAULT_MAX_DAILY_HOURS } from '../src/types/index.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const DATA_DIR = path.join(__dirname, 'data')
+/** Override with a Railway volume path (e.g. /data) so Pro entitlements survive redeploys. */
+const DATA_DIR = process.env.DATA_DIR?.trim() || path.join(__dirname, 'data')
 const USERS_FILE = path.join(DATA_DIR, 'users.json')
 
 export interface StoredUser {
