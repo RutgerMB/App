@@ -11,14 +11,12 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.4.1"),
-        .package(url: "https://github.com/RevenueCat/purchases-hybrid-common.git", exact: "18.19.0"),
-        .package(name: "RepLockControls", path: "../RepLockControls")
+        .package(url: "https://github.com/RevenueCat/purchases-hybrid-common.git", exact: "18.19.0")
     ],
     targets: [
         .target(
             name: "RevenuecatPurchasesCapacitor",
             dependencies: [
-                .product(name: "RepLockPluginBridge", package: "RepLockControls"),
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
                 .product(name: "Cordova", package: "capacitor-swift-pm"),
                 .product(name: "PurchasesHybridCommon", package: "purchases-hybrid-common")

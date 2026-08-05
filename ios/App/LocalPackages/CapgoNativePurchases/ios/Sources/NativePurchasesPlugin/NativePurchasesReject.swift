@@ -1,7 +1,6 @@
 import Capacitor
-import RepLockPluginBridge
 
-/// Capacitor 8 SPM hides `reject` on Xcode 15.x; route through Obj-C bridge.
+/// Thin wrapper so call sites stay readable; uses Cap 8 `reject` (Xcode 26+).
 func capgoReject(_ call: CAPPluginCall, _ message: String, code: String? = nil) {
-    RepLockRejectPluginCall(call, message, code)
+    call.reject(message, code)
 }

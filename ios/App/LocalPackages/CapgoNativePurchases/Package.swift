@@ -5,7 +5,7 @@ import PackageDescription
 func hasStoreKit265SDK() -> Bool {
     // Only inspect the active Xcode/SDK for this build. Probing /Applications/Xcode.app
     // can enable STOREKIT_26_5 when a newer Xcode is installed but xcode-select points
-    // at Xcode 15.x — that mismatch causes dozens of compile errors in this target.
+    // elsewhere — that mismatch causes compile errors in this target.
     let environment = ProcessInfo.processInfo.environment
     guard environment["DEVELOPER_DIR"] != nil || environment["SDKROOT"] != nil else {
         return false
@@ -51,14 +51,12 @@ let package = Package(
             targets: ["NativePurchasesPlugin"])
     ],
     dependencies: [
-        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "8.0.0"),
-        .package(name: "RepLockControls", path: "../RepLockControls")
+        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "8.0.0")
     ],
     targets: [
         .target(
             name: "NativePurchasesPlugin",
             dependencies: [
-                .product(name: "RepLockPluginBridge", package: "RepLockControls"),
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
                 .product(name: "Cordova", package: "capacitor-swift-pm")
             ],

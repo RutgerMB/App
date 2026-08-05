@@ -10,10 +10,10 @@ Follow **every step** below on your **Mac** (not Windows).
 
 - Mac with the project cloned (same repo as this guide)
 - iPhone on the **same Wi‑Fi** as the Mac
-- **Xcode 26.0+** (required by Capacitor 8). Local SPM plugins still use `RepLockPluginBridge` for Cap 8 SPM plugin-call errors; that bridge is compatible with Xcode 26.
+- **Xcode 26.0+** (required by Capacitor 8). Stock Capacitor plugins use normal `call.reject` APIs on Xcode 26.
 - Signing set up (`app.replock.bleeker`, Family Controls, App Group `group.com.replock.fitness`)
 - **iOS 16–18+** on the test iPhone (Family Controls / app blocking requires iOS 16+; deployment target is 16.0)
-- Node.js installed (`node -v`)
+- Node.js installed (`node -v`) — Apple Silicon needs an **arm64** Node (`/opt/homebrew/bin/node`), not Intel `/usr/local/bin/node`
 
 
 
@@ -26,10 +26,10 @@ Follow **every step** below on your **Mac** (not Windows).
 | Screen Time / app blocking     | Native (`RepLockControls` local SPM plugin)                                           |
 | Daily Screen Time totals (iOS) | **DeviceActivityReport** target already in `App.xcodeproj` (confirm signing on Mac; see below) |
 | Branded shield UI | Sources in repo; **Shield** Xcode targets still need one-time Mac add (see below) |
-| Apple In-App Purchase          | Native (`CapgoNativePurchases` local SPM plugin)                                      |
+| Apple In-App Purchase          | Native (`CapgoNativePurchases` local SPM — StoreKit probe uses active Xcode SDK) |
 
 
-`CapgoNativePurchases` enables StoreKit 2.6.5 APIs when the active Xcode SDK supports them (Xcode 26 does).
+Stock `@capacitor/app`, `app-launcher`, and `local-notifications` come from `node_modules` (Xcode 26 / Cap 8).
 
 ---
 
@@ -210,8 +210,10 @@ That’s expected if you didn’t run `cap:ios:sync` — browser uses `localhost
 
 `npm run cap:ios:sync` runs `scripts/ios-remove-stripe.mjs`, which:
 
-- Re-adds **RepLockControls**, **CapgoNativePurchases**, **RepLockRevenueCat** to CapApp-SPM
-- Injects `RepLockControlsPlugin` (and related) into `packageClassList`
+- Re-adds **RepLockControls**, **CapgoNativePurchases**, **RepLockRevenueCat**, **RevenuecatPurchasesCapacitor** to CapApp-SPM
+- Keeps stock **@capacitor/app**, **app-launcher**, **local-notifications** from `node_modules`
+- Strips unused iOS plugins (Push / StatusBar / Splash / Stripe)
+- Injects plugin class names into `packageClassList`
 
 1. Run `npm run cap:ios:sync` (not bare `npx cap sync ios`).
 2. Open `ios/App/App.xcodeproj` in Xcode.
@@ -362,8 +364,8 @@ npm run cap:ios:sync
 1. Run `npm run cap:ios:sync` (pull latest first).
 2. In Xcode: **File → Packages → Reset Package Caches**, **Clean Build Folder**, **Run ▶**.
 3. Confirm **RepLockControls**, **RepLockRevenueCat**, and **CapgoNativePurchases** appear under SPM packages in the project navigator.
-4. `CAPPluginCallError` **/** `call.reject` **compile errors** — RepLock plugins use `RepLockPluginBridge` (Obj-C) with `init:message:code:error:data:` (not `initWithMessage:…`). These patches remain for Cap 8 SPM stability on Xcode 26. If that still fails, reset package caches and clean build.
-5. **StoreKit 2.6.5** — With **Xcode 26**, `CapgoNativePurchases` enables StoreKit 2.6.5 symbols when the SDK exposes them. If you see missing-symbol errors, reset SPM caches and clean build after `npm run cap:ios:sync`.
+4. `CAPPluginCall.reject` **compile errors** — On **Xcode 26+** plugins use stock Cap `call.reject`. If you somehow build with an older Xcode, Capacitor 8 will fail; upgrade Xcode instead of re-adding old workarounds.
+5. **StoreKit 2.6.5** — With **Xcode 26**, local `CapgoNativePurchases` enables StoreKit 2.6.5 symbols when the active SDK exposes them. If you see missing-symbol errors, reset SPM caches and clean build after `npm run cap:ios:sync`.
 
 ---
 
