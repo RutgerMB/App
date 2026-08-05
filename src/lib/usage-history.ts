@@ -1,5 +1,5 @@
 import type { AppState, LockedApp, UsageAppDay, UsageDayRecord, UserProfile } from '@/types'
-import { localDateString, offsetLocalDateString } from '@/lib/dates'
+import { localDateString, offsetLocalDateString, parseLocalDateString } from '@/lib/dates'
 
 export type UsagePeriod = 'day' | 'week' | 'month'
 
@@ -107,9 +107,10 @@ export function sumUsagePeriod(
   today: string = localDateString()
 ): { unlockedMinutes: number; unlockOpenings: number; days: number } {
   const rows = history ?? []
+  const anchor = parseLocalDateString(today)
   let from = today
-  if (period === 'week') from = offsetLocalDateString(-6)
-  if (period === 'month') from = offsetLocalDateString(-29)
+  if (period === 'week') from = offsetLocalDateString(-6, anchor)
+  if (period === 'month') from = offsetLocalDateString(-29, anchor)
 
   const matched = rows.filter((r) => r.date >= from && r.date <= today)
   return {
@@ -126,9 +127,10 @@ export function aggregateByAppForPeriod(
   today: string = localDateString()
 ): UsageAppDay[] {
   const rows = history ?? []
+  const anchor = parseLocalDateString(today)
   let from = today
-  if (period === 'week') from = offsetLocalDateString(-6)
-  if (period === 'month') from = offsetLocalDateString(-29)
+  if (period === 'week') from = offsetLocalDateString(-6, anchor)
+  if (period === 'month') from = offsetLocalDateString(-29, anchor)
 
   const matched = rows.filter((r) => r.date >= from && r.date <= today)
   const byId = new Map<string, UsageAppDay>()
