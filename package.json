@@ -13,6 +13,7 @@
     "cap:android": "npx cap open android",
     "cap:android:sync": "node scripts/android-dev-sync.mjs",
     "cap:android:live": "node scripts/android-dev-sync.mjs --live",
+    "cap:android:prod": "node scripts/android-prod-build.mjs",
     "cap:ios": "npx cap open ios",
     "cap:ios:sync": "node scripts/ios-dev-sync.mjs",
     "cap:ios:live": "node scripts/ios-dev-sync.mjs --live",

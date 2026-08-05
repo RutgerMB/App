@@ -114,6 +114,15 @@ export function updateUserAppState(userId: string, appState: AppState): StoredUs
   return db.users[idx]
 }
 
+export function updateUserPassword(userId: string, passwordHash: string): StoredUser | undefined {
+  const db = readDb()
+  const idx = db.users.findIndex((u) => u.id === userId)
+  if (idx === -1) return undefined
+  db.users[idx].passwordHash = passwordHash
+  writeDb(db)
+  return db.users[idx]
+}
+
 export function getEntitlement(userId: string): ProEntitlement | undefined {
   const user = findUserById(userId)
   if (!user) return undefined

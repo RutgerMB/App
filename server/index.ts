@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import { createCorsOptions } from './cors.js'
 import Stripe from 'stripe'
 import dotenv from 'dotenv'
 import path from 'path'
@@ -139,8 +140,11 @@ async function refreshEntitlementFromStripe(
   return updated
 }
 
-const corsOptions =
-  process.env.NODE_ENV === 'production' ? { origin: clientUrl } : {}
+const corsOptions = createCorsOptions(
+  process.env.NODE_ENV,
+  clientUrl,
+  process.env.CLIENT_ORIGINS
+)
 
 // Behind nginx/Caddy/Cloudflare set TRUST_PROXY=1 so rate limits and IP bans see the real client IP.
 if (process.env.TRUST_PROXY === '1' || process.env.TRUST_PROXY === 'true') {
