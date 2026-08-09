@@ -67,6 +67,11 @@ export function handleRevenueCatWebhookEvent(
   const existing = getEntitlement(userId)
   const proEntitled = hasProEntitlement(event)
 
+  // Never let store webhooks revoke a manually granted App Review / demo Pro.
+  if (existing?.source === 'review' || existing?.source === 'demo') {
+    return { handled: true, userId }
+  }
+
   if (ACTIVATE_EVENTS.has(event.type) && proEntitled) {
     setEntitlement(userId, buildEntitlement(event, true, 'active', existing))
     return { handled: true, userId }

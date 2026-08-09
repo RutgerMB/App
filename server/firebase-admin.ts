@@ -1,9 +1,11 @@
 import { existsSync } from 'node:fs'
 import { initializeApp, cert, getApps, type App } from 'firebase-admin/app'
 import { getAuth, type Auth } from 'firebase-admin/auth'
+import { getFirestore, type Firestore } from 'firebase-admin/firestore'
 
 let adminApp: App | null = null
 let adminAuth: Auth | null = null
+let adminFirestore: Firestore | null = null
 let adminInitFailed = false
 
 function credentialsFileExists(): boolean {
@@ -20,9 +22,8 @@ export function isFirebaseAdminConfigured(): boolean {
   return Boolean(process.env.GOOGLE_CLOUD_PROJECT && !process.env.GOOGLE_APPLICATION_CREDENTIALS)
 }
 
-export function getFirebaseAdminAuth(): Auth | null {
+function ensureFirebaseAdminApp(): App | null {
   if (!isFirebaseAdminConfigured()) return null
-  if (adminAuth) return adminAuth
   if (adminInitFailed) return null
 
   try {
@@ -38,8 +39,7 @@ export function getFirebaseAdminAuth(): Auth | null {
       }
     }
 
-    adminAuth = getAuth(adminApp ?? getApps()[0])
-    return adminAuth
+    return adminApp ?? getApps()[0]
   } catch (err) {
     adminInitFailed = true
     console.warn(
@@ -48,6 +48,22 @@ export function getFirebaseAdminAuth(): Auth | null {
     )
     return null
   }
+}
+
+export function getFirebaseAdminAuth(): Auth | null {
+  if (adminAuth) return adminAuth
+  const app = ensureFirebaseAdminApp()
+  if (!app) return null
+  adminAuth = getAuth(app)
+  return adminAuth
+}
+
+export function getFirebaseAdminFirestore(): Firestore | null {
+  if (adminFirestore) return adminFirestore
+  const app = ensureFirebaseAdminApp()
+  if (!app) return null
+  adminFirestore = getFirestore(app)
+  return adminFirestore
 }
 
 export async function verifyFirebaseIdToken(

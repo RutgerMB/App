@@ -135,6 +135,7 @@ Add `VITE_REVENUECAT_API_KEY_ANDROID=goog_…` to `.env`, re-run `cap:android:sy
 |---------|---------|
 | `npm run cap:android:sync` | LAN bake + Cap sync |
 | `npm run cap:android:live` | Same + live reload from Vite |
+| `npm run cap:android:prod` | Play release bake (`VITE_API_URL` https + `goog_…`; refuses dev login) |
 | `npm run cap:android` | Open Android Studio |
 
-Production / Play Store bake can reuse `VITE_API_URL=https://…` + `npm run build && npx cap sync android` once your API is live.
+Production / Play Store: set `VITE_API_URL=https://…` and `VITE_REVENUECAT_API_KEY_ANDROID=goog_…`, run `npm run cap:android:prod`, then generate a **signed** AAB with your upload keystore (required — debug signing is not enough for Play).

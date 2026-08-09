@@ -1,15 +1,17 @@
 #!/usr/bin/env node
 /**
- * Post-process iOS project after `npx cap sync ios`.
- * - Removes Stripe/StatusBar/SplashScreen/PushNotifications SPM entries (unused / Cap 8 SPM unstable)
- * - Redirects LocalNotifications + CapacitorApp + CapacitorAppLauncher to vendored LocalPackages
- *   (RepLockPluginBridge patches — required historically for Xcode 15.4; still used on Xcode 26+)
- * - Re-injects RepLockControls + CapgoNativePurchases + RepLockRevenueCat (cap sync wipes local SPM plugins)
+ * Post-process iOS project after `npx cap sync ios` (Xcode 26+ / Capacitor 8).
+ *
+ * Cap sync rewrites CapApp-SPM and drops first-party local plugins. This script:
+ * - Strips unused iOS SPM entries (Stripe / StatusBar / SplashScreen / PushNotifications)
+ * - Re-injects first-party LocalPackages: RepLockControls, CapgoNativePurchases,
+ *   RepLockRevenueCat, RevenuecatPurchasesCapacitor
+ * - Leaves stock @capacitor/app, app-launcher, local-notifications on node_modules
+ *   (Xcode 26 restores normal Cap 8 SPM APIs — no more vendored Cap plugin forks)
  * - Ensures CapApp-SPM.swift imports + force-links plugin classes
  * - Ensures packageClassList has local plugins and NEVER PushNotificationsPlugin
  * - Normalizes Windows backslashes in Package.swift paths
- *
- * Capacitor 8 requires Xcode 26.0+. Run this after every `cap sync ios`.
+ * - Keeps CapApp-SPM at iOS 16+
  *
  * Usage: node scripts/ios-remove-stripe.mjs
  */
@@ -27,18 +29,19 @@ const LOCAL_REPLOCK_CONTROLS_PATH = '../LocalPackages/RepLockControls'
 const LOCAL_CAPGO_NATIVE_PURCHASES_PATH = '../LocalPackages/CapgoNativePurchases'
 const LOCAL_REPLOCK_REVENUECAT_PATH = '../LocalPackages/RepLockRevenueCat'
 const LOCAL_REVENUECAT_PURCHASES_CAPACITOR_PATH = '../LocalPackages/RevenuecatPurchasesCapacitor'
-const LOCAL_LOCAL_NOTIFICATIONS_PATH = '../LocalPackages/CapacitorLocalNotifications'
-const LOCAL_CAPACITOR_APP_PATH = '../LocalPackages/CapacitorApp'
-const LOCAL_CAPACITOR_APP_LAUNCHER_PATH = '../LocalPackages/CapacitorAppLauncher'
+
+/** Stock Cap plugins — must stay on node_modules (not LocalPackages forks). */
+const STOCK_CAP_NODE_MODULES = [
+  { name: 'CapacitorApp', pathSnippet: 'node_modules/@capacitor/app' },
+  { name: 'CapacitorAppLauncher', pathSnippet: 'node_modules/@capacitor/app-launcher' },
+  { name: 'CapacitorLocalNotifications', pathSnippet: 'node_modules/@capacitor/local-notifications' },
+]
 
 const REQUIRED_LOCAL_PACKAGES = [
   { name: 'RepLockControls', path: LOCAL_REPLOCK_CONTROLS_PATH },
   { name: 'CapgoNativePurchases', path: LOCAL_CAPGO_NATIVE_PURCHASES_PATH },
   { name: 'RepLockRevenueCat', path: LOCAL_REPLOCK_REVENUECAT_PATH },
   { name: 'RevenuecatPurchasesCapacitor', path: LOCAL_REVENUECAT_PURCHASES_CAPACITOR_PATH },
-  { name: 'CapacitorLocalNotifications', path: LOCAL_LOCAL_NOTIFICATIONS_PATH },
-  { name: 'CapacitorApp', path: LOCAL_CAPACITOR_APP_PATH },
-  { name: 'CapacitorAppLauncher', path: LOCAL_CAPACITOR_APP_LAUNCHER_PATH },
 ]
 
 const REQUIRED_PRODUCTS = [
@@ -46,9 +49,6 @@ const REQUIRED_PRODUCTS = [
   { product: 'CapgoNativePurchases', package: 'CapgoNativePurchases' },
   { product: 'RepLockRevenueCat', package: 'RepLockRevenueCat' },
   { product: 'RevenuecatPurchasesCapacitor', package: 'RevenuecatPurchasesCapacitor' },
-  { product: 'CapacitorLocalNotifications', package: 'CapacitorLocalNotifications' },
-  { product: 'CapacitorApp', package: 'CapacitorApp' },
-  { product: 'CapacitorAppLauncher', package: 'CapacitorAppLauncher' },
 ]
 
 /** ObjC @objc names Capacitor looks up in packageClassList */
@@ -62,7 +62,7 @@ const REQUIRED_PACKAGE_CLASS_LIST = [
   'AppLauncherPlugin',
 ]
 
-/** Must never remain after sync — Cap 8 SPM + stripped plugins */
+/** Must never remain after sync — unused on iOS for this app */
 const FORBIDDEN_PACKAGE_CLASS_LIST = [
   'PushNotificationsPlugin',
   'StatusBarPlugin',
@@ -82,21 +82,22 @@ const SPM_STRIP_PATH_SNIPPETS = [
   '@capacitor/status-bar',
   '@capacitor/splash-screen',
   '@capacitor/push-notifications',
+  // Legacy Xcode 15.4 forks — never reintroduce
+  'LocalPackages/CapacitorApp',
+  'LocalPackages/CapacitorAppLauncher',
+  'LocalPackages/CapacitorLocalNotifications',
 ]
 
 function stripSpmLines(pkg) {
   const nl = pkg.includes('\r\n') ? '\r\n' : '\n'
   const lines = pkg.split(/\r?\n/)
   const kept = lines.filter((line) => {
-    // Match package OR product lines (quoted name) and path snippets — CRLF-safe (no /.*\n/)
     if (SPM_STRIP_NAMES.some((name) => line.includes(`"${name}"`))) return false
     if (SPM_STRIP_PATH_SNIPPETS.some((snip) => line.includes(snip))) return false
-    // Belt-and-suspenders: product(name:) even if quotes/spacing differ
     if (/\.product\s*\(\s*name:\s*"CapacitorPushNotifications"/i.test(line)) return false
     if (/\.package\s*\([^)]*CapacitorPushNotifications/i.test(line)) return false
     return true
   })
-  // Drop trailing commas left on the previous dependency/product line before `]`
   for (let i = 0; i < kept.length - 1; i++) {
     const next = kept[i + 1].trim()
     if (next === '],' || next === ']') {
@@ -118,8 +119,6 @@ function ensureLocalPackage(pkg, { name, path }) {
 function ensureProduct(pkg, { product, package: packageName }) {
   const line = `.product(name: "${product}", package: "${packageName}")`
   if (pkg.includes(line)) return pkg
-  // Cap sync may have left a node_modules-backed product; ensure ours exists
-  if (pkg.includes(`.product(name: "${product}", package: "${packageName}")`)) return pkg
   return pkg.replace(
     /\.product\(name: "Cordova", package: "capacitor-swift-pm"\)/,
     (match) => `${match},\n                ${line}`
@@ -143,8 +142,6 @@ function ensureLocalPackagesAndProducts(pkg) {
 
 const PLUGIN_FORCE_LINK_MARKER = '// CAP_PLUGIN_FORCE_LINK'
 
-// No IIFE (`}()`) — earlier templates stripped the closure but left stray `()` / `}()`,
-// which Xcode reports as top-level expression / consecutive-statement errors.
 const CAP_APP_SPM_FORCE_LINK_BLOCK = `public let isCapacitorApp: Bool = CapAppLocalPlugins.linkAndReturnTrue()
 
 ${PLUGIN_FORCE_LINK_MARKER}
@@ -188,7 +185,6 @@ function ensureCapAppSpmImports() {
     .replace(/^import CapacitorLocalNotifications\r?\n/gm, '')
     .replace(/^import CapacitorApp\r?\n/gm, '')
     .replace(/^import CapacitorAppLauncher\r?\n/gm, '')
-    // Never leave Push force-link / imports after package strip (dangling product deps)
     .replace(/^import\s+PushNotificationsPlugin\r?\n/gm, '')
     .replace(/^import\s+CapacitorPushNotifications\r?\n/gm, '')
     .replace(/^[ \t]*_\s*=\s*PushNotificationsPlugin\.self\r?\n/gm, '')
@@ -199,7 +195,6 @@ function ensureCapAppSpmImports() {
     }
   }
 
-  // Strip any previous isCapacitorApp / force-link definitions so re-runs stay idempotent.
   content = content
     .replace(/\r\n/g, '\n')
     .replace(
@@ -228,7 +223,7 @@ function ensureCapAppSpmImports() {
 
   if (content !== before) {
     writeFileSync(capAppSpmSwiftPath, content)
-    console.log('Patched CapApp-SPM.swift (imports + force-link including LocalNotifications + App + AppLauncher)')
+    console.log('Patched CapApp-SPM.swift (imports + force-link)')
     return true
   }
 
@@ -310,8 +305,6 @@ function stripPbxprojPush() {
   let pbx = readFileSync(pbxprojPath, 'utf8')
   const before = pbx
 
-  // Collect XCSwiftPackageProductDependency IDs for Push products, then drop
-  // both the block and any packageProductDependencies list entries.
   const pushProductIds = []
   pbx.replace(
     /([A-F0-9]{24}) \/\* ([^*]*PushNotifications[^*]*) \*\/ = \{\s*\n\s*isa = XCSwiftPackageProductDependency;[\s\S]*?productName = [^;]*;[\s\S]*?\n\s*\};/g,
@@ -332,7 +325,6 @@ function stripPbxprojPush() {
     pbx = pbx.replace(new RegExp(`[ \\t]*${id} \\/\\* [^*]* \\*\\/,?\\r?\\n`, 'g'), '')
   }
 
-  // Fallback: any remaining Push / push-notifications lines (package refs, comments)
   pbx = pbx.replace(/^[^\n]*PushNotifications[^\n]*\r?\n/gm, '')
   pbx = pbx.replace(/^[^\n]*push-notifications[^\n]*\r?\n/gm, '')
   pbx = pbx.replace(/^[^\n]*CapacitorPushNotifications[^\n]*\r?\n/gm, '')
@@ -357,19 +349,17 @@ if (existsSync(spmPackagePath)) {
   pkg = stripSpmLines(pkg)
   pkg = pkg.replace(/path: "([^"]*)"/g, (_, p) => `path: "${p.replace(/\\/g, '/')}"`)
   pkg = ensureLocalPackagesAndProducts(pkg)
-  // After ensure, strip again in case Cap sync re-added Push alongside LocalNotifications
   pkg = stripSpmLines(pkg)
   if (pkg !== before) {
     writeFileSync(spmPackagePath, pkg)
     console.log(
-      'Patched CapApp-SPM/Package.swift (stripped Push/StatusBar/Splash; Cap plugins → LocalPackages; local plugins; iOS 16+)'
+      'Patched CapApp-SPM/Package.swift (stripped unused plugins; reinjected first-party LocalPackages; iOS 16+)'
     )
     changed = true
   } else {
     console.log('CapApp-SPM/Package.swift already up to date')
   }
 
-  // Hard verify — never leave Push package OR dangling product in Package.swift
   const verify = readFileSync(spmPackagePath, 'utf8')
   const hasPushPackage = /\.package\s*\([^)]*CapacitorPushNotifications|push-notifications/i.test(verify)
   const hasPushProduct = /\.product\s*\(\s*name:\s*"CapacitorPushNotifications"/i.test(verify)
@@ -381,24 +371,18 @@ if (existsSync(spmPackagePath)) {
   } else {
     console.log('Verified: CapApp-SPM/Package.swift has no Push package or product')
   }
-  // Never compile unpatched official Cap plugins from node_modules (use LocalPackages)
-  const hasNodeModulesCapPlugin = /\.package\s*\([^)]*node_modules\/@capacitor\//i.test(verify)
-  if (hasNodeModulesCapPlugin) {
+
+  if (/LocalPackages\/Capacitor(App|AppLauncher|LocalNotifications)/.test(verify)) {
     console.error(
-      'ERROR: CapApp-SPM still references node_modules/@capacitor/* — vendor-patch or strip before build'
+      'ERROR: CapApp-SPM still points App/AppLauncher/LocalNotifications at LocalPackages — use node_modules stock plugins on Xcode 26+'
     )
     process.exitCode = 1
-  } else {
-    console.log('Verified: CapApp-SPM/Package.swift has no node_modules/@capacitor packages')
   }
-  if (!/LocalPackages\/CapacitorLocalNotifications/.test(verify)) {
-    console.warn('WARN: CapacitorLocalNotifications is not pointing at LocalPackages')
-  }
-  if (!/LocalPackages\/CapacitorApp"/.test(verify)) {
-    console.warn('WARN: CapacitorApp is not pointing at LocalPackages')
-  }
-  if (!/LocalPackages\/CapacitorAppLauncher/.test(verify)) {
-    console.warn('WARN: CapacitorAppLauncher is not pointing at LocalPackages')
+
+  for (const stock of STOCK_CAP_NODE_MODULES) {
+    if (!verify.includes(stock.pathSnippet) && !verify.includes(`"${stock.name}"`)) {
+      console.warn(`WARN: ${stock.name} missing from CapApp-SPM (expected after cap sync)`)
+    }
   }
 } else {
   console.log('No ios/App/CapApp-SPM/Package.swift — skip SPM patch')
@@ -420,7 +404,6 @@ if (stripPbxprojPush()) {
   changed = true
 }
 
-// Final cross-file guard: CapApp-SPM.swift + pbxproj must not reference Push either
 for (const [label, filePath] of [
   ['CapApp-SPM.swift', capAppSpmSwiftPath],
   ['project.pbxproj', pbxprojPath],
@@ -438,5 +421,5 @@ if (changed) {
 }
 
 console.log(
-  '\nNote: LocalNotifications + App + AppLauncher are vendored under ios/App/LocalPackages (Cap 8 SPM / RepLockPluginBridge). Push/StatusBar/Splash are stripped. Requires Xcode 26.0+.'
+  '\nNote: Stock @capacitor App/AppLauncher/LocalNotifications from node_modules. First-party LocalPackages reinjected. Push/StatusBar/Splash stripped. Requires Xcode 26.0+.'
 )

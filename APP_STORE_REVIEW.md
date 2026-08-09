@@ -39,7 +39,14 @@ JWT_SECRET=generate-a-long-random-secret
 REVENUECAT_WEBHOOK_SECRET=from-revenuecat-webhook-auth-header
 ```
 
-The server auto-creates this account on startup with onboarding complete and Pro enabled.
+On startup the server auto-creates/updates:
+
+1. An **Express JWT** review user (Pro + onboarding done) — used if the store build has **no** Firebase client config
+2. A **Firebase Auth** review user with the same email/password — used if `FIREBASE_SERVICE_ACCOUNT_JSON` (or ADC) is configured **and** the store build has `VITE_FIREBASE_*`
+
+If your archived app uses Firebase login, you **must** set Firebase Admin on the API host or reviewers cannot sign in with these credentials.
+
+Paste the same email/password into **App Review Information → Notes**.
 
 ---
 

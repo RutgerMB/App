@@ -10,7 +10,8 @@ import {
 import { DEFAULT_DAILY_OPENINGS, DEFAULT_MAX_DAILY_HOURS } from '../src/types/index.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const DATA_DIR = path.join(__dirname, 'data')
+/** Override with a Railway volume path (e.g. /data) so Pro entitlements survive redeploys. */
+const DATA_DIR = process.env.DATA_DIR?.trim() || path.join(__dirname, 'data')
 const USERS_FILE = path.join(DATA_DIR, 'users.json')
 
 export interface StoredUser {
@@ -114,6 +115,15 @@ export function updateUserAppState(userId: string, appState: AppState): StoredUs
   return db.users[idx]
 }
 
+export function updateUserPassword(userId: string, passwordHash: string): StoredUser | undefined {
+  const db = readDb()
+  const idx = db.users.findIndex((u) => u.id === userId)
+  if (idx === -1) return undefined
+  db.users[idx].passwordHash = passwordHash
+  writeDb(db)
+  return db.users[idx]
+}
+
 export function getEntitlement(userId: string): ProEntitlement | undefined {
   const user = findUserById(userId)
   if (!user) return undefined
@@ -173,9 +183,12 @@ function createEmptyAppState(name: string, email: string): AppState {
     currentStreak: 0,
     longestStreak: 0,
     lastExerciseDate: null,
+    lastLostStreak: 0,
     apps: [],
     sessions: [],
     workoutPlanSessions: [],
     usageHistory: [],
   }
 }
+
+export { createEmptyAppState }

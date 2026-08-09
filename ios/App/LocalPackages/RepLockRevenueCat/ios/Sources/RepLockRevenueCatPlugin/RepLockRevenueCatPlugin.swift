@@ -1,11 +1,9 @@
 import UIKit
 import Capacitor
 import RevenueCat
-import RepLockPluginBridge
 
-// Capacitor 8 SPM hides `reject` and CAPPluginCallError Swift inits on Xcode 15.x.
 private func repLockReject(_ call: CAPPluginCall, _ message: String, code: String? = nil) {
-    RepLockRejectPluginCall(call, message, code)
+    call.reject(message, code)
 }
 
 @MainActor

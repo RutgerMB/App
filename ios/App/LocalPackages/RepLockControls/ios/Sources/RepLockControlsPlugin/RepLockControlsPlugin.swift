@@ -1,14 +1,9 @@
 import UIKit
 import Capacitor
 import FamilyControls
-import RepLockPluginBridge
-
-// MARK: - Xcode 15.4 + Capacitor 8 SPM helpers
-// Capacitor 8 SPM hides `reject` and CAPPluginCallError Swift inits on Xcode 15.x.
-// RepLockPluginBridge constructs CAPPluginCallError via Obj-C init:message:code:error:data:.
 
 private func repLockReject(_ call: CAPPluginCall, _ message: String, code: String? = nil) {
-    RepLockRejectPluginCall(call, message, code)
+    call.reject(message, code)
 }
 
 private func repLockPresenter(for plugin: CAPPlugin) -> UIViewController? {
@@ -242,8 +237,7 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        // Cap 8 SPM on Xcode 15.x requires the two-arg getObject(_:_:); use options
-        // for optional presence (same pattern as RevenueCat optionalObject).
+        // Prefer options dictionary for nested JS objects (stable across Cap SPM versions).
         guard let raw = call.options["names"] as? JSObject else {
             repLockReject(call, "names object required")
             return
@@ -281,8 +275,7 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         Task { @MainActor in
-            // Cap 8 SPM on Xcode 15.x: getArray(_: String.self) is unavailable;
-            // parse via options like repLockRules(from:).
+            // Prefer options for token id arrays (stable across Cap SPM versions).
             guard let options = call.options["tokenIds"] as? [Any] else {
                 repLockReject(call, "tokenIds array required")
                 return
@@ -366,7 +359,6 @@ public class RepLockControlsPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        // Cap 8 SPM on Xcode 15.x requires the two-arg getBool(_:_:).
         // `force` is accepted for API compat but no longer re-hosts the report.
         _ = call.getBool("force", false)
         Task { @MainActor in
